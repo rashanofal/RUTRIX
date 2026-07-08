@@ -5,8 +5,8 @@ export const BRAND = {
   scientificAr: "منصة ذكاء البنية التحتية للطرق وإدارة الأصول",
   taglineEn: "Seeing roads. Guiding repair.",
   taglineAr: "نبصر الطريق. نقود الإصلاح.",
-  creatorEn: "With love — Rasha Nofal",
-  creatorAr: "بحب — رشا نوفل",
+  creatorEn: "Design: Dr. Rasha Nofal",
+  creatorAr: "تصميم د / رشا نوفل",
 };
 
 export const colors = {

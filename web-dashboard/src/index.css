@@ -1616,11 +1616,6 @@ body {
   width: fit-content;
 }
 
-.creator-credit::before {
-  content: "❤";
-  color: #ff6b9d;
-  font-size: 0.85rem;
-}
 
 .feature-list {
   list-style: none;
