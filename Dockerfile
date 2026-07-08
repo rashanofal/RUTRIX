@@ -13,14 +13,16 @@ FROM python:3.11-slim
 WORKDIR /app
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    libgl1 libglib2.0-0 libgomp1 \
+    libgl1 libglib2.0-0 libgomp1 curl fonts-dejavu-core \
     && rm -rf /var/lib/apt/lists/*
 
 COPY backend/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY backend/app ./app
-COPY ml/models ./ml/models
+RUN mkdir -p ml/models \
+    && curl -fsSL -o ml/models/pothole_yolov8n.pt \
+      "https://github.com/rashanofal/RUTRIX/raw/main/ml/models/pothole_yolov8n.pt"
 COPY --from=dashboard /dash/dist ./app/static/dashboard
 
 RUN mkdir -p /app/data/uploads /app/data/training /tmp/uploads /tmp/training /tmp/hf_cache
