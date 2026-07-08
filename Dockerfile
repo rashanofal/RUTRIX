@@ -23,17 +23,19 @@ COPY backend/app ./app
 COPY ml/models ./ml/models
 COPY --from=dashboard /dash/dist ./app/static/dashboard
 
-RUN mkdir -p /app/data/uploads /app/data/training
+RUN mkdir -p /app/data/uploads /app/data/training /tmp/uploads /tmp/training /tmp/hf_cache
 
 ENV PYTHONPATH=/app
 ENV PORT=8000
-ENV DATABASE_URL=sqlite:////app/data/pothole.db
+ENV HF_HOME=/tmp/hf_cache
+ENV TORCH_HOME=/tmp/hf_cache/torch
+ENV DATABASE_URL=sqlite:////tmp/pothole.db
 ENV MODEL_PATH=/app/ml/models/pothole_yolov8n.pt
-ENV UPLOAD_DIR=/app/data/uploads
-ENV TRAINING_DIR=/app/data/training
+ENV UPLOAD_DIR=/tmp/uploads
+ENV TRAINING_DIR=/tmp/training
 ENV CORS_ORIGINS=*
 ENV SEED_DEMO_ACCOUNT=true
 
 EXPOSE 8000
 
-    CMD ["sh", "-c", "uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}"]
+CMD ["sh", "-c", "uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}"]
