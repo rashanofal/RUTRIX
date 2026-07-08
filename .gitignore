@@ -30,10 +30,14 @@ ml/models/*
 # Brand hero images (~2MB each) — download during Docker/HF build from GitHub
 web-dashboard/public/brand/*.png
 !web-dashboard/public/brand/.gitkeep
+!web-dashboard/public/brand/logo.png
+!web-dashboard/public/brand/logo-mark.png
 
-# Source hero dumps at project root (use web-dashboard/public/brand after compress if needed)
+# Source brand dumps at project root (compressed copies live under public/brand + static)
 /img.png
 /img2.png
+/logo.png
+/logo-source.png
 
 # Nested mobile git from EAS init (monorepo uses root only)
 edge-sdk/

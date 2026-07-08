@@ -57,15 +57,14 @@ export default function AppShell({
       <div className="app-main">
         <header className="app-topbar">
           <div className="topbar-brand">
+            <BrandLogo size="md" />
             {page === "overview" ? (
               <div className="topbar-brand-stack">
-                <h1 className="topbar-platform">{t.brand}</h1>
                 <p className="topbar-scientific">{t.brandSub}</p>
                 {t.tagline ? <p className="topbar-tagline">{t.tagline}</p> : null}
               </div>
             ) : (
               <div className="topbar-brand-text">
-                <h1 className="topbar-platform">{t.brand}</h1>
                 <span className="topbar-sep" aria-hidden>·</span>
                 <span className="topbar-page">{t[`pageTitle_${page}`]}</span>
               </div>

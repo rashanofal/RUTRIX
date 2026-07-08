@@ -142,6 +142,22 @@ def mobile_page():
     return _static_page("mobile.html")
 
 
+@app.get("/logo.png")
+def brand_logo():
+    path = STATIC_DIR / "logo.png"
+    if not path.is_file():
+        raise HTTPException(status_code=404, detail="Logo not found")
+    return FileResponse(path)
+
+
+@app.get("/logo-mark.png")
+def brand_logo_mark():
+    path = STATIC_DIR / "logo-mark.png"
+    if not path.is_file():
+        raise HTTPException(status_code=404, detail="Logo not found")
+    return FileResponse(path)
+
+
 def _is_mobile_client(request: Request) -> bool:
     ua = request.headers.get("user-agent", "").lower()
     return any(k in ua for k in ("iphone", "ipad", "ipod", "android", "mobile"))

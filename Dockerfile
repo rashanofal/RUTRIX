@@ -4,11 +4,18 @@ WORKDIR /dash
 COPY web-dashboard/package.json web-dashboard/package-lock.json* ./
 RUN npm install --omit=dev=false
 COPY web-dashboard/ .
+# Heroes are large; download if missing. Logos ship in the repo.
 RUN mkdir -p public/brand \
-    && curl -fsSL -o public/brand/hero-ar.png \
-      "https://github.com/rashanofal/RUTRIX/raw/main/web-dashboard/public/brand/hero-ar.png" \
-    && curl -fsSL -o public/brand/hero-en.png \
-      "https://github.com/rashanofal/RUTRIX/raw/main/web-dashboard/public/brand/hero-en.png"
+    && if [ ! -s public/brand/hero-ar.png ]; then \
+         curl -fsSL -o public/brand/hero-ar.png \
+           "https://github.com/rashanofal/RUTRIX/raw/main/web-dashboard/public/brand/hero-ar.png"; \
+       fi \
+    && if [ ! -s public/brand/hero-en.png ]; then \
+         curl -fsSL -o public/brand/hero-en.png \
+           "https://github.com/rashanofal/RUTRIX/raw/main/web-dashboard/public/brand/hero-en.png"; \
+       fi \
+    && test -s public/brand/logo.png \
+    && test -s public/brand/logo-mark.png
 ENV VITE_API_URL=
 RUN npm run build
 
@@ -27,7 +34,9 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY backend/app ./app
 RUN mkdir -p ml/models \
     && curl -fsSL -o ml/models/pothole_yolov8n.pt \
-      "https://github.com/rashanofal/RUTRIX/raw/main/ml/models/pothole_yolov8n.pt"
+      "https://github.com/rashanofal/RUTRIX/raw/main/ml/models/pothole_yolov8n.pt" \
+    && test -s app/static/logo.png \
+    && test -s app/static/logo-mark.png
 COPY --from=dashboard /dash/dist ./app/static/dashboard
 
 RUN mkdir -p /app/data/uploads /app/data/training /tmp/uploads /tmp/training /tmp/hf_cache

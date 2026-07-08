@@ -454,9 +454,8 @@ body {
   box-shadow: 0 8px 24px rgba(61, 213, 255, 0.2);
 }
 
-.rutrix-logo__hex {
-  background: var(--gradient-brand);
-  box-shadow: 0 8px 32px rgba(61, 213, 255, 0.25);
+.rutrix-logo__img {
+  box-shadow: none;
 }
 
 /* ─── Intelligence / ops panels ─── */

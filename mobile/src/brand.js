@@ -5,8 +5,8 @@ export const BRAND = {
   scientificAr: "منصة ذكاء البنية التحتية للطرق وإدارة الأصول",
   taglineEn: "Seeing roads. Guiding repair.",
   taglineAr: "نبصر الطريق. نقود الإصلاح.",
-  creatorEn: "Design: Dr. Rasha Nofal",
-  creatorAr: "تصميم د / رشا نوفل",
+  creatorEn: "RUTRIX © 2026 • by Dr. Rasha Nofal",
+  creatorAr: "RUTRIX © 2026 • بواسطة د. رشا نوفل",
 };
 
 export const colors = {

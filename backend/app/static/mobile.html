@@ -214,17 +214,25 @@
       font-family: inherit;
       backdrop-filter: blur(12px);
     }
-    .brand-hex {
-      display: inline-flex; width: 58px; height: 58px; align-items: center; justify-content: center;
-      background: var(--gradient-brand);
-      color: #02040a;
-      font-weight: 900; font-size: 1.5rem;
-      border-radius: 16px;
-      margin-bottom: 0.65rem;
-      box-shadow: 0 10px 32px rgba(46, 230, 255, 0.35);
+    .brand-logo {
+      display: block;
+      height: 58px;
+      width: auto;
+      max-width: min(86vw, 320px);
+      object-fit: contain;
+      background: transparent;
+      border-radius: 0;
+      margin-bottom: 0.75rem;
+      margin-inline: auto;
+      filter: drop-shadow(0 8px 18px rgba(46, 230, 255, 0.22));
     }
-    .brand-hex.sm {
-      width: 44px; height: 44px; font-size: 1.15rem; border-radius: 13px; margin-bottom: 0;
+    .brand-logo.sm {
+      width: auto;
+      height: 34px;
+      max-width: min(55vw, 180px);
+      margin-bottom: 0;
+      margin-inline: 0;
+      filter: drop-shadow(0 4px 12px rgba(46, 230, 255, 0.28));
     }
     .scientific { font-size: 0.74rem; color: #c4b5fd; line-height: 1.55; margin-top: 0.4rem; max-width: 18rem; margin-inline: auto; }
     .creator-credit {
@@ -253,6 +261,10 @@
       font-size: 0.72rem; font-weight: 800; letter-spacing: 0.06em;
       text-transform: uppercase; color: var(--muted); margin-bottom: 0.65rem;
     }
+    .sr-only {
+      position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+      overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0;
+    }
   </style>
 </head>
 <body>
@@ -260,8 +272,8 @@
 
   <div id="loginView">
     <div class="hero">
-      <div class="brand-hex">R</div>
-      <h1 id="brandTitle">روتريكس</h1>
+      <img class="brand-logo" src="/logo.png?v=4" alt="RUTRIX" />
+      <h1 id="brandTitle" class="sr-only">روتريكس</h1>
       <p class="scientific" id="brandSub">منصة ذكاء البنية التحتية للطرق وإدارة الأصول</p>
       <p class="sub" id="loginSub">تطبيق ميداني — RUTRIX</p>
     </div>
@@ -275,15 +287,15 @@
     <div class="install-hint">
       ثبّت كتطبيق: Safari ← مشاركة ← إضافة إلى الشاشة الرئيسية
     </div>
-    <p class="creator-credit" id="creatorCredit">تصميم د / رشا نوفل</p>
+    <p class="creator-credit" id="creatorCredit">RUTRIX © 2026 • بواسطة د. رشا نوفل</p>
   </div>
 
   <div id="appView" class="hidden">
     <div class="header">
       <div class="header-brand">
-        <div class="brand-hex sm">R</div>
+        <img class="brand-logo sm" src="/logo.png?v=4" alt="RUTRIX" />
         <div>
-          <h1 id="appBrand">روتريكس</h1>
+          <h1 id="appBrand" class="sr-only">روتريكس</h1>
           <p class="sub" id="orgName">—</p>
         </div>
       </div>
@@ -353,7 +365,7 @@
       ar: {
         dir: "rtl", lang: "EN", brand: "روتريكس",
         scientific: "منصة ذكاء البنية التحتية للطرق وإدارة الأصول",
-        creator: "تصميم د / رشا نوفل",
+        creator: "RUTRIX © 2026 • بواسطة د. رشا نوفل",
         loginSub: "تطبيق ميداني — RUTRIX", login: "دخول", photo: "صورة", pothole: "حفرة",
         connected: "متصل بالسيرفر", offline: "غير متصل",
         tabCamera: "تصوير", tabMap: "الخريطة", delete: "حذف الصورة",
@@ -379,7 +391,7 @@
       en: {
         dir: "ltr", lang: "ع", brand: "RUTRIX",
         scientific: "Road Infrastructure Intelligence & Asset Management Platform",
-        creator: "Design: Dr. Rasha Nofal",
+        creator: "RUTRIX © 2026 • by Dr. Rasha Nofal",
         loginSub: "Field App — RUTRIX", login: "Sign In", photo: "Photo", pothole: "Pothole",
         connected: "Connected", offline: "Offline",
         tabCamera: "Capture", tabMap: "Map", delete: "Delete image",

@@ -316,52 +316,31 @@ body {
 .rutrix-logo {
   position: relative;
   flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .rutrix-logo__ring {
-  position: absolute;
-  inset: -4px;
-  border-radius: 18px;
-  background: var(--gradient-brand);
-  opacity: 0.55;
-  filter: blur(8px);
-  animation: logoPulse 3s ease-in-out infinite;
+  display: none;
 }
 
-@keyframes logoPulse {
-  0%, 100% { opacity: 0.4; transform: scale(0.98); }
-  50% { opacity: 0.75; transform: scale(1.02); }
-}
-
-.rutrix-logo__hex {
+.rutrix-logo__img {
   position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 56px;
-  height: 56px;
-  border-radius: 18px;
-  background: var(--gradient-brand);
-  color: #02040a;
-  font-weight: 900;
-  font-size: 1.55rem;
-  font-family: var(--font-display);
-  box-shadow:
-    0 12px 36px rgba(46, 230, 255, 0.35),
-    0 0 0 1px rgba(255, 255, 255, 0.12) inset;
+  display: block;
+  height: 40px;
+  width: auto;
+  object-fit: contain;
+  background: transparent;
+  border-radius: 0;
+  box-shadow: none;
+  filter: drop-shadow(0 6px 14px rgba(46, 230, 255, 0.2));
 }
 
-.rutrix-logo--lg .rutrix-logo__hex {
-  width: 72px;
+.rutrix-logo--lg .rutrix-logo__img {
   height: 72px;
-  font-size: 2rem;
-  border-radius: 20px;
-  margin-bottom: 1.25rem;
-}
-
-.rutrix-logo--lg .rutrix-logo__ring {
-  inset: -6px;
-  border-radius: 24px;
+  width: auto;
+  margin-bottom: 0.85rem;
 }
 
 .brand-name {
@@ -2425,23 +2404,20 @@ body {
   border: none;
   background: none;
   cursor: pointer;
-  border-radius: 16px;
-  transition: transform 0.2s, box-shadow 0.2s;
+  border-radius: 14px;
+  transition: transform 0.2s;
+  display: flex;
+  justify-content: center;
 }
 
 .nav-rail-brand:hover {
-  transform: scale(1.04);
+  transform: scale(1.05);
 }
 
-.rutrix-logo--sm .rutrix-logo__hex {
-  width: 2.35rem;
-  height: 2.35rem;
-  font-size: 1.05rem;
-}
-
-.rutrix-logo--sm .rutrix-logo__ring {
-  width: 2.85rem;
-  height: 2.85rem;
+.rutrix-logo--sm .rutrix-logo__img {
+  width: 2.6rem;
+  height: 2.6rem;
+  filter: drop-shadow(0 4px 12px rgba(46, 230, 255, 0.28));
 }
 
 .nav-rail-items {
@@ -2519,6 +2495,7 @@ body {
 .topbar-brand {
   display: flex;
   align-items: center;
+  gap: 0.85rem;
   min-width: 0;
 }
 
@@ -3173,11 +3150,13 @@ body {
 
 @media (max-width: 768px) {
   .app-nav-rail { width: 64px; }
+  .rutrix-logo--sm .rutrix-logo__img { width: 2.1rem; height: 2.1rem; }
   .nav-rail-label { display: none; }
   .nav-rail-btn { padding: 0.65rem 0.25rem; }
   .topbar-page { max-width: 100px; }
   .topbar-org-pill { display: none; }
   .app-topbar { padding: 0.75rem 1rem; }
   .app-page { padding: 1rem; }
+  .rutrix-logo--md .rutrix-logo__img { height: 32px; }
 }
 
