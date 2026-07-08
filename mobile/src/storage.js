@@ -26,5 +26,5 @@ export function detectApiUrl() {
   if (host && !["localhost", "127.0.0.1"].includes(host)) {
     return `http://${host}:8000`;
   }
-  return "https://pothole-detection.onrender.com";
+  return "https://rashanofal8-rutrix.hf.space";
 }

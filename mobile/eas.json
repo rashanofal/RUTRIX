@@ -18,7 +18,7 @@
         "resourceClass": "m-medium"
       },
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://pothole-detection.onrender.com"
+        "EXPO_PUBLIC_API_URL": "https://rashanofal8-rutrix.hf.space"
       }
     },
     "preview-ios": {
@@ -33,7 +33,7 @@
         "resourceClass": "m-medium"
       },
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://pothole-detection.onrender.com"
+        "EXPO_PUBLIC_API_URL": "https://rashanofal8-rutrix.hf.space"
       }
     }
   },
