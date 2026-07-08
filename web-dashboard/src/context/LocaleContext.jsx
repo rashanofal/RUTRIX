@@ -2,18 +2,18 @@ import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { translations } from "../i18n/translations";
 
 const LocaleContext = createContext(null);
-const STORAGE_KEY = "rutrix_locale";
+const STORAGE_KEY = "rutrix_locale_v2";
 
 export function LocaleProvider({ children }) {
   const [locale, setLocale] = useState(() => {
     try {
-      return localStorage.getItem(STORAGE_KEY) || "ar";
+      return localStorage.getItem(STORAGE_KEY) || "en";
     } catch {
-      return "ar";
+      return "en";
     }
   });
 
-  const t = translations[locale] || translations.ar;
+  const t = translations[locale] || translations.en;
 
   useEffect(() => {
     document.documentElement.lang = locale;

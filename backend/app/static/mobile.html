@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="en" dir="ltr">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
@@ -251,6 +251,16 @@
       border: 1px solid rgba(255, 107, 157, 0.35);
       white-space: nowrap;
     }
+    .creator-credit.app-credit {
+      position: static;
+      left: auto;
+      bottom: auto;
+      transform: none;
+      display: block;
+      width: fit-content;
+      margin: 0.85rem auto 0.35rem;
+      font-size: 0.72rem;
+    }
     .popup-del {
       margin-top: 0.65rem; width: 100%; padding: 0.55rem; border-radius: 10px;
       border: 1px solid rgba(248,113,113,0.35); background: rgba(127,29,29,0.45);
@@ -268,39 +278,39 @@
   </style>
 </head>
 <body>
-  <button type="button" class="lang-btn" id="langBtn">EN</button>
+  <button type="button" class="lang-btn" id="langBtn">ع</button>
 
   <div id="loginView">
     <div class="hero">
-      <img class="brand-logo" src="/logo.png?v=4" alt="RUTRIX" />
-      <h1 id="brandTitle" class="sr-only">روتريكس</h1>
-      <p class="scientific" id="brandSub">منصة ذكاء البنية التحتية للطرق وإدارة الأصول</p>
-      <p class="sub" id="loginSub">تطبيق ميداني — RUTRIX</p>
+      <img class="brand-logo" src="/static/logo.png?v=5" alt="RUTRIX" width="280" height="75" />
+      <h1 id="brandTitle" class="sr-only">RUTRIX</h1>
+      <p class="scientific" id="brandSub">Road Infrastructure Intelligence & Asset Management Platform</p>
+      <p class="sub" id="loginSub">Field App — RUTRIX</p>
     </div>
     <div class="card">
-      <p class="sub" style="margin-bottom:0.75rem">سجّل الدخول</p>
-      <div class="field"><input type="email" id="email" value="demo@pothole.app" placeholder="البريد" /></div>
-      <div class="field"><input type="password" id="password" value="demo1234" placeholder="كلمة المرور" /></div>
-      <button class="btn btn-primary" id="loginBtn">دخول</button>
+      <p class="sub" style="margin-bottom:0.75rem" id="loginCardTitle">Sign in</p>
+      <div class="field"><input type="email" id="email" value="demo@pothole.app" placeholder="Email" /></div>
+      <div class="field"><input type="password" id="password" value="demo1234" placeholder="Password" /></div>
+      <button class="btn btn-primary" id="loginBtn">Sign In</button>
       <p id="loginMsg" class="err" style="margin-top:0.75rem;text-align:center"></p>
     </div>
-    <div class="install-hint">
-      ثبّت كتطبيق: Safari ← مشاركة ← إضافة إلى الشاشة الرئيسية
+    <div class="install-hint" id="installHint">
+      Install as app: Safari → Share → Add to Home Screen
     </div>
-    <p class="creator-credit" id="creatorCredit">RUTRIX © 2026 • بواسطة د. رشا نوفل</p>
+    <p class="creator-credit" id="creatorCredit">RUTRIX © 2026 • by Dr. Rasha Nofal</p>
   </div>
 
   <div id="appView" class="hidden">
     <div class="header">
       <div class="header-brand">
-        <img class="brand-logo sm" src="/logo.png?v=4" alt="RUTRIX" />
+        <img class="brand-logo sm" src="/static/logo.png?v=5" alt="RUTRIX" width="160" height="42" />
         <div>
-          <h1 id="appBrand" class="sr-only">روتريكس</h1>
+          <h1 id="appBrand" class="sr-only">RUTRIX</h1>
           <p class="sub" id="orgName">—</p>
         </div>
       </div>
       <div class="chip-row">
-        <div class="chip" id="statusChip"><span class="dot"></span> متصل</div>
+        <div class="chip" id="statusChip"><span class="dot"></span> Connected</div>
         <div class="chip gps-warn hidden" id="gpsChip"><span class="dot"></span> GPS</div>
       </div>
     </div>
@@ -308,36 +318,37 @@
     <div id="cameraTab">
       <div class="card">
         <div class="tip" id="gpsTip">
-          للموقع على الخريطة: افتح الرابط الآمن (https) واسمح بالموقع عند الطلب.
+          Camera photos have no GPS — allow location before capture (see «Location ready» badge).
         </div>
   <a class="btn btn-primary hidden" id="secureLink" href="#" style="margin-bottom:0.75rem;text-decoration:none;display:block;text-align:center">
-          🔒 فتح HTTPS للموقع GPS
+          🔒 Open HTTPS for GPS location
         </a>
         <button type="button" class="btn btn-primary hidden" id="enableGpsBtn" style="margin-bottom:0.75rem">
-          📍 تفعيل الموقع
+          📍 Enable location
         </button>
-        <p class="section-title" id="captureSection">التصوير الميداني</p>
-        <label class="btn btn-camera" for="cameraInput" id="cameraLabel">تصوير بالكاميرا</label>
+        <p class="section-title" id="captureSection">Field capture</p>
+        <label class="btn btn-camera" for="cameraInput" id="cameraLabel">Camera capture</label>
         <input type="file" id="cameraInput" class="hidden" accept="image/*" capture="environment" />
-        <label class="btn btn-album">
-          اختيار من الألبوم
+        <label class="btn btn-album" id="albumLabel">
+          Choose from album
           <input type="file" id="albumInput" accept="image/*" />
         </label>
         <p id="msg"></p>
-        <button type="button" class="btn btn-album hidden" id="skipLocBtn" style="margin-top:0.5rem">تخطي</button>
+        <button type="button" class="btn btn-album hidden" id="skipLocBtn" style="margin-top:0.5rem">Skip</button>
       </div>
       <div class="card">
-        <p class="sub">الموقع من GPS داخل الصورة أو من الجهاز عند الحاجة</p>
-        <a class="link-map" id="pcMapLink" href="#" target="_blank" rel="noopener">الخريطة الكاملة على الكمبيوتر</a>
+        <p class="sub" id="gpsNote">Location from image GPS or device when needed</p>
+        <a class="link-map" id="pcMapLink" href="#" target="_blank" rel="noopener">Full map on computer</a>
       </div>
-      <button class="btn btn-logout" id="logoutBtn">تسجيل الخروج</button>
+      <button class="btn btn-logout" id="logoutBtn">Logout</button>
+      <p class="creator-credit app-credit" id="appCreatorCredit">RUTRIX © 2026 • by Dr. Rasha Nofal</p>
     </div>
 
     <div id="mapTab" class="hidden">
       <div class="card">
-        <p class="sub">نقاط الكشف على الخريطة</p>
+        <p class="sub" id="mapCardTitle">Detection points on the map</p>
         <div id="map"></div>
-        <p id="mapEmpty" class="empty-map hidden">لا توجد نقاط بعد — صوّر صورة مع السماح بالموقع</p>
+        <p id="mapEmpty" class="empty-map hidden">No points yet — capture with location enabled</p>
       </div>
     </div>
 
@@ -346,13 +357,13 @@
         <span class="tab-icon" aria-hidden>
           <svg viewBox="0 0 24 24"><path d="M4 7V5a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v2"/><rect x="4" y="7" width="16" height="13" rx="2"/><circle cx="12" cy="13.5" r="3.2"/></svg>
         </span>
-        <span class="tab-label" id="tabCameraLabel">تصوير</span>
+        <span class="tab-label" id="tabCameraLabel">Capture</span>
       </button>
       <button class="tab" data-tab="map" type="button">
         <span class="tab-icon" aria-hidden>
           <svg viewBox="0 0 24 24"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2Z"/><path d="M9 4v14M15 6v14"/></svg>
         </span>
-        <span class="tab-label" id="tabMapLabel">الخريطة</span>
+        <span class="tab-label" id="tabMapLabel">Map</span>
       </button>
     </nav>
   </div>
@@ -360,13 +371,14 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script>
     const AUTH_KEY = "pothole_auth";
-    const LOCALE_KEY = "rutrix_locale";
+    const LOCALE_KEY = "rutrix_locale_v2";
     const I18N = {
       ar: {
         dir: "rtl", lang: "EN", brand: "روتريكس",
         scientific: "منصة ذكاء البنية التحتية للطرق وإدارة الأصول",
         creator: "RUTRIX © 2026 • بواسطة د. رشا نوفل",
-        loginSub: "تطبيق ميداني — RUTRIX", login: "دخول", photo: "صورة", pothole: "حفرة",
+        loginSub: "تطبيق ميداني — RUTRIX", login: "دخول", loginCard: "سجّل الدخول",
+        photo: "صورة", pothole: "حفرة",
         connected: "متصل بالسيرفر", offline: "غير متصل",
         tabCamera: "تصوير", tabMap: "الخريطة", delete: "حذف الصورة",
         deleteConfirm: "حذف هذه الصورة من الخريطة؟",
@@ -387,12 +399,16 @@
         gpsDenied: "الموقع مرفوض",
         enableGps: "تفعيل الموقع",
         prepCamera: "تجهيز الموقع قبل التصوير...",
+        installHint: "ثبّت كتطبيق: Safari ← مشاركة ← إضافة إلى الشاشة الرئيسية",
+        emailPh: "البريد",
+        passPh: "كلمة المرور",
       },
       en: {
         dir: "ltr", lang: "ع", brand: "RUTRIX",
         scientific: "Road Infrastructure Intelligence & Asset Management Platform",
         creator: "RUTRIX © 2026 • by Dr. Rasha Nofal",
-        loginSub: "Field App — RUTRIX", login: "Sign In", photo: "Photo", pothole: "Pothole",
+        loginSub: "Field App — RUTRIX", login: "Sign In", loginCard: "Sign in",
+        photo: "Photo", pothole: "Pothole",
         connected: "Connected", offline: "Offline",
         tabCamera: "Capture", tabMap: "Map", delete: "Delete image",
         deleteConfirm: "Delete this image from the map?",
@@ -411,10 +427,13 @@
         gpsDenied: "Location denied",
         enableGps: "Enable location",
         prepCamera: "Preparing location before capture...",
+        installHint: "Install as app: Safari → Share → Add to Home Screen",
+        emailPh: "Email",
+        passPh: "Password",
       },
     };
-    let locale = localStorage.getItem(LOCALE_KEY) || "ar";
-    function t() { return I18N[locale] || I18N.ar; }
+    let locale = localStorage.getItem(LOCALE_KEY) || "en";
+    function t() { return I18N[locale] || I18N.en; }
     function applyLocale() {
       const tr = t();
       document.documentElement.lang = locale;
@@ -428,8 +447,18 @@
       if (sub) sub.textContent = tr.scientific;
       const credit = document.getElementById("creatorCredit");
       if (credit) credit.textContent = tr.creator;
+      const appCredit = document.getElementById("appCreatorCredit");
+      if (appCredit) appCredit.textContent = tr.creator;
       const ls = document.getElementById("loginSub");
       if (ls) ls.textContent = tr.loginSub;
+      const lct = document.getElementById("loginCardTitle");
+      if (lct) lct.textContent = tr.loginCard;
+      const ih = document.getElementById("installHint");
+      if (ih) ih.textContent = tr.installHint;
+      const email = document.getElementById("email");
+      if (email) email.placeholder = tr.emailPh;
+      const pass = document.getElementById("password");
+      if (pass) pass.placeholder = tr.passPh;
       document.getElementById("loginBtn").textContent = tr.login;
       document.getElementById("logoutBtn").textContent = tr.logout;
       const tabCam = document.getElementById("tabCameraLabel");

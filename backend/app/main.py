@@ -142,20 +142,33 @@ def mobile_page():
     return _static_page("mobile.html")
 
 
-@app.get("/logo.png")
-def brand_logo():
-    path = STATIC_DIR / "logo.png"
+def _brand_file(name: str) -> FileResponse:
+    path = STATIC_DIR / name
     if not path.is_file():
         raise HTTPException(status_code=404, detail="Logo not found")
-    return FileResponse(path)
+    resp = FileResponse(path, media_type="image/png")
+    resp.headers["Cache-Control"] = "public, max-age=86400"
+    return resp
+
+
+@app.get("/logo.png")
+def brand_logo():
+    return _brand_file("logo.png")
 
 
 @app.get("/logo-mark.png")
 def brand_logo_mark():
-    path = STATIC_DIR / "logo-mark.png"
-    if not path.is_file():
-        raise HTTPException(status_code=404, detail="Logo not found")
-    return FileResponse(path)
+    return _brand_file("logo-mark.png")
+
+
+@app.get("/static/logo.png")
+def brand_logo_static():
+    return _brand_file("logo.png")
+
+
+@app.get("/static/logo-mark.png")
+def brand_logo_mark_static():
+    return _brand_file("logo-mark.png")
 
 
 def _is_mobile_client(request: Request) -> bool:
@@ -201,8 +214,12 @@ def dashboard_spa_fallback(spa_path: str):
         raise HTTPException(status_code=404, detail="Not found")
     if spa_path in ("mobile", "ws", "ws/detections"):
         raise HTTPException(status_code=404, detail="Not found")
-    if spa_path.startswith("api/uploads/"):
+    if spa_path.startswith("api/uploads/") or spa_path.startswith("static/"):
         raise HTTPException(status_code=404, detail="Not found")
+
+    brand_name = Path(spa_path).name
+    if brand_name in ("logo.png", "logo-mark.png") and (STATIC_DIR / brand_name).is_file():
+        return _brand_file(brand_name)
 
     if not (DASHBOARD_DIR / "index.html").is_file():
         raise HTTPException(status_code=404, detail="Not found")

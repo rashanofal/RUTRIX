@@ -3,10 +3,10 @@ import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { translations } from "./i18n";
 
 const LocaleContext = createContext(null);
-const KEY = "rutrix_locale";
+const KEY = "rutrix_locale_v2";
 
 export function LocaleProvider({ children }) {
-  const [locale, setLocale] = useState("ar");
+  const [locale, setLocale] = useState("en");
 
   useEffect(() => {
     AsyncStorage.getItem(KEY).then((v) => {
@@ -20,7 +20,7 @@ export function LocaleProvider({ children }) {
     await AsyncStorage.setItem(KEY, next);
   };
 
-  const t = translations[locale] || translations.ar;
+  const t = translations[locale] || translations.en;
   const value = useMemo(() => ({ locale, t, toggleLocale }), [locale, t]);
 
   return <LocaleContext.Provider value={value}>{children}</LocaleContext.Provider>;
