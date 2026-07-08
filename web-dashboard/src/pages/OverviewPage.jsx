@@ -12,12 +12,17 @@ const QUICK_LINKS = [
 ];
 
 export default function OverviewPage({ stats, detections, selectedId, onSelect, onNavigate }) {
-  const { t } = useLocale();
+  const { t, locale } = useLocale();
   const recent = detections.slice(0, 6);
   const pinned = detections.filter((d) => d.latitude != null).length;
+  const heroSrc = locale === "en" ? "/brand/hero-en.png" : "/brand/hero-ar.png";
 
   return (
     <div className="page-overview">
+      <div className="overview-banner">
+        <img src={heroSrc} alt={t.brand} className="overview-banner-image" key={heroSrc} />
+      </div>
+
       <div className="page-hero">
         <div className="page-hero-text">
           <h2>{t.overviewWelcome}</h2>

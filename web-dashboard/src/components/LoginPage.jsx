@@ -1,11 +1,11 @@
 import { useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import { useLocale } from "../context/LocaleContext";
-import LangToggle, { BrandLogo } from "./LangToggle";
+import LangToggle from "./LangToggle";
 
 export default function LoginPage() {
   const { login, register } = useAuth();
-  const { t } = useLocale();
+  const { t, locale } = useLocale();
   const [mode, setMode] = useState("login");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -15,6 +15,8 @@ export default function LoginPage() {
     full_name: "",
     organization_name: "",
   });
+
+  const heroSrc = locale === "en" ? "/brand/hero-en.png" : "/brand/hero-ar.png";
 
   const submit = async (e) => {
     e.preventDefault();
@@ -35,19 +37,13 @@ export default function LoginPage() {
 
   return (
     <div className="login-page">
-      <div className="login-hero">
-        <BrandLogo size="lg" />
-        <h1>{t.brand}</h1>
-        <p className="scientific-name">{t.brandSub}</p>
-        {t.tagline ? <p className="tagline">{t.tagline}</p> : null}
-        <ul className="feature-list">
-          {t.features.map((f) => (
-            <li key={f.text}>
-              <span className="feature-icon">{f.icon}</span>
-              <span>{f.text}</span>
-            </li>
-          ))}
-        </ul>
+      <div className="login-hero login-hero-visual">
+        <img
+          src={heroSrc}
+          alt={t.brand}
+          className="login-hero-image"
+          key={heroSrc}
+        />
       </div>
 
       <div className="login-panel">

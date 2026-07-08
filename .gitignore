@@ -30,6 +30,10 @@ ml/models/*
 # Nested mobile git from EAS init (monorepo uses root only)
 mobile/.git/
 
+# Source hero dumps at project root (canonical copies live in web-dashboard/public/brand)
+/img.png
+/img2.png
+
 # Dev-only (local, not pushed to GitHub)
 edge-sdk/
 ml/active_retrain.py
