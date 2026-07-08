@@ -1,5 +1,40 @@
 const R_EARTH = 6371000;
 
+function imageGroupKey(d) {
+  return d.image_path || d.image_url || `id:${d.id}`;
+}
+
+const SEV_RANK = { low: 1, medium: 2, high: 3, critical: 4 };
+
+/** One map pin per uploaded image (not one pin per detected pothole). */
+export function groupDetectionsForMap(detections) {
+  const groups = new Map();
+  for (const d of detections || []) {
+    if (d.latitude == null || d.longitude == null) continue;
+    if (d.location_status === "uncertain") continue;
+    const key = imageGroupKey(d);
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key).push(d);
+  }
+
+  return [...groups.values()].map((items) => {
+    const holes = items.filter((d) => d.class_name !== "photo");
+    const representatives = holes.length ? holes : items;
+    const representative = [...representatives].sort((a, b) => {
+      const sev = (SEV_RANK[b.severity] || 0) - (SEV_RANK[a.severity] || 0);
+      if (sev) return sev;
+      return (b.rut_score || 0) - (a.rut_score || 0) || (b.confidence || 0) - (a.confidence || 0);
+    })[0];
+
+    return {
+      ...representative,
+      pothole_count: holes.length,
+      group_ids: items.map((d) => d.id),
+      group_items: items,
+    };
+  });
+}
+
 export function rutHeatColor(score) {
   const s = Number(score) || 0;
   if (s >= 65) return "#dc2626";

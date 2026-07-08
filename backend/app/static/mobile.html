@@ -745,9 +745,35 @@
     }
 
     function markerColor(d) {
-      if (d.class_name === "photo") return "#3b82f6";
+      const holes = d.pothole_count ?? (d.class_name === "photo" ? 0 : 1);
+      if (holes === 0) return "#3b82f6";
       if (d.detection_status === "verified") return "#22c55e";
       return "#ef4444";
+    }
+
+    function groupDetectionsForMap(items) {
+      const sevRank = { low: 1, medium: 2, high: 3, critical: 4 };
+      const groups = {};
+      (items || []).forEach(function (d) {
+        if (d.latitude == null || d.longitude == null) return;
+        if (d.location_status === "uncertain") return;
+        var key = d.image_path || d.image_url || ("id:" + d.id);
+        if (!groups[key]) groups[key] = [];
+        groups[key].push(d);
+      });
+      return Object.keys(groups).map(function (key) {
+        var rows = groups[key];
+        var holes = rows.filter(function (x) { return x.class_name !== "photo"; });
+        var pool = holes.length ? holes : rows;
+        pool = pool.slice().sort(function (a, b) {
+          var sev = (sevRank[b.severity] || 0) - (sevRank[a.severity] || 0);
+          if (sev) return sev;
+          return (b.rut_score || 0) - (a.rut_score || 0) || (b.confidence || 0) - (a.confidence || 0);
+        });
+        var rep = Object.assign({}, pool[0]);
+        rep.pothole_count = holes.length;
+        return rep;
+      });
     }
 
     async function loadMap() {
@@ -760,7 +786,7 @@
         });
         if (!res.ok) return;
         const items = await res.json();
-        const withGps = items.filter((d) => d.latitude != null && d.longitude != null);
+        const withGps = groupDetectionsForMap(items);
 
         document.getElementById("mapEmpty").classList.toggle("hidden", withGps.length > 0);
 
@@ -784,7 +810,8 @@
             fillColor: markerColor(d), fillOpacity: 0.9,
           });
           const tr = t();
-          let popup = `<b>${d.class_name === "photo" ? tr.photo : tr.pothole}</b>`;
+          const holes = d.pothole_count || 0;
+          let popup = `<b>${holes === 0 ? tr.photo : (holes > 1 ? (holes + " " + tr.pothole) : tr.pothole)}</b>`;
           if (d.image_url) popup += `<br><img src="${d.image_url}" style="max-width:180px;margin-top:6px;border-radius:8px">`;
           popup += `<br><button type="button" class="popup-del" onclick="deleteDetection(${d.id})">🗑️ ${tr.delete}</button>`;
           m.bindPopup(popup);

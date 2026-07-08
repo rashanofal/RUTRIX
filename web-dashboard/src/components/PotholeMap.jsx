@@ -18,6 +18,7 @@ import {
   rutHeatColor,
   severityColor,
   maintenancePriorityColor,
+  groupDetectionsForMap,
 } from "../utils/mapGeo";
 
 const MAP_LAYERS = {
@@ -66,34 +67,6 @@ const verifiedIcon = new L.Icon({
   shadowSize: [41, 41],
 });
 
-function spreadMarkers(detections) {
-  const groups = {};
-  detections.forEach((d) => {
-    if (d.latitude == null || d.longitude == null) return;
-    const key = `${d.latitude.toFixed(5)}_${d.longitude.toFixed(5)}`;
-    if (!groups[key]) groups[key] = [];
-    groups[key].push(d);
-  });
-
-  const positions = {};
-  Object.values(groups).forEach((group) => {
-    const n = group.length;
-    group.forEach((d, i) => {
-      if (n === 1) {
-        positions[d.id] = [d.latitude, d.longitude];
-        return;
-      }
-      const angle = (2 * Math.PI * i) / n;
-      const radius = 0.00012 * (1 + Math.floor(i / 10));
-      positions[d.id] = [
-        d.latitude + radius * Math.cos(angle),
-        d.longitude + radius * Math.sin(angle),
-      ];
-    });
-  });
-  return positions;
-}
-
 function BoundsWatcher({ onBoundsChange }) {
   useMapEvents({
     moveend: (e) => {
@@ -119,7 +92,9 @@ function BoundsWatcher({ onBoundsChange }) {
 }
 
 function markerIcon(d) {
-  if (d.class_name === "photo") return photoIcon;
+  const holes = d.pothole_count ?? (d.class_name === "photo" ? 0 : 1);
+  if (holes === 0) return photoIcon;
+  if (d.detection_status === "verified" || d.cloud_verified) return verifiedIcon;
   const sev = d.severity || "medium";
   if (sev === "critical") {
     return new L.Icon({
@@ -146,7 +121,6 @@ function markerIcon(d) {
       shadowSize: [41, 41],
     });
   }
-  if (d.detection_status === "verified" || d.cloud_verified) return verifiedIcon;
   return verifiedIcon;
 }
 
@@ -274,7 +248,15 @@ export default function PotholeMap({
     severity: false,
     maintenancePriority: false,
   });
-  const positions = useMemo(() => spreadMarkers(detections), [detections]);
+  const mapPins = useMemo(() => groupDetectionsForMap(detections), [detections]);
+  const positions = useMemo(() => {
+    const out = {};
+    for (const d of mapPins) {
+      out[d.id] = [d.latitude, d.longitude];
+      for (const gid of d.group_ids || []) out[gid] = out[d.id];
+    }
+    return out;
+  }, [mapPins]);
   const layer = MAP_LAYERS[baseLayer];
   const zoomPosition = locale === "ar" ? "bottomleft" : "bottomright";
 
@@ -286,24 +268,18 @@ export default function PotholeMap({
     setMapReady(true);
   }, []);
 
-  const visible = detections.filter(
-    (d) =>
-      d.latitude != null &&
-      d.longitude != null &&
-      d.location_status !== "uncertain" &&
-      positions[d.id]
-  );
+  const visible = mapPins.filter((d) => positions[d.id]);
 
 const SAFE_SURVEY_RUT = 8;
 
-  const severityTargets = visible.filter((d) => d.class_name !== "photo");
+  const severityTargets = visible.filter((d) => (d.pothole_count ?? 0) > 0);
 
   const roadQualityBuffers = useMemo(() => {
     const buffers = [];
     const clusterMap = new Map();
 
     for (const d of visible) {
-      if (d.class_name === "photo") {
+      if ((d.pothole_count ?? 0) === 0) {
         buffers.push({
           key: `survey-${d.id}`,
           points: [
@@ -571,10 +547,14 @@ const SAFE_SURVEY_RUT = 8;
               <Popup minWidth={240} maxWidth={300} autoPan={false} keepInView={false}>
                 <div className="popup-content">
                   <h3>
-                    {d.class_name === "photo" ? `${t.photo} #${d.id}` : `${t.pothole} #${d.id}`}
+                    {(d.pothole_count ?? 0) === 0
+                      ? `${t.photo} #${d.id}`
+                      : (d.pothole_count || 0) > 1
+                        ? (t.multiplePotholes || "{n}").replace("{n}", String(d.pothole_count))
+                        : `${t.pothole} #${d.id}`}
                   </h3>
                   <DetectionImage detection={d} openLabel={t.openImage} />
-                  {d.class_name === "photo" ? (
+                  {(d.pothole_count ?? 0) === 0 ? (
                     <p className="popup-photo-note">{t.noPotholes}</p>
                   ) : (
                     <>

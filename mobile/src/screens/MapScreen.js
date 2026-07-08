@@ -20,8 +20,35 @@ import { colors, radius, spacing } from "../theme";
 
 const CAIRO = { latitude: 30.0444, longitude: 31.2357 };
 
+function groupDetectionsForMap(detections) {
+  const groups = new Map();
+  const SEV_RANK = { low: 1, medium: 2, high: 3, critical: 4 };
+  for (const d of detections || []) {
+    if (d.latitude == null || d.longitude == null) continue;
+    if (d.location_status === "uncertain") continue;
+    const key = d.image_path || d.image_url || `id:${d.id}`;
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key).push(d);
+  }
+
+  return [...groups.values()].map((items) => {
+    const holes = items.filter((x) => x.class_name !== "photo");
+    const representatives = holes.length ? holes : items;
+    const representative = [...representatives].sort((a, b) => {
+      const sev = (SEV_RANK[b.severity] || 0) - (SEV_RANK[a.severity] || 0);
+      if (sev) return sev;
+      return (b.rut_score || 0) - (a.rut_score || 0) || (b.confidence || 0) - (a.confidence || 0);
+    })[0];
+    return {
+      ...representative,
+      pothole_count: holes.length,
+      group_ids: items.map((x) => x.id),
+    };
+  });
+}
+
 function pinColor(item) {
-  if (item.class_name === "photo") return colors.primary;
+  if ((item.pothole_count ?? (item.class_name === "photo" ? 0 : 1)) === 0) return colors.primary;
   const sev = item.severity || "medium";
   if (sev === "critical") return "#f97316";
   if (sev === "high") return colors.danger;
@@ -40,7 +67,7 @@ export default function MapScreen({ apiUrl, refreshKey }) {
     setLoading(true);
     try {
       const data = await fetchRecent(apiUrl, 150);
-      setItems(data.filter((d) => d.latitude != null && d.longitude != null));
+      setItems(groupDetectionsForMap(data));
     } catch {
       setItems([]);
     } finally {
@@ -145,7 +172,11 @@ export default function MapScreen({ apiUrl, refreshKey }) {
             {selected && (
               <ScrollView>
                 <Text style={styles.modalTitle}>
-                  {selected.class_name === "photo" ? t.photo : `${t.pothole} #${selected.id}`}
+                  {(selected.pothole_count ?? 0) === 0
+                    ? t.photo
+                    : (selected.pothole_count || 0) > 1
+                      ? `${selected.pothole_count} ${t.pothole}`
+                      : `${t.pothole} #${selected.id}`}
                 </Text>
                 {selected.image_url && (
                   <Image
