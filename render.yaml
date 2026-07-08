@@ -1,24 +1,27 @@
-# RUTRIX — نشر سحابي على Render.com
+# RUTRIX — Render free tier (Python native, no Docker / no card)
 services:
   - type: web
     name: rutrix
-    runtime: docker
+    runtime: python
     repo: https://github.com/rashanofal/RUTRIX
     branch: main
-    dockerfilePath: ./Dockerfile
     plan: free
+    buildCommand: chmod +x build.sh start.sh && ./build.sh
+    startCommand: ./start.sh
     healthCheckPath: /api/health
     envVars:
+      - key: PYTHON_VERSION
+        value: "3.11.9"
       - key: JWT_SECRET
         generateValue: true
       - key: DATABASE_URL
-        value: sqlite:////app/data/pothole.db
+        value: sqlite:////opt/render/project/src/data/pothole.db
       - key: MODEL_PATH
-        value: /app/ml/models/pothole_yolov8n.pt
+        value: ../ml/models/pothole_yolov8n.pt
       - key: UPLOAD_DIR
-        value: /app/data/uploads
+        value: ../data/uploads
       - key: TRAINING_DIR
-        value: /app/data/training
+        value: ../data/training
       - key: CORS_ORIGINS
         value: "*"
       - key: SEED_DEMO_ACCOUNT
