@@ -2,8 +2,10 @@ import { useLocale } from "../context/LocaleContext";
 import UploadPanel from "../components/UploadPanel";
 import DetectionList from "../components/DetectionList";
 import DetectionDetail from "../components/DetectionDetail";
+import StatsGrid from "../components/StatsGrid";
 
 export default function FieldPage({
+  stats,
   detections,
   selected,
   selectedId,
@@ -19,6 +21,15 @@ export default function FieldPage({
 
   return (
     <div className="page-field">
+      <div className="field-dashboard-head">
+        <div>
+          <h2 className="field-dashboard-title">{t.dashboardPanelTitle}</h2>
+          <p className="field-dashboard-sub">{t.dashboardPanelSub}</p>
+        </div>
+      </div>
+
+      <StatsGrid stats={stats} variant="hero" />
+
       <div className="field-layout">
         <div className="field-col field-col-upload">
           <div className="section-card">
@@ -55,3 +66,4 @@ export default function FieldPage({
     </div>
   );
 }
+

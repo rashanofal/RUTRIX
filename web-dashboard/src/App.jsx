@@ -261,10 +261,7 @@ function Dashboard() {
       case "overview":
         return (
           <OverviewPage
-            stats={stats}
             detections={detections}
-            selectedId={selectedId}
-            onSelect={setSelectedId}
             onNavigate={handleNavigate}
           />
         );
@@ -287,6 +284,7 @@ function Dashboard() {
       case "field":
         return (
           <FieldPage
+            stats={stats}
             detections={detections}
             selected={selected}
             selectedId={selectedId}

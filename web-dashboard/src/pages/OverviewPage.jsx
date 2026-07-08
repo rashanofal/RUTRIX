@@ -1,7 +1,4 @@
 import { useLocale } from "../context/LocaleContext";
-import StatsGrid from "../components/StatsGrid";
-import DetectionList from "../components/DetectionList";
-
 import NavIcon from "../components/NavIcons";
 
 const QUICK_LINKS = [
@@ -9,23 +6,29 @@ const QUICK_LINKS = [
   { page: "field", icon: "upload", labelKey: "navField", descKey: "quickFieldDesc" },
   { page: "ops", icon: "ops", labelKey: "navOps", descKey: "quickOpsDesc" },
   { page: "intel", icon: "chart", labelKey: "navIntel", descKey: "quickIntelDesc" },
+  { page: "mobile", icon: "mobile", labelKey: "navMobile", descKey: "pageSub_mobile" },
 ];
 
-export default function OverviewPage({ stats, detections, selectedId, onSelect, onNavigate }) {
+export default function OverviewPage({ detections, onNavigate }) {
   const { t, locale } = useLocale();
-  const recent = detections.slice(0, 6);
   const pinned = detections.filter((d) => d.latitude != null).length;
   const heroSrc = locale === "en" ? "/brand/hero-en.png" : "/brand/hero-ar.png";
 
   return (
-    <div className="page-overview">
-      <div className="overview-banner">
-        <img src={heroSrc} alt={t.brand} className="overview-banner-image" key={heroSrc} />
-      </div>
+    <div className="page-overview page-overview-home">
+      <section className="overview-banner overview-banner-full">
+        <img
+          src={heroSrc}
+          alt={t.brand}
+          className="overview-banner-image"
+          key={heroSrc}
+        />
+      </section>
 
-      <div className="page-hero">
+      <div className="page-hero page-hero-compact">
         <div className="page-hero-text">
           <h2>{t.overviewWelcome}</h2>
+          {t.overviewWelcomeSub ? <p>{t.overviewWelcomeSub}</p> : null}
         </div>
         <div className="page-hero-badges">
           <span className="hero-badge">
@@ -34,51 +37,28 @@ export default function OverviewPage({ stats, detections, selectedId, onSelect, 
         </div>
       </div>
 
-      <StatsGrid stats={stats} variant="hero" />
-
-      <div className="overview-grid">
-        <section className="overview-card">
-          <h3 className="overview-card-title">{t.quickActions}</h3>
-          <div className="quick-links">
-            {QUICK_LINKS.map((link) => (
-              <button
-                key={link.page}
-                type="button"
-                className="quick-link-btn"
-                onClick={() => onNavigate(link.page)}
-              >
-                <span className="quick-link-icon-wrap">
-                  <NavIcon name={link.icon} />
-                </span>
-                <span className="quick-link-text">
-                  <strong>{t[link.labelKey]}</strong>
-                  <span>{t[link.descKey]}</span>
-                </span>
-                <span className="quick-link-arrow">←</span>
-              </button>
-            ))}
-          </div>
-        </section>
-
-        <section className="overview-card">
-          <div className="overview-card-head">
-            <h3 className="overview-card-title">{t.recent}</h3>
-            <button type="button" className="text-link-btn" onClick={() => onNavigate("field")}>
-              {t.viewAll}
+      <section className="overview-card overview-home-nav">
+        <h3 className="overview-card-title">{t.quickActions}</h3>
+        <div className="quick-links quick-links-home">
+          {QUICK_LINKS.map((link) => (
+            <button
+              key={link.page}
+              type="button"
+              className="quick-link-btn"
+              onClick={() => onNavigate(link.page)}
+            >
+              <span className="quick-link-icon-wrap">
+                <NavIcon name={link.icon} />
+              </span>
+              <span className="quick-link-text">
+                <strong>{t[link.labelKey]}</strong>
+                <span>{t[link.descKey]}</span>
+              </span>
+              <span className="quick-link-arrow">←</span>
             </button>
-          </div>
-          <DetectionList
-            detections={recent}
-            selectedId={selectedId}
-            onSelect={(id) => {
-              onSelect(id);
-              onNavigate("field");
-            }}
-            compact
-            hideHeader
-          />
-        </section>
-      </div>
+          ))}
+        </div>
+      </section>
     </div>
   );
 }

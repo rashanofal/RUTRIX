@@ -1545,26 +1545,31 @@ body {
 .login-hero {
   position: relative;
   display: flex;
-  flex-direction: column;
+  align-items: center;
   justify-content: center;
-  padding: 0;
+  padding: 1.25rem;
   border-inline-end: 1px solid var(--border);
-  overflow: hidden;
+  overflow: auto;
   min-height: 100vh;
-  background: #02040a;
+  background:
+    radial-gradient(ellipse 60% 45% at 50% 20%, rgba(46, 230, 255, 0.08), transparent 55%),
+    #02040a;
 }
 
 .login-hero-visual {
-  padding: 0;
+  padding: 1.25rem;
 }
 
 .login-hero-image {
   width: 100%;
-  height: 100%;
-  min-height: 100vh;
-  object-fit: cover;
+  height: auto;
+  max-width: 100%;
+  max-height: calc(100vh - 2.5rem);
+  object-fit: contain;
   object-position: center;
   display: block;
+  border-radius: 18px;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
 }
 
 .login-hero h1 {
@@ -1780,15 +1785,18 @@ body {
   .login-card::before {
     content: "";
     display: block;
-    width: 100%;
-    height: 160px;
-    margin: -1.75rem -1.75rem 1.25rem;
-    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    width: calc(100% + 3.5rem);
+    height: auto;
+    aspect-ratio: 16 / 10;
+    max-height: 220px;
+    margin: -2.25rem -1.75rem 1.25rem;
+    border-radius: var(--radius-xl) var(--radius-xl) 0 0;
     background:
-      url("/brand/hero-ar.png") center / cover no-repeat;
+      url("/brand/hero-ar.png") center / contain no-repeat,
+      #02040a;
   }
   html[lang="en"] .login-card::before {
-    background-image: url("/brand/hero-en.png");
+    background-image: url("/brand/hero-en.png"), linear-gradient(#02040a, #02040a);
   }
 }
 
@@ -2718,7 +2726,11 @@ body {
 }
 
 /* Overview page */
-.page-overview { max-width: 1200px; margin: 0 auto; }
+.page-overview { max-width: 1180px; margin: 0 auto; }
+
+.page-overview-home {
+  max-width: 1240px;
+}
 
 .overview-banner {
   position: relative;
@@ -2730,13 +2742,48 @@ body {
   background: #02040a;
 }
 
+.overview-banner-full {
+  margin-bottom: 1.1rem;
+}
+
 .overview-banner-image {
   display: block;
   width: 100%;
   height: auto;
-  max-height: min(52vh, 520px);
-  object-fit: cover;
-  object-position: center top;
+  object-fit: contain;
+  object-position: center;
+  background: #02040a;
+}
+
+.page-hero-compact {
+  margin-bottom: 1rem;
+}
+
+.overview-home-nav {
+  margin-top: 0.25rem;
+}
+
+.quick-links-home {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.85rem;
+}
+
+.field-dashboard-head {
+  margin-bottom: 1rem;
+}
+
+.field-dashboard-title {
+  margin: 0 0 0.25rem;
+  font-size: 1.2rem;
+  font-weight: 800;
+  font-family: var(--font-display);
+}
+
+.field-dashboard-sub {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.9rem;
 }
 
 .page-hero {
@@ -3119,6 +3166,7 @@ body {
 @media (max-width: 1024px) {
   .stat-grid-hero { grid-template-columns: repeat(2, 1fr); }
   .overview-grid { grid-template-columns: 1fr; }
+  .quick-links-home { grid-template-columns: 1fr; }
   .field-layout { grid-template-columns: 1fr; }
   .field-col-upload { position: static; }
 }
