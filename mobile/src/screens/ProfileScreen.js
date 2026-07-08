@@ -45,7 +45,7 @@ export default function ProfileScreen({ auth, apiUrl, onApiUrlChange, onLogout }
       <ScreenHeader title={t.profile} />
       <ScrollView contentContainerStyle={styles.content}>
         <LinearGradient colors={["rgba(34,211,238,0.15)", "rgba(167,139,250,0.08)"]} style={styles.profileCard}>
-          <Image source={require("../../assets/icon.png")} style={styles.avatar} />
+          <Image source={require("../../assets/logo.png")} style={styles.brandLogo} resizeMode="contain" />
           <Text style={styles.name}>{auth?.user?.full_name}</Text>
           <Text style={styles.email}>{auth?.user?.email}</Text>
           <View style={styles.orgBadge}>
@@ -103,6 +103,7 @@ export default function ProfileScreen({ auth, apiUrl, onApiUrlChange, onLogout }
           <Ionicons name="log-out-outline" size={20} color={colors.danger} />
           <Text style={styles.logoutText}>{t.logout}</Text>
         </TouchableOpacity>
+        <Text style={styles.footerCredit}>{t.creator}</Text>
       </ScrollView>
     </View>
   );
@@ -146,6 +147,11 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
     borderWidth: 2,
     borderColor: "rgba(34,211,238,0.4)",
+  },
+  brandLogo: {
+    width: 220,
+    height: 60,
+    marginBottom: spacing.md,
   },
   name: { color: colors.text, fontSize: 22, fontWeight: "900" },
   email: { color: colors.textMuted, fontSize: 14, marginTop: 4 },
@@ -233,4 +239,12 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(251,113,133,0.08)",
   },
   logoutText: { color: colors.danger, fontWeight: "800" },
+  footerCredit: {
+    color: "#ffc2d6",
+    textAlign: "center",
+    marginTop: spacing.lg,
+    marginBottom: spacing.sm,
+    fontSize: 12,
+    fontWeight: "800",
+  },
 });
