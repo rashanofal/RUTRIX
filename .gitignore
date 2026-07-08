@@ -22,16 +22,41 @@ data/datasets/raw/*
 ml/models/*
 !ml/models/.gitkeep
 !ml/models/pothole_yolov8n.pt
-!ml/models/pothole_yolov8n.onnx
-!ml/models/pothole_yolov8n.onnx.data
 # Ignore other large weights elsewhere
 *.pt
 !ml/models/pothole_yolov8n.pt
 *.onnx
-!ml/models/pothole_yolov8n.onnx
 
 # Nested mobile git from EAS init (monorepo uses root only)
 mobile/.git/
+
+# Dev-only (local, not pushed to GitHub)
+edge-sdk/
+ml/active_retrain.py
+ml/dataset_aggregator.py
+ml/export_onnx.py
+ml/inference_onnx.py
+ml/train.py
+ml/requirements.txt
+ml/configs/
+ml/scripts/
+ml/models/*.onnx
+ml/models/*.onnx.data
+scripts/clear-map.ps1
+scripts/gen_ssl.py
+scripts/generate-app-icons.py
+scripts/install.ps1
+scripts/start.ps1
+scripts/stop-all.ps1
+web-dashboard/nginx.conf
+*.bat
+*.apk
+*.aab
+*.ipa
+taleemat.txt
+ملخص.txt
+backend/_test_upload.jpg
+mobile/application-Android.apk
 
 # IDE
 .idea/

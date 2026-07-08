@@ -20,7 +20,7 @@ COPY backend/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY backend/app ./app
-COPY ml ./ml
+COPY ml/models ./ml/models
 COPY --from=dashboard /dash/dist ./app/static/dashboard
 
 RUN mkdir -p /app/data/uploads /app/data/training

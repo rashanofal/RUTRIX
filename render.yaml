@@ -1,8 +1,10 @@
-# نشر مجاني على Render.com — اربطي المستودع ثم New > Blueprint
+# RUTRIX — نشر سحابي على Render.com
 services:
   - type: web
-    name: pothole-detection
+    name: rutrix
     runtime: docker
+    repo: https://github.com/rashanofal/RUTRIX
+    branch: main
     dockerfilePath: ./Dockerfile
     plan: free
     healthCheckPath: /api/health
