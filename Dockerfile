@@ -6,11 +6,12 @@ RUN npm install --omit=dev=false
 COPY web-dashboard/ .
 # Brand assets may be omitted from the HF Space repo (binary push limits).
 # Prefer local copies when present; otherwise download from GitHub.
-RUN mkdir -p public/brand \
+RUN apk add --no-cache curl \
+    && mkdir -p public/brand \
     && for f in hero-ar.png hero-en.png logo.png logo-mark.png; do \
          if [ ! -s "public/brand/$f" ]; then \
            curl -fsSL -o "public/brand/$f" \
-             "https://github.com/rashanofal/RUTRIX/raw/main/web-dashboard/public/brand/$f"; \
+             "https://raw.githubusercontent.com/rashanofal/RUTRIX/main/web-dashboard/public/brand/$f"; \
          fi; \
        done \
     && test -s public/brand/logo.png \
@@ -33,14 +34,14 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY backend/app ./app
 RUN mkdir -p ml/models app/static \
     && curl -fsSL -o ml/models/pothole_yolov8n.pt \
-      "https://github.com/rashanofal/RUTRIX/raw/main/ml/models/pothole_yolov8n.pt" \
+      "https://raw.githubusercontent.com/rashanofal/RUTRIX/main/ml/models/pothole_yolov8n.pt" \
     && if [ ! -s app/static/logo.png ]; then \
          curl -fsSL -o app/static/logo.png \
-           "https://github.com/rashanofal/RUTRIX/raw/main/backend/app/static/logo.png"; \
+           "https://raw.githubusercontent.com/rashanofal/RUTRIX/main/backend/app/static/logo.png"; \
        fi \
     && if [ ! -s app/static/logo-mark.png ]; then \
          curl -fsSL -o app/static/logo-mark.png \
-           "https://github.com/rashanofal/RUTRIX/raw/main/backend/app/static/logo-mark.png"; \
+           "https://raw.githubusercontent.com/rashanofal/RUTRIX/main/backend/app/static/logo-mark.png"; \
        fi \
     && test -s ml/models/pothole_yolov8n.pt \
     && test -s app/static/logo.png
