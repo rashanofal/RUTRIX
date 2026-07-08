@@ -53,7 +53,6 @@ export default function MobileAppPanel({ compact = false }) {
         <QrCodeBlock
           url={phoneUrl}
           label={t.scanQrAndroid}
-          note={t.androidNote}
           variant="highlight"
           onCopy={copy}
           copyLabel={t.copy}
@@ -79,14 +78,11 @@ export default function MobileAppPanel({ compact = false }) {
         <QrCodeBlock
           url={httpsUrl}
           label={t.scanQrIphone}
-          note={t.iphoneQrNote}
           variant="https"
           onCopy={copy}
           copyLabel={t.copy}
           loadingText={t.loading}
         />
-
-        <p className="mobile-https-warning">⚠️ {t.httpsWarning}</p>
       </div>
 
       <div className="mobile-pc-row">
