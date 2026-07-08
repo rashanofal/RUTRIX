@@ -4,6 +4,11 @@ WORKDIR /dash
 COPY web-dashboard/package.json web-dashboard/package-lock.json* ./
 RUN npm install --omit=dev=false
 COPY web-dashboard/ .
+RUN mkdir -p public/brand \
+    && curl -fsSL -o public/brand/hero-ar.png \
+      "https://github.com/rashanofal/RUTRIX/raw/main/web-dashboard/public/brand/hero-ar.png" \
+    && curl -fsSL -o public/brand/hero-en.png \
+      "https://github.com/rashanofal/RUTRIX/raw/main/web-dashboard/public/brand/hero-en.png"
 ENV VITE_API_URL=
 RUN npm run build
 

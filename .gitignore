@@ -27,14 +27,15 @@ ml/models/*
 !ml/models/pothole_yolov8n.pt
 *.onnx
 
-# Nested mobile git from EAS init (monorepo uses root only)
-mobile/.git/
+# Brand hero images (~2MB each) — download during Docker/HF build from GitHub
+web-dashboard/public/brand/*.png
+!web-dashboard/public/brand/.gitkeep
 
-# Source hero dumps at project root (canonical copies live in web-dashboard/public/brand)
+# Source hero dumps at project root (use web-dashboard/public/brand after compress if needed)
 /img.png
 /img2.png
 
-# Dev-only (local, not pushed to GitHub)
+# Nested mobile git from EAS init (monorepo uses root only)
 edge-sdk/
 ml/active_retrain.py
 ml/dataset_aggregator.py
