@@ -4,16 +4,15 @@ WORKDIR /dash
 COPY web-dashboard/package.json web-dashboard/package-lock.json* ./
 RUN npm install --omit=dev=false
 COPY web-dashboard/ .
-# Heroes are large; download if missing. Logos ship in the repo.
+# Brand assets may be omitted from the HF Space repo (binary push limits).
+# Prefer local copies when present; otherwise download from GitHub.
 RUN mkdir -p public/brand \
-    && if [ ! -s public/brand/hero-ar.png ]; then \
-         curl -fsSL -o public/brand/hero-ar.png \
-           "https://github.com/rashanofal/RUTRIX/raw/main/web-dashboard/public/brand/hero-ar.png"; \
-       fi \
-    && if [ ! -s public/brand/hero-en.png ]; then \
-         curl -fsSL -o public/brand/hero-en.png \
-           "https://github.com/rashanofal/RUTRIX/raw/main/web-dashboard/public/brand/hero-en.png"; \
-       fi \
+    && for f in hero-ar.png hero-en.png logo.png logo-mark.png; do \
+         if [ ! -s "public/brand/$f" ]; then \
+           curl -fsSL -o "public/brand/$f" \
+             "https://github.com/rashanofal/RUTRIX/raw/main/web-dashboard/public/brand/$f"; \
+         fi; \
+       done \
     && test -s public/brand/logo.png \
     && test -s public/brand/logo-mark.png
 ENV VITE_API_URL=
@@ -32,11 +31,19 @@ COPY backend/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY backend/app ./app
-RUN mkdir -p ml/models \
+RUN mkdir -p ml/models app/static \
     && curl -fsSL -o ml/models/pothole_yolov8n.pt \
       "https://github.com/rashanofal/RUTRIX/raw/main/ml/models/pothole_yolov8n.pt" \
-    && test -s app/static/logo.png \
-    && test -s app/static/logo-mark.png
+    && if [ ! -s app/static/logo.png ]; then \
+         curl -fsSL -o app/static/logo.png \
+           "https://github.com/rashanofal/RUTRIX/raw/main/backend/app/static/logo.png"; \
+       fi \
+    && if [ ! -s app/static/logo-mark.png ]; then \
+         curl -fsSL -o app/static/logo-mark.png \
+           "https://github.com/rashanofal/RUTRIX/raw/main/backend/app/static/logo-mark.png"; \
+       fi \
+    && test -s ml/models/pothole_yolov8n.pt \
+    && test -s app/static/logo.png
 COPY --from=dashboard /dash/dist ./app/static/dashboard
 
 RUN mkdir -p /app/data/uploads /app/data/training /tmp/uploads /tmp/training /tmp/hf_cache
