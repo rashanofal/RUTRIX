@@ -1594,26 +1594,19 @@ body {
 .login-hero .tagline {
   color: var(--text-muted);
   font-size: 1.12rem;
-  margin-bottom: 0.85rem;
+  margin-bottom: 2rem;
   max-width: 440px;
   line-height: 1.7;
 }
 
-.creator-credit {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.45rem;
-  margin: 0 0 2rem;
-  padding: 0.45rem 0.9rem;
-  border-radius: 999px;
-  font-size: 0.92rem;
-  font-weight: 700;
-  letter-spacing: 0.02em;
-  color: #ffe8f2;
-  background: linear-gradient(135deg, rgba(255, 107, 157, 0.22), rgba(124, 107, 255, 0.18));
-  border: 1px solid rgba(255, 107, 157, 0.35);
-  box-shadow: 0 0 28px rgba(255, 107, 157, 0.18);
-  width: fit-content;
+.login-footer {
+  position: absolute;
+  inset-inline: 0;
+  bottom: 1.25rem;
+  display: flex;
+  justify-content: center;
+  pointer-events: none;
+  z-index: 2;
 }
 
 
@@ -2513,13 +2506,25 @@ body {
   opacity: 0.95;
 }
 
-.topbar-creator {
-  margin: 0.15rem 0 0;
-  font-size: 0.74rem;
-  font-weight: 700;
-  letter-spacing: 0.02em;
+.app-footer {
+  margin-top: auto;
+  padding: 1rem 1.75rem 1.35rem;
+  border-top: 1px solid var(--border);
+  background: linear-gradient(180deg, transparent, rgba(255, 107, 157, 0.04));
+  display: flex;
+  justify-content: center;
+}
+
+.app-footer-credit {
+  margin: 0;
+  font-size: 0.84rem;
+  font-weight: 800;
+  letter-spacing: 0.03em;
   color: #ffc2d6;
-  width: fit-content;
+  padding: 0.4rem 0.95rem;
+  border-radius: 999px;
+  background: linear-gradient(135deg, rgba(255, 107, 157, 0.18), rgba(124, 107, 255, 0.14));
+  border: 1px solid rgba(255, 107, 157, 0.3);
 }
 
 .topbar-brand-stack .topbar-platform {

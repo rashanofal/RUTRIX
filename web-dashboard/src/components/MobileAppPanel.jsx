@@ -6,8 +6,6 @@ export default function MobileAppPanel({ compact = false }) {
   const { t } = useLocale();
   const [phoneUrl, setPhoneUrl] = useState("");
   const [httpsUrl, setHttpsUrl] = useState("");
-  const [lanIp, setLanIp] = useState("");
-  const pcUrl = "http://localhost:8000/mobile";
 
   useEffect(() => {
     fetch("/api/network")
@@ -15,7 +13,6 @@ export default function MobileAppPanel({ compact = false }) {
       .then((d) => {
         if (d.mobile_http) setPhoneUrl(d.mobile_http);
         if (d.mobile_https) setHttpsUrl(d.mobile_https);
-        if (d.lan_ip) setLanIp(d.lan_ip);
       })
       .catch(() => {});
   }, []);
@@ -84,24 +81,6 @@ export default function MobileAppPanel({ compact = false }) {
           loadingText={t.loading}
         />
       </div>
-
-      <div className="mobile-pc-row">
-        <span className="mobile-url-label">{t.mobileOnPc}</span>
-        <a className="mobile-pc-link" href={pcUrl} target="_blank" rel="noreferrer">
-          {pcUrl}
-        </a>
-      </div>
-
-      <details className="mobile-expo-details">
-        <summary>{t.mobileExpoTitle}</summary>
-        <pre className="mobile-expo-code">{`cd mobile\nnpx expo start\n\n# Android APK:\n# بناء_التطبيق.bat`}</pre>
-        <p className="mobile-url-note">{t.mobileExpoHint}</p>
-        {lanIp && (
-          <p className="mobile-url-note">
-            Expo LAN: exp://{lanIp}:8081
-          </p>
-        )}
-      </details>
     </div>
   );
 }

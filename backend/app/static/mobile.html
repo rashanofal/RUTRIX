@@ -228,17 +228,20 @@
     }
     .scientific { font-size: 0.74rem; color: #c4b5fd; line-height: 1.55; margin-top: 0.4rem; max-width: 18rem; margin-inline: auto; }
     .creator-credit {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.35rem;
-      margin: 0.75rem auto 0;
-      padding: 0.35rem 0.8rem;
+      position: fixed;
+      left: 50%;
+      bottom: calc(0.85rem + env(safe-area-inset-bottom));
+      transform: translateX(-50%);
+      z-index: 40;
+      margin: 0;
+      padding: 0.4rem 0.9rem;
       border-radius: 999px;
       font-size: 0.8rem;
       font-weight: 800;
       color: #ffe8f2;
-      background: linear-gradient(135deg, rgba(255, 107, 157, 0.25), rgba(124, 107, 255, 0.18));
+      background: linear-gradient(135deg, rgba(255, 107, 157, 0.28), rgba(124, 107, 255, 0.2));
       border: 1px solid rgba(255, 107, 157, 0.35);
+      white-space: nowrap;
     }
     .popup-del {
       margin-top: 0.65rem; width: 100%; padding: 0.55rem; border-radius: 10px;
@@ -261,7 +264,6 @@
       <h1 id="brandTitle">روتريكس</h1>
       <p class="scientific" id="brandSub">منصة ذكاء البنية التحتية للطرق وإدارة الأصول</p>
       <p class="sub" id="loginSub">تطبيق ميداني — RUTRIX</p>
-      <p class="creator-credit" id="creatorCredit">تصميم د / رشا نوفل</p>
     </div>
     <div class="card">
       <p class="sub" style="margin-bottom:0.75rem">سجّل الدخول</p>
@@ -273,6 +275,7 @@
     <div class="install-hint">
       ثبّت كتطبيق: Safari ← مشاركة ← إضافة إلى الشاشة الرئيسية
     </div>
+    <p class="creator-credit" id="creatorCredit">تصميم د / رشا نوفل</p>
   </div>
 
   <div id="appView" class="hidden">

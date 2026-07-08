@@ -177,6 +177,7 @@ export default function LoginScreen({ apiUrl, onLoggedIn }) {
           </View>
 
           <Text style={styles.demo}>{t.demo}</Text>
+          <Text style={styles.footerCredit}>{t.creator}</Text>
         </ScrollView>
       </KeyboardAvoidingView>
     </LinearGradient>
@@ -239,5 +240,14 @@ const styles = StyleSheet.create({
   btnText: { color: colors.bg, fontWeight: "800", fontSize: 16 },
   toggle: { color: colors.primary, textAlign: "center", marginTop: spacing.md, fontSize: 14 },
   demo: { color: colors.textDim, textAlign: "center", marginTop: spacing.lg, fontSize: 12 },
+  footerCredit: {
+    color: "#ffc2d6",
+    textAlign: "center",
+    marginTop: spacing.xl,
+    marginBottom: spacing.sm,
+    fontSize: 13,
+    fontWeight: "800",
+    letterSpacing: 0.3,
+  },
   warn: { color: colors.warning, fontSize: 12, marginBottom: 8, textAlign: "right" },
 });

@@ -28,7 +28,6 @@ export default function BrandLogo({ size = "md", showScientific = true }) {
       {isLg && t.tagline ? (
         <Text style={styles.tagline}>{t.tagline}</Text>
       ) : null}
-      {isLg ? <Text style={styles.creator}>{t.creator}</Text> : null}
     </View>
   );
 }
@@ -83,12 +82,5 @@ const styles = StyleSheet.create({
     textAlign: "center",
     marginTop: 6,
     fontWeight: "600",
-  },
-  creator: {
-    marginTop: 10,
-    color: "#ffc2d6",
-    fontSize: 13,
-    fontWeight: "800",
-    letterSpacing: 0.3,
   },
 });
