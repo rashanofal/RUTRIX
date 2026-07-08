@@ -250,14 +250,14 @@
       <p class="sub" id="loginSub">تطبيق ميداني — RUTRIX</p>
     </div>
     <div class="card">
-      <p class="sub" style="margin-bottom:0.75rem">سجّلي الدخول</p>
+      <p class="sub" style="margin-bottom:0.75rem">سجّل الدخول</p>
       <div class="field"><input type="email" id="email" value="demo@pothole.app" placeholder="البريد" /></div>
       <div class="field"><input type="password" id="password" value="demo1234" placeholder="كلمة المرور" /></div>
       <button class="btn btn-primary" id="loginBtn">دخول</button>
       <p id="loginMsg" class="err" style="margin-top:0.75rem;text-align:center"></p>
     </div>
     <div class="install-hint">
-      ثبّتي كتطبيق: Safari ← مشاركة ← إضافة إلى الشاشة الرئيسية
+      ثبّت كتطبيق: Safari ← مشاركة ← إضافة إلى الشاشة الرئيسية
     </div>
   </div>
 
@@ -279,7 +279,7 @@
     <div id="cameraTab">
       <div class="card">
         <div class="tip" id="gpsTip">
-          للموقع على الخريطة: افتحي الرابط الآمن (https) واسمحي بالموقع عند الطلب.
+          للموقع على الخريطة: افتح الرابط الآمن (https) واسمح بالموقع عند الطلب.
         </div>
   <a class="btn btn-primary hidden" id="secureLink" href="#" style="margin-bottom:0.75rem;text-decoration:none;display:block;text-align:center">
           🔒 فتح HTTPS للموقع GPS
@@ -308,7 +308,7 @@
       <div class="card">
         <p class="sub">نقاط الكشف على الخريطة</p>
         <div id="map"></div>
-        <p id="mapEmpty" class="empty-map hidden">لا توجد نقاط بعد — صوّري صورة مع السماح بالموقع</p>
+        <p id="mapEmpty" class="empty-map hidden">لا توجد نقاط بعد — صوّر صورة مع السماح بالموقع</p>
       </div>
     </div>
 
@@ -340,15 +340,15 @@
         connected: "متصل بالسيرفر", offline: "غير متصل",
         tabCamera: "تصوير", tabMap: "الخريطة", delete: "حذف الصورة",
         deleteConfirm: "حذف هذه الصورة من الخريطة؟",
-        mapEmpty: "لا توجد نقاط بعد — صوّري صورة مع السماح بالموقع",
-        gpsTip: "صور الكاميرا لا تحتوي GPS — اسمحي بالموقع قبل التصوير (شارة «الموقع جاهز»)",
+        mapEmpty: "لا توجد نقاط بعد — صوّر صورة مع السماح بالموقع",
+        gpsTip: "صور الكاميرا لا تحتوي GPS — اسمح بالموقع قبل التصوير (شارة «الموقع جاهز»)",
         locating: "جاري تحديد الموقع...",
         locatingSkip: "تخطي — رفع بدون GPS",
         uploadProgress: "جاري الرفع والكشف...",
         locTimeout: "انتهت مهلة الموقع — نرفع الصورة ونحاول GPS من الصورة",
-        locDenied: "تم رفض الموقع — الإعدادات ← Safari ← الموقع ← اسمحي",
-        locFailed: "تعذّر الموقع — جرّبي الألبوم أو فعّلي الموقع لـ Safari",
-        locInsecure: "الموقع يحتاج HTTPS — أو استخدمي HTTP :8000",
+        locDenied: "تم رفض الموقع — الإعدادات ← Safari ← الموقع ← اسمح",
+        locFailed: "تعذّر الموقع — جرّب الألبوم أو فعّل الموقع لـ Safari",
+        locInsecure: "الموقع يحتاج HTTPS — أو استخدم HTTP :8000",
         capture: "تصوير بالكاميرا",
         album: "اختيار من الألبوم",
         logout: "تسجيل الخروج",
@@ -705,12 +705,12 @@
           msg.className = "ok";
         } else if (withCoords && withCoords.lat != null) {
           msg.textContent = locale === "ar"
-            ? "تم الرفع — الموقع أُرسل لكن لم يُحفظ، أعيدي تشغيل السيرفر"
+            ? "تم الرفع — الموقع أُرسل لكن لم يُحفظ، أعد تشغيل السيرفر"
             : "Uploaded — location sent but not saved, restart server";
           msg.className = "warn";
         } else if (noGps) {
           msg.textContent = (data.message || tr.uploadProgress) + " — " + (locale === "ar"
-            ? "بدون موقع — فعّلي الموقع ثم صوّري مرة أخرى"
+            ? "بدون موقع — فعّل الموقع ثم صوّر مرة أخرى"
             : "No GPS — enable location and capture again");
           msg.className = "warn";
         } else {
@@ -862,7 +862,7 @@
         if (!window.isSecureContext) link.classList.remove("hidden");
       }
       if (tip && !window.isSecureContext) {
-        tip.textContent = "للموقع على الخريطة: اضغطي زر HTTPS أعلاه أو اسمحي بالموقع";
+        tip.textContent = "للموقع على الخريطة: اضغط زر HTTPS أعلاه أو اسمح بالموقع";
         tip.style.color = "#fbbf24";
       } else if (tip && window.isSecureContext) {
         tip.textContent = t().gpsTip;

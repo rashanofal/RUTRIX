@@ -235,7 +235,7 @@ async def upload_and_detect(
         logger.exception("upload failed for org=%s", org.id)
         raise HTTPException(
             status_code=500,
-            detail=f"فشل رفع الصورة — أعيدي تشغيل START.bat ({type(exc).__name__})",
+            detail=f"فشل رفع الصورة — أعد تشغيل START.bat ({type(exc).__name__})",
         ) from exc
 
 
@@ -391,7 +391,7 @@ async def _upload_and_detect_impl(
 
     if not has_map_location:
         hole_txt = f"اكتُشف {len(results)} حفرة" if has_potholes else "لا حفر"
-        msg = f"تم رفع الصورة — {hole_txt} — بدون موقع (اسمحي بالموقع أو استخدمي الألبوم)"
+        msg = f"تم رفع الصورة — {hole_txt} — بدون موقع (اسمح بالموقع أو استخدم الألبوم)"
     elif not has_potholes:
         msg = "تمت إضافة الصورة على الخريطة — لا يوجد حفر"
     elif has_potholes:

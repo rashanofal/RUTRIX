@@ -51,7 +51,7 @@ export function AuthProvider({ children }) {
         body: JSON.stringify({ email, password }),
       });
     } catch {
-      throw new Error("لا اتصال بالسيرفر — شغّلي START.bat ثم حدّثي الصفحة");
+      throw new Error("لا اتصال بالسيرفر — شغّل START.bat ثم حدّث الصفحة");
     }
     if (!res.ok) {
       let msg = "فشل تسجيل الدخول";
@@ -62,7 +62,7 @@ export function AuthProvider({ children }) {
         }
       } catch {
         if (res.status === 404) {
-          msg = "السيرفر قديم — أغلقي Backend وشغّلي START.bat من جديد";
+          msg = "السيرفر قديم — أغلق Backend وشغّل START.bat من جديد";
         }
       }
       throw new Error(msg);

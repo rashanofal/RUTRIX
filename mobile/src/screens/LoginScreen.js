@@ -39,7 +39,7 @@ export default function LoginScreen({ apiUrl, onLoggedIn }) {
     const ok = await checkHealth(serverUrl);
     setServerOk(ok);
     setTesting(false);
-    if (!ok) setError("السيرفر لا يستجيب — تحققي من الرابط أو شغّلي START.bat");
+    if (!ok) setError("السيرفر لا يستجيب — تحقق من الرابط أو شغّل START.bat");
     else setError("");
   };
 
@@ -102,7 +102,7 @@ export default function LoginScreen({ apiUrl, onLoggedIn }) {
               </TouchableOpacity>
             </View>
             {serverOk === false && (
-              <Text style={styles.warn}>تأكدي: START.bat شغّال + نفس WiFi</Text>
+              <Text style={styles.warn}>تأكد: START.bat شغّال + نفس WiFi</Text>
             )}
 
             {mode === "register" && (

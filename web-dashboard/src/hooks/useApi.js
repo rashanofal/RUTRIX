@@ -20,7 +20,7 @@ async function apiFetch(path, options = {}) {
   });
   if (res.status === 401) {
     localStorage.removeItem("pothole_auth");
-    throw new Error("انتهت الجلسة — سجّلي الدخول مرة أخرى");
+    throw new Error("انتهت الجلسة — سجّل الدخول مرة أخرى");
   }
   return res;
 }
@@ -273,11 +273,11 @@ export async function openReportPdf() {
   }
   const blob = await res.blob();
   if (!blob.size || blob.size < 100) {
-    throw new Error("ملف PDF فارغ — أعيدي تشغيل START.bat");
+    throw new Error("ملف PDF فارغ — أعد تشغيل START.bat");
   }
   const header = await blob.slice(0, 4).text();
   if (!header.startsWith("%PDF")) {
-    throw new Error("الملف المُحمّل ليس PDF صالحاً — جرّبي تقرير HTML");
+    throw new Error("الملف المُحمّل ليس PDF صالحاً — جرّب تقرير HTML");
   }
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");

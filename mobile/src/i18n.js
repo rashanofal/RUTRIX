@@ -24,7 +24,7 @@ export const translations = {
     noGps: "بدون GPS",
     album: "ألبوم",
     ready: "جاهز",
-    captureHint: "صوّري الطريق — الموقع يُحفظ تلقائياً",
+    captureHint: "صوّر الطريق — الموقع يُحفظ تلقائياً",
     mapTitle: "خريطة الميدان",
     activityTitle: "سجل الميدان",
     statTotal: "إجمالي",

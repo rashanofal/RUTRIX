@@ -145,7 +145,7 @@ def report_pdf(
         logger.exception("PDF report failed for org %s", org.id)
         raise HTTPException(
             status_code=500,
-            detail=f"فشل إنشاء PDF — جرّبي تقرير HTML ({type(exc).__name__})",
+            detail=f"فشل إنشاء PDF — جرّب تقرير HTML ({type(exc).__name__})",
         ) from exc
     return Response(
         content=content,
@@ -196,11 +196,11 @@ def route_quality(
     if avg_rut < 25:
         grade, rec = "A", "مسار ممتاز — مناسب للمركبات والدراجات"
     elif avg_rut < 45:
-        grade, rec = "B", "مسار جيد — قلّلي السرعة عند المطبات"
+        grade, rec = "B", "مسار جيد — قلّل السرعة عند المطبات"
     elif avg_rut < 65:
         grade, rec = "C", "مسار متوسط — يُفضّل مسار بديل إن وُجد"
     else:
-        grade, rec = "D", "مسار سيء — تجنّبي أو استخدموا طريقاً أطول وأكثر أماناً"
+        grade, rec = "D", "مسار سيء — تجنّب أو استخدم طريقاً أطول وأكثر أماناً"
 
     total_h = len(hazards) or 1
     return RouteQualityResponse(
