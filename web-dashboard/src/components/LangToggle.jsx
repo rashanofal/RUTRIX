@@ -9,16 +9,11 @@ export default function LangToggle({ className = "" }) {
   );
 }
 
-/**
- * size "sm" = icon mark only (nav rail)
- * size "md"/"lg" = full lockup R + RUTRIX
- */
+/** Full brand lockup: stylized R + RUTRIX wordmark */
 export function BrandLogo({ size = "md" }) {
-  const src =
-    size === "sm" ? "/brand/logo-mark.png?v=4" : "/brand/logo.png?v=4";
   return (
     <div className={`rutrix-logo rutrix-logo--${size}`} aria-hidden>
-      <img className="rutrix-logo__img" src={src} alt="" />
+      <img className="rutrix-logo__img" src="/brand/logo.png?v=5" alt="" />
     </div>
   );
 }

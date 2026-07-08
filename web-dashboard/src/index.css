@@ -2387,12 +2387,12 @@ body {
 
 /* Nav rail */
 .app-nav-rail {
-  width: 88px;
+  width: 112px;
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 1rem 0.5rem;
+  padding: 1rem 0.45rem;
   background: linear-gradient(180deg, rgba(11, 17, 32, 0.98), rgba(6, 10, 18, 0.99));
   border-inline-end: 1px solid var(--border);
   box-shadow: 4px 0 32px rgba(0, 0, 0, 0.25);
@@ -2400,23 +2400,25 @@ body {
 
 .nav-rail-brand {
   margin-bottom: 1.25rem;
-  padding: 0.15rem;
+  padding: 0.25rem 0.1rem;
   border: none;
   background: none;
   cursor: pointer;
-  border-radius: 14px;
+  border-radius: 12px;
   transition: transform 0.2s;
   display: flex;
   justify-content: center;
+  width: 100%;
 }
 
 .nav-rail-brand:hover {
-  transform: scale(1.05);
+  transform: scale(1.03);
 }
 
 .rutrix-logo--sm .rutrix-logo__img {
-  width: 2.6rem;
-  height: 2.6rem;
+  height: 22px;
+  width: auto;
+  max-width: 100px;
   filter: drop-shadow(0 4px 12px rgba(46, 230, 255, 0.28));
 }
 
@@ -3149,14 +3151,13 @@ body {
 }
 
 @media (max-width: 768px) {
-  .app-nav-rail { width: 64px; }
-  .rutrix-logo--sm .rutrix-logo__img { width: 2.1rem; height: 2.1rem; }
+  .app-nav-rail { width: 78px; }
+  .rutrix-logo--sm .rutrix-logo__img { height: 16px; max-width: 68px; }
   .nav-rail-label { display: none; }
   .nav-rail-btn { padding: 0.65rem 0.25rem; }
   .topbar-page { max-width: 100px; }
   .topbar-org-pill { display: none; }
   .app-topbar { padding: 0.75rem 1rem; }
   .app-page { padding: 1rem; }
-  .rutrix-logo--md .rutrix-logo__img { height: 32px; }
 }
 
