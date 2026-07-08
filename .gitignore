@@ -1,0 +1,43 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+# Secrets & local certs
+.env
+backend/.env
+backend/certs/
+
+# Node
+node_modules/
+dist/
+.expo/
+
+# Data & models
+data/uploads/*
+data/training/*
+data/datasets/raw/*
+!data/**/.gitkeep
+ml/models/*
+!ml/models/.gitkeep
+!ml/models/pothole_yolov8n.pt
+!ml/models/pothole_yolov8n.onnx
+!ml/models/pothole_yolov8n.onnx.data
+# Ignore other large weights elsewhere
+*.pt
+!ml/models/pothole_yolov8n.pt
+*.onnx
+!ml/models/pothole_yolov8n.onnx
+
+# Nested mobile git from EAS init (monorepo uses root only)
+mobile/.git/
+
+# IDE
+.idea/
+.vscode/
+*.db
+
+# OS
+.DS_Store
+Thumbs.db

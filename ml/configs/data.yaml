@@ -1,0 +1,24 @@
+# Unified pothole detection dataset config
+path: ../data/datasets/unified
+train: images/train
+val: images/val
+test: images/test
+
+nc: 3
+names:
+  0: pothole
+  1: crack
+  2: patch
+
+# Source datasets metadata (for tracking diversity)
+sources:
+  rdd2022:
+    countries: [Japan, India, Czech, China, Norway, US]
+    device_type: mms
+  roboflow:
+    url: https://universe.roboflow.com
+    device_type: mixed
+  kaggle:
+    device_type: phone
+  cdnet:
+    device_type: mms

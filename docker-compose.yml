@@ -1,0 +1,44 @@
+services:
+  db:
+    image: postgis/postgis:16-3.4
+    environment:
+      POSTGRES_USER: pothole
+      POSTGRES_PASSWORD: pothole
+      POSTGRES_DB: pothole_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - pothole_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U pothole -d pothole_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      DATABASE_URL: postgresql://pothole:pothole@db:5432/pothole_db
+      CORS_ORIGINS: http://localhost:5173,http://localhost:3000
+    volumes:
+      - ./data:/app/data
+      - ./ml/models:/app/ml/models
+    depends_on:
+      db:
+        condition: service_healthy
+
+  dashboard:
+    build:
+      context: ./web-dashboard
+      dockerfile: Dockerfile
+    ports:
+      - "5173:80"
+    depends_on:
+      - api
+
+volumes:
+  pothole_pgdata:

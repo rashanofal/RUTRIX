@@ -1,0 +1,76 @@
+{
+  "expo": {
+    "name": "RUTRIX",
+    "slug": "rutrix",
+    "version": "1.1.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "scheme": "rutrix",
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#04060d"
+    },
+    "ios": {
+      "bundleIdentifier": "com.rutrix.app",
+      "supportsTablet": true,
+      "buildNumber": "2",
+      "infoPlist": {
+        "NSCameraUsageDescription": "RUTRIX needs the camera to photograph road surface defects and potholes.",
+        "NSPhotoLibraryUsageDescription": "RUTRIX lets you pick road photos from your gallery for AI detection.",
+        "NSLocationWhenInUseUsageDescription": "RUTRIX records GPS coordinates for each pothole on the field map.",
+        "NSLocalNetworkUsageDescription": "RUTRIX connects to your detection server on the local network.",
+        "NSAppTransportSecurity": {
+          "NSAllowsArbitraryLoads": true,
+          "NSAllowsLocalNetworking": true
+        }
+      }
+    },
+    "android": {
+      "package": "com.rutrix.app",
+      "versionCode": 2,
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#04060d"
+      },
+      "permissions": [
+        "android.permission.CAMERA",
+        "android.permission.READ_MEDIA_IMAGES",
+        "android.permission.ACCESS_FINE_LOCATION",
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.INTERNET",
+        "android.permission.RECORD_AUDIO"
+      ]
+    },
+    "extra": {
+      "apiUrl": "https://pothole-detection.onrender.com",
+      "eas": {
+        "projectId": "0084527d-e1f9-4939-ab1f-26cc53d6f54f"
+      }
+    },
+    "plugins": [
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Allow camera access to scan road defects with RUTRIX."
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Allow location so RUTRIX can pin each pothole on the map."
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Allow gallery access to upload road photos to RUTRIX."
+        }
+      ],
+      "expo-asset",
+      "expo-font"
+    ],
+    "owner": "rashanofal"
+  }
+}

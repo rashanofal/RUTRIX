@@ -1,0 +1,12 @@
+**/.venv
+**/node_modules
+**/__pycache__
+**/.git
+**/data/uploads/**
+**/data/training/**
+backend/pothole.db
+backend/certs
+*.bat
+*.md
+.cursor
+agent-transcripts
