@@ -2416,9 +2416,10 @@ body {
 }
 
 .rutrix-logo--sm .rutrix-logo__img {
-  height: 22px;
+  height: 28px;
   width: auto;
-  max-width: 100px;
+  max-width: 108px;
+  object-fit: contain;
   filter: drop-shadow(0 4px 12px rgba(46, 230, 255, 0.28));
 }
 
