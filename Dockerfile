@@ -28,7 +28,7 @@ COPY --from=dashboard /dash/dist ./app/static/dashboard
 RUN mkdir -p /app/data/uploads /app/data/training /tmp/uploads /tmp/training /tmp/hf_cache
 
 ENV PYTHONPATH=/app
-ENV PORT=8000
+ENV PORT=7860
 ENV HF_HOME=/tmp/hf_cache
 ENV TORCH_HOME=/tmp/hf_cache/torch
 ENV DATABASE_URL=sqlite:////tmp/pothole.db
@@ -38,6 +38,6 @@ ENV TRAINING_DIR=/tmp/training
 ENV CORS_ORIGINS=*
 ENV SEED_DEMO_ACCOUNT=true
 
-EXPOSE 8000
+EXPOSE 7860
 
-CMD ["sh", "-c", "uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}"]
+CMD ["sh", "-c", "echo 'Starting RUTRIX on port' ${PORT:-7860} && uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-7860} --log-level info"]
