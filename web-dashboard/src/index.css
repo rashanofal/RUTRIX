@@ -1,39 +1,40 @@
-@import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700;800&family=IBM+Plex+Sans:wght@400;500;600;700;800&family=Outfit:wght@500;600;700;800;900&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Cairo:wght@500;600;700;800;900&family=Syne:wght@600;700;800&display=swap");
 
 :root {
-  --bg: #060a12;
-  --bg-soft: #0b1120;
-  --surface: #111827;
-  --surface-2: #1a2332;
-  --surface-hover: #243044;
-  --border: rgba(148, 163, 184, 0.12);
-  --border-glow: rgba(56, 189, 248, 0.35);
-  --text: #f1f5f9;
-  --text-muted: #9ca3af;
-  --text-dim: #6b7280;
-  --primary: #38bdf8;
-  --primary-2: #0ea5e9;
-  --accent: #fbbf24;
-  --accent-2: #f59e0b;
-  --violet: #a78bfa;
-  --success: #34d399;
-  --warning: #fbbf24;
-  --danger: #f87171;
-  --radius: 14px;
-  --radius-lg: 20px;
-  --radius-xl: 28px;
-  --shadow: 0 20px 50px rgba(0, 0, 0, 0.45);
-  --shadow-soft: 0 8px 28px rgba(0, 0, 0, 0.32);
-  --shadow-glow: 0 0 48px rgba(56, 189, 248, 0.08);
+  --bg: #02040a;
+  --bg-soft: #070b16;
+  --surface: #0c1222;
+  --surface-2: #121a2f;
+  --surface-hover: #1a2440;
+  --border: rgba(148, 180, 255, 0.16);
+  --border-glow: rgba(46, 230, 255, 0.55);
+  --text: #f8fbff;
+  --text-muted: #a9b8d4;
+  --text-dim: #6f7f9e;
+  --primary: #2ee6ff;
+  --primary-2: #7c6bff;
+  --accent: #ffd27a;
+  --accent-2: #ff6b9d;
+  --violet: #9d8cff;
+  --success: #3dffa8;
+  --warning: #ffd27a;
+  --danger: #ff6b8a;
+  --radius: 16px;
+  --radius-lg: 24px;
+  --radius-xl: 32px;
+  --shadow: 0 24px 60px rgba(0, 0, 0, 0.5);
+  --shadow-soft: 0 12px 36px rgba(0, 0, 0, 0.36);
+  --shadow-glow: 0 0 64px rgba(46, 230, 255, 0.14);
   --sidebar-width: min(580px, 54vw);
   --map-width: minmax(360px, 46vw);
-  --font: "IBM Plex Sans Arabic", "IBM Plex Sans", "Plus Jakarta Sans", "Segoe UI", sans-serif;
-  --font-display: "Plus Jakarta Sans", "Outfit", "IBM Plex Sans", sans-serif;
-  --gradient-brand: linear-gradient(135deg, #38bdf8 0%, #818cf8 50%, #fbbf24 100%);
-  --gradient-card: linear-gradient(165deg, rgba(17, 24, 39, 0.96), rgba(11, 17, 32, 0.98));
+  --font: "Cairo", "Segoe UI", sans-serif;
+  --font-display: "Syne", "Cairo", sans-serif;
+  --gradient-brand: linear-gradient(135deg, #2ee6ff 0%, #7c6bff 42%, #ff6b9d 74%, #ffd27a 100%);
+  --gradient-card: linear-gradient(165deg, rgba(12, 18, 34, 0.97), rgba(7, 11, 22, 0.99));
   --gradient-mesh:
-    radial-gradient(ellipse 50% 40% at 12% 8%, rgba(56, 189, 248, 0.1), transparent 50%),
-    radial-gradient(ellipse 40% 35% at 88% 92%, rgba(129, 140, 248, 0.08), transparent 48%);
+    radial-gradient(ellipse 60% 50% at 10% 0%, rgba(46, 230, 255, 0.18), transparent 55%),
+    radial-gradient(ellipse 50% 45% at 95% 15%, rgba(255, 107, 157, 0.14), transparent 50%),
+    radial-gradient(ellipse 45% 40% at 80% 100%, rgba(124, 107, 255, 0.14), transparent 48%);
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -337,15 +338,17 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 52px;
-  height: 52px;
-  border-radius: 16px;
+  width: 56px;
+  height: 56px;
+  border-radius: 18px;
   background: var(--gradient-brand);
-  color: #030508;
+  color: #02040a;
   font-weight: 900;
-  font-size: 1.45rem;
+  font-size: 1.55rem;
   font-family: var(--font-display);
-  box-shadow: 0 10px 32px rgba(34, 211, 238, 0.35);
+  box-shadow:
+    0 12px 36px rgba(46, 230, 255, 0.35),
+    0 0 0 1px rgba(255, 255, 255, 0.12) inset;
 }
 
 .rutrix-logo--lg .rutrix-logo__hex {
@@ -398,12 +401,12 @@ body {
 }
 
 .scientific-name {
-  font-size: 0.95rem;
-  color: var(--violet);
-  font-weight: 600;
-  margin-bottom: 0.5rem;
-  max-width: 420px;
-  line-height: 1.6;
+  font-size: 0.98rem;
+  color: #c4b5fd;
+  font-weight: 700;
+  margin-bottom: 0.45rem;
+  max-width: 440px;
+  line-height: 1.65;
 }
 
 .detail-panel { margin-top: 0; }
@@ -1535,9 +1538,7 @@ body {
   content: "";
   position: absolute;
   inset: 0;
-  background:
-    radial-gradient(circle at 15% 20%, rgba(56, 189, 248, 0.15), transparent 40%),
-    radial-gradient(circle at 85% 80%, rgba(245, 158, 11, 0.1), transparent 35%);
+  background: var(--gradient-mesh);
   pointer-events: none;
 }
 
@@ -1548,44 +1549,77 @@ body {
   justify-content: center;
   padding: 3.5rem;
   border-inline-end: 1px solid var(--border);
+  background:
+    linear-gradient(160deg, rgba(46, 230, 255, 0.06), transparent 40%),
+    linear-gradient(20deg, rgba(255, 107, 157, 0.05), transparent 35%);
 }
 
 .login-hero h1 {
   font-family: var(--font-display);
-  font-size: 3.2rem;
-  font-weight: 900;
-  letter-spacing: 0.04em;
+  font-size: clamp(3rem, 6vw, 4.2rem);
+  font-weight: 800;
+  letter-spacing: 0.05em;
   margin-bottom: 0.75rem;
   background: var(--gradient-brand);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+  filter: drop-shadow(0 0 28px rgba(46, 230, 255, 0.25));
+  animation: brandPulse 4.5s ease-in-out infinite;
 }
 
 .login-page::after {
   content: "";
   position: absolute;
-  width: 420px;
-  height: 420px;
+  width: 480px;
+  height: 480px;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(167, 139, 250, 0.15), transparent 70%);
-  bottom: -120px;
-  inset-inline-start: -80px;
+  background: radial-gradient(circle, rgba(255, 107, 157, 0.18), transparent 70%);
+  bottom: -140px;
+  inset-inline-start: -100px;
   pointer-events: none;
   animation: floatOrb 12s ease-in-out infinite alternate;
 }
 
 @keyframes floatOrb {
-  from { transform: translate(0, 0); }
-  to { transform: translate(30px, -20px); }
+  from { transform: translate(0, 0) scale(1); }
+  to { transform: translate(36px, -28px) scale(1.08); }
+}
+
+@keyframes brandPulse {
+  0%, 100% { filter: drop-shadow(0 0 18px rgba(46, 230, 255, 0.2)); }
+  50% { filter: drop-shadow(0 0 42px rgba(255, 107, 157, 0.35)); }
 }
 
 .login-hero .tagline {
   color: var(--text-muted);
-  font-size: 1.08rem;
-  margin-bottom: 2.25rem;
-  max-width: 420px;
+  font-size: 1.12rem;
+  margin-bottom: 0.85rem;
+  max-width: 440px;
   line-height: 1.7;
+}
+
+.creator-credit {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin: 0 0 2rem;
+  padding: 0.45rem 0.9rem;
+  border-radius: 999px;
+  font-size: 0.92rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: #ffe8f2;
+  background: linear-gradient(135deg, rgba(255, 107, 157, 0.22), rgba(124, 107, 255, 0.18));
+  border: 1px solid rgba(255, 107, 157, 0.35);
+  box-shadow: 0 0 28px rgba(255, 107, 157, 0.18);
+  width: fit-content;
+}
+
+.creator-credit::before {
+  content: "❤";
+  color: #ff6b9d;
+  font-size: 0.85rem;
 }
 
 .feature-list {
@@ -2469,19 +2503,28 @@ body {
 
 .topbar-scientific {
   font-size: 0.82rem;
-  color: var(--violet);
-  font-weight: 600;
+  color: #c4b5fd;
+  font-weight: 700;
   line-height: 1.45;
   margin: 0;
 }
 
 .topbar-tagline {
-  font-size: 0.78rem;
+  font-size: 0.8rem;
   color: var(--text);
-  font-weight: 500;
+  font-weight: 600;
   line-height: 1.4;
   margin: 0;
-  opacity: 0.92;
+  opacity: 0.95;
+}
+
+.topbar-creator {
+  margin: 0.15rem 0 0;
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: #ffc2d6;
+  width: fit-content;
 }
 
 .topbar-brand-stack .topbar-platform {

@@ -4,6 +4,8 @@ export const translations = {
   ar: {
     brand: BRAND.nameAr,
     scientific: BRAND.scientificAr,
+    tagline: BRAND.taglineAr,
+    creator: BRAND.creatorAr,
     login: "تسجيل الدخول",
     register: "حساب جديد",
     email: "البريد الإلكتروني",
@@ -83,6 +85,8 @@ export const translations = {
   en: {
     brand: BRAND.name,
     scientific: BRAND.scientificEn,
+    tagline: BRAND.taglineEn,
+    creator: BRAND.creatorEn,
     login: "Sign In",
     register: "New Account",
     email: "Email",

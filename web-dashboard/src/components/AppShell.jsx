@@ -62,6 +62,7 @@ export default function AppShell({
                 <h1 className="topbar-platform">{t.brand}</h1>
                 <p className="topbar-scientific">{t.brandSub}</p>
                 {t.tagline ? <p className="topbar-tagline">{t.tagline}</p> : null}
+                <p className="topbar-creator">{t.creator}</p>
               </div>
             ) : (
               <div className="topbar-brand-text">

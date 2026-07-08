@@ -40,6 +40,7 @@ export default function LoginPage() {
         <h1>{t.brand}</h1>
         <p className="scientific-name">{t.brandSub}</p>
         {t.tagline ? <p className="tagline">{t.tagline}</p> : null}
+        <p className="creator-credit">{t.creator}</p>
         <ul className="feature-list">
           {t.features.map((f) => (
             <li key={f.text}>

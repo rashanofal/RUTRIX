@@ -4,14 +4,16 @@ export const BRAND = {
   nameAr: "روتريكس",
   scientificEn: "Road Infrastructure Intelligence & Asset Management Platform",
   scientificAr: "منصة ذكاء البنية التحتية للطرق وإدارة الأصول",
-  taglineEn: "",
-  taglineAr: "",
+  taglineEn: "Seeing roads. Guiding repair.",
+  taglineAr: "نبصر الطريق. نقود الإصلاح.",
+  creatorEn: "With love — Rasha Nofal",
+  creatorAr: "بحب — رشا نوفل",
   version: "v2",
 };
 
 export const BRAND_COLORS = {
-  cyan: "#06b6d4",
-  amber: "#f59e0b",
-  violet: "#8b5cf6",
-  gradient: "linear-gradient(135deg, #06b6d4 0%, #8b5cf6 52%, #f59e0b 100%)",
+  cyan: "#2ee6ff",
+  rose: "#ff6b9d",
+  gold: "#ffd27a",
+  gradient: "linear-gradient(135deg, #2ee6ff 0%, #7c6bff 45%, #ff6b9d 78%, #ffd27a 100%)",
 };
