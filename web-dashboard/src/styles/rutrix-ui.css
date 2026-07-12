@@ -462,12 +462,13 @@ body {
 .nav-rail-brand {
   width: 100%;
   overflow: visible;
+  padding: 0.15rem 0.05rem 0.35rem;
 }
 
 .rutrix-logo--sm .rutrix-logo__img {
-  height: 24px;
-  width: auto;
-  max-width: 100%;
+  width: 100%;
+  height: auto;
+  display: block;
   object-fit: contain;
 }
 

@@ -13,7 +13,7 @@ export default function LangToggle({ className = "" }) {
 export function BrandLogo({ size = "md" }) {
   return (
     <div className={`rutrix-logo rutrix-logo--${size}`} aria-hidden>
-      <img className="rutrix-logo__img" src="/brand/logo.png?v=8" alt="" />
+      <img className="rutrix-logo__img" src="/brand/logo.png?v=9" alt="" />
     </div>
   );
 }
