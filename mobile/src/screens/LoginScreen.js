@@ -245,6 +245,7 @@ const styles = StyleSheet.create({
   toggle: { color: colors.primary, textAlign: "center", marginTop: spacing.md, fontSize: 14 },
   demo: { color: colors.textDim, textAlign: "center", marginTop: spacing.lg, fontSize: 12 },
   footerCredit: {
+    width: "100%",
     color: "#ffc2d6",
     textAlign: "center",
     marginTop: spacing.xl,

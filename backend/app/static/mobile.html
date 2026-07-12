@@ -54,6 +54,9 @@
       padding: max(0.75rem, env(safe-area-inset-top)) 1rem calc(5rem + env(safe-area-inset-bottom));
       letter-spacing: -0.01em;
     }
+    body.app-mode {
+      padding-bottom: calc(7.75rem + env(safe-area-inset-bottom));
+    }
     .hidden { display: none !important; }
     h1 { font-size: 1.45rem; font-weight: 800; letter-spacing: -0.02em; }
     .sub { color: var(--muted); font-size: 0.86rem; margin-top: 0.3rem; line-height: 1.55; }
@@ -112,6 +115,7 @@
       color: #fecaca;
       border: 1px solid rgba(248, 113, 113, 0.3);
       margin-top: 1rem;
+      margin-bottom: 0.35rem;
     }
     input[type=file] { display: none; }
     #msg {
@@ -134,6 +138,9 @@
       unicode-bidi: plaintext;
       backdrop-filter: blur(16px);
       box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
+    }
+    body.app-mode .upload-toast {
+      bottom: calc(8.5rem + env(safe-area-inset-bottom));
     }
     .upload-toast.ok {
       color: #bbf7d0;
@@ -215,14 +222,23 @@
       border: 1px solid var(--border);
       overflow: hidden;
     }
-    .tabs {
-      position: fixed; left: 0; right: 0; bottom: 0;
-      display: flex; flex-wrap: wrap; gap: 0.35rem;
+    .bottom-dock {
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 1000;
       background: rgba(6, 10, 20, 0.94);
       backdrop-filter: blur(20px);
       border-top: 1px solid var(--border);
-      padding: 0.45rem 0.65rem calc(0.45rem + env(safe-area-inset-bottom));
-      z-index: 1000;
+      padding-bottom: env(safe-area-inset-bottom);
+    }
+    .tabs {
+      display: flex;
+      gap: 0.35rem;
+      background: transparent;
+      border: none;
+      padding: 0.45rem 0.65rem 0.2rem;
     }
     .tab {
       flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.2rem;
@@ -299,6 +315,7 @@
       background: linear-gradient(135deg, rgba(255, 107, 157, 0.28), rgba(124, 107, 255, 0.2));
       border: 1px solid rgba(255, 107, 157, 0.35);
       white-space: nowrap;
+      text-align: center;
     }
     .creator-credit.app-credit {
       position: static;
@@ -306,12 +323,19 @@
       bottom: auto;
       transform: none;
       display: block;
-      width: fit-content;
-      flex: 0 0 100%;
-      margin: 0.1rem auto 0;
+      width: 100%;
+      max-width: 100%;
+      margin: 0;
+      padding: 0.22rem 0.65rem 0.42rem;
+      text-align: center;
+      unicode-bidi: plaintext;
       font-size: 0.72rem;
-      padding: 0.18rem 0.7rem;
+      background: transparent;
+      border: none;
+      border-radius: 0;
+      white-space: normal;
       opacity: 0.95;
+      box-sizing: border-box;
     }
     .popup-del {
       margin-top: 0.65rem; width: 100%; padding: 0.55rem; border-radius: 10px;
@@ -391,10 +415,6 @@
         <p id="msg"></p>
         <button type="button" class="btn btn-album hidden" id="skipLocBtn" style="margin-top:0.5rem">Skip</button>
       </div>
-      <div class="card">
-        <p class="sub" id="gpsNote">Location from image GPS or device when needed</p>
-        <a class="link-map" id="pcMapLink" href="#" target="_blank" rel="noopener">Full map on computer</a>
-      </div>
       <button class="btn btn-logout" id="logoutBtn">Logout</button>
     </div>
 
@@ -408,21 +428,23 @@
 
     <div id="uploadToast" class="upload-toast hidden" role="status" aria-live="polite"></div>
 
-    <nav class="tabs">
-      <button class="tab active" data-tab="camera" type="button">
-        <span class="tab-icon" aria-hidden>
-          <svg viewBox="0 0 24 24"><path d="M4 7V5a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v2"/><rect x="4" y="7" width="16" height="13" rx="2"/><circle cx="12" cy="13.5" r="3.2"/></svg>
-        </span>
-        <span class="tab-label" id="tabCameraLabel">Capture</span>
-      </button>
-      <button class="tab" data-tab="map" type="button">
-        <span class="tab-icon" aria-hidden>
-          <svg viewBox="0 0 24 24"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2Z"/><path d="M9 4v14M15 6v14"/></svg>
-        </span>
-        <span class="tab-label" id="tabMapLabel">Map</span>
-      </button>
+    <div class="bottom-dock">
+      <nav class="tabs">
+        <button class="tab active" data-tab="camera" type="button">
+          <span class="tab-icon" aria-hidden>
+            <svg viewBox="0 0 24 24"><path d="M4 7V5a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v2"/><rect x="4" y="7" width="16" height="13" rx="2"/><circle cx="12" cy="13.5" r="3.2"/></svg>
+          </span>
+          <span class="tab-label" id="tabCameraLabel">Capture</span>
+        </button>
+        <button class="tab" data-tab="map" type="button">
+          <span class="tab-icon" aria-hidden>
+            <svg viewBox="0 0 24 24"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2Z"/><path d="M9 4v14M15 6v14"/></svg>
+          </span>
+          <span class="tab-label" id="tabMapLabel">Map</span>
+        </button>
+      </nav>
       <p class="creator-credit app-credit" id="appCreatorCredit">RUTRIX © 2026 • by Dr. Rasha Nofal</p>
-    </nav>
+    </div>
   </div>
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -454,8 +476,6 @@
         secureGps: "افتح HTTPS لتفعيل الموقع",
         captureSection: "تصوير ميداني",
         mapCard: "نقاط الكشف على الخريطة",
-        gpsNote: "الموقع من GPS الصورة أو من جهاز الهاتف عند الحاجة",
-        pcMap: "الخريطة الكاملة على الكمبيوتر",
         uploadedPhoto: "تمت إضافة الصورة على الخريطة — لا يوجد حفر",
         uploadedPotholes: "تم اكتشاف {n} عطل — على الخريطة",
         uploadedMap: "تم — ظهرت على الخريطة",
@@ -486,8 +506,6 @@
         secureGps: "Open HTTPS for GPS location",
         captureSection: "Field capture",
         mapCard: "Detection points on the map",
-        gpsNote: "Location from image GPS or device when needed",
-        pcMap: "Full map on computer",
         uploadedPhoto: "Photo added to the map — no potholes",
         uploadedPotholes: "Detected {n} issue(s) — on the map",
         uploadedMap: "Done — shown on the map",
@@ -568,10 +586,6 @@
       if (enableGps) enableGps.textContent = "📍 " + tr.enableGps;
       const section = document.getElementById("captureSection");
       if (section) section.textContent = tr.captureSection;
-      const note = document.getElementById("gpsNote");
-      if (note) note.textContent = tr.gpsNote;
-      const pcMap = document.getElementById("pcMapLink");
-      if (pcMap) pcMap.textContent = tr.pcMap;
       const tip = document.getElementById("gpsTip");
       if (tip) tip.textContent = window.isSecureContext ? tr.gpsTip : tr.insecureTip;
       updateGpsChip();
@@ -616,17 +630,13 @@
     function setAuth(data) { localStorage.setItem(AUTH_KEY, JSON.stringify(data)); }
     function clearAuth() { localStorage.removeItem(AUTH_KEY); }
 
-    function pcDashboardUrl() {
-      return location.origin + "/overview";
-    }
-
     function showApp(auth) {
       loginView.classList.add("hidden");
       appView.classList.remove("hidden");
+      document.body.classList.add("app-mode");
       var langLogin = document.getElementById("langBtnLogin");
       if (langLogin) langLogin.classList.add("hidden");
       orgName.textContent = auth.organization?.name || "";
-      document.getElementById("pcMapLink").href = pcDashboardUrl();
       checkHealth();
       startLocationWatch();
       updateGpsChip();
@@ -638,6 +648,7 @@
       clearAuth();
       appView.classList.add("hidden");
       loginView.classList.remove("hidden");
+      document.body.classList.remove("app-mode");
       var langLogin = document.getElementById("langBtnLogin");
       if (langLogin) langLogin.classList.remove("hidden");
     }

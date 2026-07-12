@@ -62,19 +62,24 @@ def compute_vehicle_risk(
 
 
 def compute_repair_costs(class_name: str, width_cm: float, depth_cm: float, severity: str) -> tuple[float, float]:
-    """Estimated repair cost range (USD) for municipality planning."""
+    """Estimated spot-repair cost range (USD) — cold patch / municipal crew, not full lane rebuild."""
     if class_name == "photo":
         return 0.0, 0.0
     if class_name == "crack":
-        base = 80 + width_cm * 2.5
+        base = 12.0 + width_cm * 0.85
     elif class_name == "patch":
-        base = 120 + width_cm * 3.0
+        base = 18.0 + width_cm * 1.1
     else:
-        base = 150 + width_cm * depth_cm * 1.8
-    mult = {"low": 1.0, "medium": 1.6, "high": 2.4, "critical": 3.5}.get(severity, 1.0)
-    low = base * mult * 0.75
-    high = base * mult * 1.35
-    return round(low, 0), round(high, 0)
+        area_cm2 = max(20.0, (width_cm**2) * 0.5)
+        depth_factor = 1.0 + min(depth_cm / 12.0, 2.5) * 0.3
+        base = 15.0 + area_cm2 * 0.05 * depth_factor
+    mult = {"low": 0.9, "medium": 1.0, "high": 1.2, "critical": 1.5}.get(severity, 1.0)
+    low = base * mult * 0.85
+    high = base * mult * 1.2
+    cap = {"low": 120, "medium": 220, "high": 350, "critical": 500}.get(severity, 250)
+    low = min(round(low, 0), cap)
+    high = min(round(max(high, low + 5), 0), cap)
+    return low, high
 
 
 def compute_tire_damage_risk(depth_cm: float, vehicle_risk: float) -> float:

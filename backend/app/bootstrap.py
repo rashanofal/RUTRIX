@@ -135,4 +135,4 @@ def seed_demo_account() -> None:
 def bootstrap() -> None:
     run_migrations()
     seed_demo_account()
-    # Defer heavy model/backfill work until first API use (faster HF cold start)
+    backfill_intelligence()

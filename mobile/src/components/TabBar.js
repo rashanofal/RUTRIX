@@ -103,6 +103,8 @@ const styles = StyleSheet.create({
   label: { fontSize: 11, color: colors.textDim, fontWeight: "600" },
   labelActive: { color: colors.primary, fontWeight: "800" },
   credit: {
+    width: "100%",
+    alignSelf: "center",
     color: "#ffc2d6",
     textAlign: "center",
     fontSize: 11,
