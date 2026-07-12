@@ -32,7 +32,7 @@ export default function AppShell({
           title={t.brand}
           aria-label={t.brand}
         >
-          <BrandLogo size="sm" />
+          <BrandLogo size="sm" variant="mark" />
         </button>
         <div className="nav-rail-items">
           {NAV.map((item) => (

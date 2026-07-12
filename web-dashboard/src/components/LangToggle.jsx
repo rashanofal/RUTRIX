@@ -9,11 +9,16 @@ export default function LangToggle({ className = "" }) {
   );
 }
 
-/** Full brand lockup: stylized R + RUTRIX wordmark */
-export function BrandLogo({ size = "md" }) {
+/** Brand lockup — full wordmark or icon-only mark for narrow nav rail */
+export function BrandLogo({ size = "md", variant = "full" }) {
+  const isMark = variant === "mark";
+  const src = isMark ? "/brand/logo-mark.png?v=1" : "/brand/logo.png?v=9";
   return (
-    <div className={`rutrix-logo rutrix-logo--${size}`} aria-hidden>
-      <img className="rutrix-logo__img" src="/brand/logo.png?v=9" alt="" />
+    <div
+      className={`rutrix-logo rutrix-logo--${size}${isMark ? " rutrix-logo--mark" : ""}`}
+      aria-hidden
+    >
+      <img className="rutrix-logo__img" src={src} alt="" />
     </div>
   );
 }

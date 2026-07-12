@@ -2390,12 +2390,12 @@ body {
 
 /* Nav rail */
 .app-nav-rail {
-  width: 132px;
+  width: 96px;
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 1rem 0.5rem;
+  padding: 1rem 0.65rem;
   background: linear-gradient(180deg, rgba(11, 17, 32, 0.98), rgba(6, 10, 18, 0.99));
   border-inline-end: 1px solid var(--border);
   box-shadow: 4px 0 32px rgba(0, 0, 0, 0.25);
@@ -2434,6 +2434,12 @@ body {
   object-fit: contain;
   object-position: center;
   filter: drop-shadow(0 4px 12px rgba(46, 230, 255, 0.28));
+}
+
+.rutrix-logo--mark.rutrix-logo--sm .rutrix-logo__img {
+  width: 46px;
+  height: 46px;
+  filter: drop-shadow(0 6px 16px rgba(46, 230, 255, 0.35));
 }
 
 .nav-rail-items {
