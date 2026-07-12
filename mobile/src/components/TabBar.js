@@ -12,7 +12,7 @@ const TABS = [
 ];
 
 export default function TabBar({ active, onChange }) {
-  const { t } = useLocale();
+  const { locale, t } = useLocale();
 
   return (
     <View style={styles.outer}>
@@ -51,12 +51,25 @@ export default function TabBar({ active, onChange }) {
           );
         })}
       </View>
+      <Text
+        style={[
+          styles.credit,
+          { writingDirection: locale === "ar" ? "rtl" : "ltr" },
+        ]}
+      >
+        {t.creator}
+      </Text>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  outer: { position: "relative" },
+  outer: {
+    position: "relative",
+    backgroundColor: "#030508",
+    borderTopWidth: 1,
+    borderTopColor: "rgba(34,211,238,0.15)",
+  },
   fade: {
     position: "absolute",
     top: -28,
@@ -67,9 +80,7 @@ const styles = StyleSheet.create({
   bar: {
     flexDirection: "row",
     backgroundColor: "rgba(8,13,24,0.98)",
-    borderTopWidth: 1,
-    borderTopColor: "rgba(34,211,238,0.15)",
-    paddingBottom: Platform.OS === "ios" ? 26 : 14,
+    paddingBottom: 6,
     paddingTop: 10,
     paddingHorizontal: 8,
     gap: 4,
@@ -91,4 +102,13 @@ const styles = StyleSheet.create({
   },
   label: { fontSize: 11, color: colors.textDim, fontWeight: "600" },
   labelActive: { color: colors.primary, fontWeight: "800" },
+  credit: {
+    color: "#ffc2d6",
+    textAlign: "center",
+    fontSize: 11,
+    fontWeight: "800",
+    paddingHorizontal: 12,
+    paddingTop: 2,
+    paddingBottom: Platform.OS === "ios" ? 18 : 10,
+  },
 });

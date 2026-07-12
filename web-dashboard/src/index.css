@@ -45,6 +45,9 @@ body {
   color: var(--text);
   line-height: 1.55;
   -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
 }
 
 #root { min-height: 100vh; }
@@ -2958,20 +2961,31 @@ body {
 }
 
 .map-toolbar {
-  position: absolute;
-  top: 1rem;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 1001;
   display: flex;
   gap: 0.5rem;
   pointer-events: none;
 }
 
+@media (min-width: 769px) {
+  .map-toolbar {
+    position: absolute;
+    top: 1rem;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1001;
+  }
+
+  .map-fullframe {
+    position: absolute;
+    inset: 0;
+    border-radius: 0;
+  }
+}
+
 .map-fullframe {
-  position: absolute;
-  inset: 0;
-  border-radius: 0;
+  position: relative;
+  flex: 1;
+  min-height: 0;
 }
 
 .map-fullframe .leaflet-container {
@@ -3151,14 +3165,5 @@ body {
   .field-col-upload { position: static; }
 }
 
-@media (max-width: 768px) {
-  .app-nav-rail { width: 78px; }
-  .rutrix-logo--sm .rutrix-logo__img { height: 16px; max-width: 68px; }
-  .nav-rail-label { display: none; }
-  .nav-rail-btn { padding: 0.65rem 0.25rem; }
-  .topbar-page { max-width: 100px; }
-  .topbar-org-pill { display: none; }
-  .app-topbar { padding: 0.75rem 1rem; }
-  .app-page { padding: 1rem; }
-}
+/* Mobile layout: see styles/rutrix-ui.css (bottom nav + safe areas) */
 

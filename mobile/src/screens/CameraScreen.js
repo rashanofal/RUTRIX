@@ -17,6 +17,17 @@ import { useLocale } from "../LocaleContext";
 import StatusChip from "../components/StatusChip";
 import { colors, radius, spacing } from "../theme";
 
+function potholeCount(detections) {
+  return (detections || []).filter((d) => d.class_name && d.class_name !== "photo").length;
+}
+
+function uploadResultMessage(result, t) {
+  if (result?.message) return result.message;
+  const holes = potholeCount(result?.detections);
+  if (holes === 0) return t.uploadedNoPotholes;
+  return t.uploadedPotholes.replace("{n}", String(holes));
+}
+
 function ScanFrame() {
   return (
     <View style={styles.frameWrap} pointerEvents="none">
@@ -47,7 +58,8 @@ export default function CameraScreen({
   onUploaded,
   orgName,
 }) {
-  const { t } = useLocale();
+  const { locale, t } = useLocale();
+  const isRtl = locale === "ar";
   const [permission, requestPermission] = useCameraPermissions();
   const [loading, setLoading] = useState(false);
   const cameraRef = useRef(null);
@@ -76,7 +88,7 @@ export default function CameraScreen({
       if (!photo?.uri) throw new Error(t.captureFail);
       const result = await uploadDetection(photo.uri, apiUrl, coordsPayload());
       onUploaded?.(result);
-      Alert.alert(t.success, result.message || t.uploadOk);
+      Alert.alert(t.success, uploadResultMessage(result, t));
     } catch (e) {
       Alert.alert(t.error, e.message || t.uploadFail);
     } finally {
@@ -95,7 +107,7 @@ export default function CameraScreen({
       if (pick.canceled) return;
       const result = await uploadDetection(pick.assets[0].uri, apiUrl, coordsPayload());
       onUploaded?.(result);
-      Alert.alert(t.success, result.message || t.uploadOk);
+      Alert.alert(t.success, uploadResultMessage(result, t));
     } catch (e) {
       Alert.alert(t.error, e.message || t.uploadFail);
     } finally {
@@ -109,8 +121,8 @@ export default function CameraScreen({
         <View style={styles.permIcon}>
           <Ionicons name="camera" size={48} color={colors.primary} />
         </View>
-        <Text style={styles.permTitle}>{t.permTitle}</Text>
-        <Text style={styles.permSub}>{t.permSub}</Text>
+        <Text style={[styles.permTitle, isRtl && styles.rtlText]}>{t.permTitle}</Text>
+        <Text style={[styles.permSub, isRtl && styles.rtlText]}>{t.permSub}</Text>
         <TouchableOpacity style={styles.permBtn} onPress={requestPermission}>
           <LinearGradient colors={colors.gradient} style={styles.permBtnGrad}>
             <Text style={styles.permBtnText}>{t.grant}</Text>
@@ -126,12 +138,12 @@ export default function CameraScreen({
         <LinearGradient colors={["rgba(3,5,8,0.9)", "transparent"]} style={styles.topFade} />
         <LinearGradient colors={["transparent", "rgba(3,5,8,0.95)"]} style={styles.bottomFade} />
 
-        <View style={styles.topBar}>
+        <View style={[styles.topBar, isRtl && styles.topBarRtl]}>
           <View>
-            <Text style={styles.title}>{t.detectTitle}</Text>
-            {orgName ? <Text style={styles.org}>{orgName}</Text> : null}
+            <Text style={[styles.title, isRtl && styles.rtlText]}>{t.detectTitle}</Text>
+            {orgName ? <Text style={[styles.org, isRtl && styles.rtlText]}>{orgName}</Text> : null}
           </View>
-          <View style={styles.chips}>
+          <View style={[styles.chips, isRtl && styles.chipsRtl]}>
             <StatusChip label={connected ? t.connected : t.offline} active={connected} />
             <StatusChip
               label={gpsReady ? t.gps : t.noGps}
@@ -143,9 +155,9 @@ export default function CameraScreen({
 
         <ScanFrame />
 
-        <View style={styles.hintBox}>
+        <View style={[styles.hintBox, isRtl && styles.hintBoxRtl]}>
           <Ionicons name="navigate" size={16} color={colors.primary} />
-          <Text style={styles.hint}>{t.captureHint}</Text>
+          <Text style={[styles.hint, isRtl && styles.rtlText]}>{t.captureHint}</Text>
         </View>
 
         <View style={styles.controls}>
@@ -153,7 +165,7 @@ export default function CameraScreen({
             <View style={styles.sideIcon}>
               <Ionicons name="images" size={24} color={colors.text} />
             </View>
-            <Text style={styles.sideLabel}>{t.album}</Text>
+            <Text style={[styles.sideLabel, isRtl && styles.rtlText]}>{t.album}</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -177,7 +189,7 @@ export default function CameraScreen({
                 color={gpsReady ? colors.success : colors.textDim}
               />
             </View>
-            <Text style={styles.sideLabel}>{gpsReady ? t.ready : t.gps}</Text>
+            <Text style={[styles.sideLabel, isRtl && styles.rtlText]}>{gpsReady ? t.ready : t.gps}</Text>
           </View>
         </View>
       </CameraView>
@@ -201,9 +213,11 @@ const styles = StyleSheet.create({
     alignItems: "flex-start",
     zIndex: 2,
   },
+  topBarRtl: { flexDirection: "row-reverse" },
   title: { fontSize: 26, fontWeight: "900", color: "#fff", letterSpacing: 0.6 },
   org: { color: "rgba(255,255,255,0.72)", fontSize: 13, marginTop: 4 },
   chips: { gap: 6, alignItems: "flex-end" },
+  chipsRtl: { alignItems: "flex-start" },
   frameWrap: { ...StyleSheet.absoluteFillObject, justifyContent: "center", alignItems: "center" },
   frameBox: { width: "80%", aspectRatio: 4 / 3, maxHeight: "50%", position: "relative" },
   corner: { position: "absolute", width: CORNER, height: CORNER, borderColor: colors.primary },
@@ -242,6 +256,7 @@ const styles = StyleSheet.create({
     zIndex: 2,
   },
   hint: { color: colors.primary, fontSize: 13, fontWeight: "600", maxWidth: 270 },
+  hintBoxRtl: { flexDirection: "row-reverse" },
   controls: {
     position: "absolute",
     bottom: Platform.OS === "ios" ? 44 : 32,
@@ -269,6 +284,7 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(74,222,128,0.12)",
   },
   sideLabel: { color: "#fff", fontSize: 11, marginTop: 6, fontWeight: "700" },
+  rtlText: { textAlign: "right", writingDirection: "rtl" },
   captureOuter: {
     width: 86,
     height: 86,

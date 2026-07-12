@@ -77,7 +77,7 @@
     .field:focus-within { border-color: rgba(61, 213, 255, 0.45); }
     .field input {
       flex: 1; background: none; border: none; color: var(--text);
-      padding: 0.95rem 0; font-size: 1rem; outline: none; text-align: right;
+      padding: 0.95rem 0; font-size: 1rem; outline: none; text-align: start;
       font-family: inherit;
     }
     .btn {
@@ -119,11 +119,51 @@
       line-height: 1.6; text-align: center; unicode-bidi: plaintext;
     }
     .ok { color: var(--success); } .err { color: var(--danger); } .warn { color: #fbbf24; }
+    .upload-toast {
+      position: fixed;
+      left: 0.75rem;
+      right: 0.75rem;
+      bottom: calc(6.75rem + env(safe-area-inset-bottom));
+      z-index: 1500;
+      padding: 0.85rem 1rem;
+      border-radius: 14px;
+      font-size: 0.88rem;
+      font-weight: 700;
+      line-height: 1.55;
+      text-align: center;
+      unicode-bidi: plaintext;
+      backdrop-filter: blur(16px);
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
+    }
+    .upload-toast.ok {
+      color: #bbf7d0;
+      background: rgba(6, 78, 59, 0.94);
+      border: 1px solid rgba(52, 211, 153, 0.45);
+    }
+    .upload-toast.warn {
+      color: #fde68a;
+      background: rgba(120, 53, 15, 0.94);
+      border: 1px solid rgba(251, 191, 36, 0.45);
+    }
+    .upload-toast.err {
+      color: #fecaca;
+      background: rgba(127, 29, 29, 0.94);
+      border: 1px solid rgba(248, 113, 113, 0.45);
+    }
     .header {
       display: flex; justify-content: space-between; align-items: flex-start;
+      flex-wrap: wrap;
+      gap: 0.55rem;
       padding: 0.25rem 0 0.5rem;
     }
-    .header-brand { display: flex; align-items: center; gap: 0.75rem; }
+    .header-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 0.65rem;
+      width: 100%;
+    }
+    .header-brand { display: flex; align-items: center; gap: 0.75rem; flex: 1; min-width: 0; }
     .chip {
       display: inline-flex; align-items: center; gap: 6px;
       padding: 5px 11px; border-radius: 999px; font-size: 0.72rem; font-weight: 700;
@@ -177,7 +217,7 @@
     }
     .tabs {
       position: fixed; left: 0; right: 0; bottom: 0;
-      display: flex; gap: 0.35rem;
+      display: flex; flex-wrap: wrap; gap: 0.35rem;
       background: rgba(6, 10, 20, 0.94);
       backdrop-filter: blur(20px);
       border-top: 1px solid var(--border);
@@ -202,8 +242,7 @@
     }
     .tab-icon svg { width: 1.35rem; height: 1.35rem; stroke: currentColor; fill: none; stroke-width: 1.8; }
     .lang-btn {
-      position: fixed; top: max(0.75rem, env(safe-area-inset-top)); left: 1rem;
-      z-index: 2000;
+      flex-shrink: 0;
       background: rgba(15, 22, 40, 0.92);
       border: 1px solid var(--border);
       color: var(--primary);
@@ -213,7 +252,17 @@
       cursor: pointer;
       font-family: inherit;
       backdrop-filter: blur(12px);
+      min-width: 2.4rem;
+      min-height: 2.2rem;
     }
+    .lang-btn-fixed {
+      position: fixed;
+      top: max(0.75rem, env(safe-area-inset-top));
+      inset-inline-end: 1rem;
+      z-index: 2000;
+    }
+    html[dir="rtl"] .header-top { flex-direction: row-reverse; }
+    html[dir="rtl"] .header-brand { flex-direction: row-reverse; }
     .brand-logo {
       display: block;
       height: 58px;
@@ -258,8 +307,11 @@
       transform: none;
       display: block;
       width: fit-content;
-      margin: 0.85rem auto 0.35rem;
+      flex: 0 0 100%;
+      margin: 0.1rem auto 0;
       font-size: 0.72rem;
+      padding: 0.18rem 0.7rem;
+      opacity: 0.95;
     }
     .popup-del {
       margin-top: 0.65rem; width: 100%; padding: 0.55rem; border-radius: 10px;
@@ -278,7 +330,7 @@
   </style>
 </head>
 <body>
-  <button type="button" class="lang-btn" id="langBtn">ع</button>
+  <button type="button" class="lang-btn lang-btn-fixed" id="langBtnLogin">ع</button>
 
   <div id="loginView">
     <div class="hero">
@@ -302,12 +354,15 @@
 
   <div id="appView" class="hidden">
     <div class="header">
-      <div class="header-brand">
-        <img class="brand-logo sm" src="/static/logo.png?v=5" alt="RUTRIX" width="160" height="42" />
-        <div>
-          <h1 id="appBrand" class="sr-only">RUTRIX</h1>
-          <p class="sub" id="orgName">—</p>
+      <div class="header-top">
+        <div class="header-brand">
+          <img class="brand-logo sm" src="/static/logo.png?v=5" alt="RUTRIX" width="160" height="42" />
+          <div>
+            <h1 id="appBrand" class="sr-only">RUTRIX</h1>
+            <p class="sub" id="orgName">—</p>
+          </div>
         </div>
+        <button type="button" class="lang-btn" id="langBtnApp">ع</button>
       </div>
       <div class="chip-row">
         <div class="chip" id="statusChip"><span class="dot"></span> Connected</div>
@@ -320,7 +375,7 @@
         <div class="tip" id="gpsTip">
           Camera photos have no GPS — allow location before capture (see «Location ready» badge).
         </div>
-  <a class="btn btn-primary hidden" id="secureLink" href="#" style="margin-bottom:0.75rem;text-decoration:none;display:block;text-align:center">
+        <a class="btn btn-primary hidden" id="secureLink" href="#" style="margin-bottom:0.75rem;text-decoration:none;display:block;text-align:center">
           🔒 Open HTTPS for GPS location
         </a>
         <button type="button" class="btn btn-primary hidden" id="enableGpsBtn" style="margin-bottom:0.75rem">
@@ -330,7 +385,7 @@
         <label class="btn btn-camera" for="cameraInput" id="cameraLabel">Camera capture</label>
         <input type="file" id="cameraInput" class="hidden" accept="image/*" capture="environment" />
         <label class="btn btn-album" id="albumLabel">
-          Choose from album
+          <span id="albumLabelText">Choose from album</span>
           <input type="file" id="albumInput" accept="image/*" />
         </label>
         <p id="msg"></p>
@@ -341,7 +396,6 @@
         <a class="link-map" id="pcMapLink" href="#" target="_blank" rel="noopener">Full map on computer</a>
       </div>
       <button class="btn btn-logout" id="logoutBtn">Logout</button>
-      <p class="creator-credit app-credit" id="appCreatorCredit">RUTRIX © 2026 • by Dr. Rasha Nofal</p>
     </div>
 
     <div id="mapTab" class="hidden">
@@ -351,6 +405,8 @@
         <p id="mapEmpty" class="empty-map hidden">No points yet — capture with location enabled</p>
       </div>
     </div>
+
+    <div id="uploadToast" class="upload-toast hidden" role="status" aria-live="polite"></div>
 
     <nav class="tabs">
       <button class="tab active" data-tab="camera" type="button">
@@ -365,6 +421,7 @@
         </span>
         <span class="tab-label" id="tabMapLabel">Map</span>
       </button>
+      <p class="creator-credit app-credit" id="appCreatorCredit">RUTRIX © 2026 • by Dr. Rasha Nofal</p>
     </nav>
   </div>
 
@@ -394,6 +451,18 @@
         capture: "تصوير بالكاميرا",
         album: "اختيار من الألبوم",
         logout: "تسجيل الخروج",
+        secureGps: "افتح HTTPS لتفعيل الموقع",
+        captureSection: "تصوير ميداني",
+        mapCard: "نقاط الكشف على الخريطة",
+        gpsNote: "الموقع من GPS الصورة أو من جهاز الهاتف عند الحاجة",
+        pcMap: "الخريطة الكاملة على الكمبيوتر",
+        uploadedPhoto: "تمت إضافة الصورة على الخريطة — لا يوجد حفر",
+        uploadedPotholes: "تم اكتشاف {n} عطل — على الخريطة",
+        uploadedMap: "تم — ظهرت على الخريطة",
+        uploadedGeneric: "تم الرفع",
+        uploadFail: "فشل الرفع",
+        loginFail: "فشل الدخول",
+        insecureTip: "للموقع على الخريطة: اضغط زر HTTPS أعلاه أو اسمح بالموقع",
         gpsReady: "الموقع جاهز",
         gpsWaiting: "بانتظار الموقع...",
         gpsDenied: "الموقع مرفوض",
@@ -414,6 +483,18 @@
         deleteConfirm: "Delete this image from the map?",
         mapEmpty: "No points yet — capture with location enabled",
         logout: "Logout", capture: "Camera capture", album: "Choose from album",
+        secureGps: "Open HTTPS for GPS location",
+        captureSection: "Field capture",
+        mapCard: "Detection points on the map",
+        gpsNote: "Location from image GPS or device when needed",
+        pcMap: "Full map on computer",
+        uploadedPhoto: "Photo added to the map — no potholes",
+        uploadedPotholes: "Detected {n} issue(s) — on the map",
+        uploadedMap: "Done — shown on the map",
+        uploadedGeneric: "Uploaded",
+        uploadFail: "Upload failed",
+        loginFail: "Sign in failed",
+        insecureTip: "For map location: tap HTTPS above or allow location",
         gpsTip: "Camera photos have no GPS — allow location before capture (see «Location ready» badge)",
         locating: "Getting location...",
         locatingSkip: "Skip — upload without GPS",
@@ -438,10 +519,18 @@
       const tr = t();
       document.documentElement.lang = locale;
       document.documentElement.dir = tr.dir;
-      document.getElementById("langBtn").textContent = tr.lang;
+      ["langBtnLogin", "langBtnApp"].forEach(function (id) {
+        var btn = document.getElementById(id);
+        if (btn) btn.textContent = tr.lang;
+      });
       ["brandTitle", "appBrand"].forEach((id) => {
         const el = document.getElementById(id);
         if (el) el.textContent = tr.brand;
+      });
+      document.title = locale === "ar" ? "روتريكس | تطبيق الميدان" : "RUTRIX | Field App";
+      document.querySelectorAll(".brand-logo").forEach((img) => {
+        img.alt = tr.brand;
+        img.title = tr.brand;
       });
       const sub = document.getElementById("brandSub");
       if (sub) sub.textContent = tr.scientific;
@@ -467,15 +556,37 @@
       if (tabMap) tabMap.textContent = tr.tabMap;
       const me = document.getElementById("mapEmpty");
       if (me) me.textContent = tr.mapEmpty;
+      const mapCard = document.getElementById("mapCardTitle");
+      if (mapCard) mapCard.textContent = tr.mapCard;
       const camBtn = document.getElementById("cameraLabel");
-      if (camBtn) camBtn.textContent = tr.capture || "تصوير بالكاميرا";
+      if (camBtn) camBtn.textContent = tr.capture;
+      const albumText = document.getElementById("albumLabelText");
+      if (albumText) albumText.textContent = tr.album;
+      const secure = document.getElementById("secureLink");
+      if (secure) secure.textContent = tr.secureGps;
+      const enableGps = document.getElementById("enableGpsBtn");
+      if (enableGps) enableGps.textContent = "📍 " + tr.enableGps;
+      const section = document.getElementById("captureSection");
+      if (section) section.textContent = tr.captureSection;
+      const note = document.getElementById("gpsNote");
+      if (note) note.textContent = tr.gpsNote;
+      const pcMap = document.getElementById("pcMapLink");
+      if (pcMap) pcMap.textContent = tr.pcMap;
+      const tip = document.getElementById("gpsTip");
+      if (tip) tip.textContent = window.isSecureContext ? tr.gpsTip : tr.insecureTip;
       updateGpsChip();
     }
-    document.getElementById("langBtn").onclick = () => {
-      locale = locale === "ar" ? "en" : "ar";
-      localStorage.setItem(LOCALE_KEY, locale);
-      applyLocale();
-    };
+    function bindLangToggle(id) {
+      var btn = document.getElementById(id);
+      if (!btn) return;
+      btn.onclick = function () {
+        locale = locale === "ar" ? "en" : "ar";
+        localStorage.setItem(LOCALE_KEY, locale);
+        applyLocale();
+      };
+    }
+    bindLangToggle("langBtnLogin");
+    bindLangToggle("langBtnApp");
     applyLocale();
 
     async function deleteDetection(id) {
@@ -506,13 +617,14 @@
     function clearAuth() { localStorage.removeItem(AUTH_KEY); }
 
     function pcDashboardUrl() {
-      const host = location.hostname;
-      return `http://${host}:5173`;
+      return location.origin + "/overview";
     }
 
     function showApp(auth) {
       loginView.classList.add("hidden");
       appView.classList.remove("hidden");
+      var langLogin = document.getElementById("langBtnLogin");
+      if (langLogin) langLogin.classList.add("hidden");
       orgName.textContent = auth.organization?.name || "";
       document.getElementById("pcMapLink").href = pcDashboardUrl();
       checkHealth();
@@ -526,6 +638,8 @@
       clearAuth();
       appView.classList.add("hidden");
       loginView.classList.remove("hidden");
+      var langLogin = document.getElementById("langBtnLogin");
+      if (langLogin) langLogin.classList.remove("hidden");
     }
 
     async function checkHealth() {
@@ -537,7 +651,7 @@
           : '<span class="dot"></span> ' + t().offline;
       } catch {
         statusChip.className = "chip off";
-        statusChip.innerHTML = '<span class="dot"></span> غير متصل';
+        statusChip.innerHTML = '<span class="dot"></span> ' + t().offline;
       }
     }
 
@@ -727,14 +841,48 @@
       doUpload(p.file, null, p.askLocation);
     };
 
+    var uploadToastTimer = null;
+
+    function potholeCount(detections) {
+      if (!detections || !detections.length) return 0;
+      return detections.filter(function (d) {
+        return d.class_name && d.class_name !== "photo";
+      }).length;
+    }
+
+    function showUploadFeedback(text, kind) {
+      var msgEl = document.getElementById("msg");
+      if (msgEl) {
+        msgEl.textContent = text;
+        msgEl.className = kind || "";
+      }
+      var toast = document.getElementById("uploadToast");
+      if (!toast) return;
+      toast.textContent = text;
+      toast.className = "upload-toast " + (kind || "ok");
+      toast.classList.remove("hidden");
+      if (uploadToastTimer) clearTimeout(uploadToastTimer);
+      uploadToastTimer = setTimeout(function () {
+        toast.classList.add("hidden");
+      }, 9000);
+    }
+
+    function buildUploadMessage(data, tr) {
+      if (data.message) return data.message;
+      var holes = potholeCount(data.detections);
+      var onMap = data.detections && data.detections.some(function (d) { return d.latitude != null; });
+      if (onMap && holes === 0) return tr.uploadedPhoto;
+      if (holes > 0) return tr.uploadedPotholes.replace("{n}", String(holes));
+      return tr.uploadedGeneric;
+    }
+
     async function doUpload(file, withCoords, noGps) {
       if (!file) return;
       var auth = getAuth();
       if (!auth || !auth.access_token) { showLogin(); return; }
 
       var tr = t();
-      msg.textContent = tr.uploadProgress;
-      msg.className = "";
+      showUploadFeedback(tr.uploadProgress, "warn");
 
       var form = new FormData();
       form.append("file", file);
@@ -758,35 +906,32 @@
         if (!res.ok) throw new Error(await res.text());
         var data = await res.json();
         var onMap = data.detections && data.detections.some(function (d) { return d.latitude != null; });
-        var isPhoto = data.detections && data.detections.some(function (d) { return d.class_name === "photo"; });
-        if (isPhoto) {
-          msg.textContent = "تمت إضافة الصورة على الخريطة — لا يوجد حفر";
-          msg.className = "ok";
-        } else if (onMap) {
-          msg.textContent = data.message || "تم — ظهرت على الخريطة";
-          msg.className = "ok";
-        } else if (withCoords && withCoords.lat != null) {
-          msg.textContent = locale === "ar"
+        var text = buildUploadMessage(data, tr);
+        var kind = "ok";
+
+        if (!onMap && withCoords && withCoords.lat != null) {
+          text = locale === "ar"
             ? "تم الرفع — الموقع أُرسل لكن لم يُحفظ، أعد تشغيل السيرفر"
             : "Uploaded — location sent but not saved, restart server";
-          msg.className = "warn";
-        } else if (noGps) {
-          msg.textContent = (data.message || tr.uploadProgress) + " — " + (locale === "ar"
+          kind = "warn";
+        } else if (!onMap && noGps) {
+          text = text + " — " + (locale === "ar"
             ? "بدون موقع — فعّل الموقع ثم صوّر مرة أخرى"
             : "No GPS — enable location and capture again");
-          msg.className = "warn";
-        } else {
-          msg.textContent = data.message || "تم الرفع";
-          msg.className = "ok";
+          kind = "warn";
         }
+
+        showUploadFeedback(text, kind);
+
         if (onMap) {
-          var mapTabBtn = document.querySelector('.tab[data-tab="map"]');
-          if (mapTabBtn) mapTabBtn.click();
+          setTimeout(function () {
+            var mapTabBtn = document.querySelector('.tab[data-tab="map"]');
+            if (mapTabBtn) mapTabBtn.click();
+          }, 1400);
         }
         loadMap();
       } catch (e) {
-        msg.textContent = e.message || "فشل الرفع";
-        msg.className = "err";
+        showUploadFeedback(e.message || t().uploadFail, "err");
       }
     }
 
@@ -911,7 +1056,7 @@
         });
         if (!res.ok) {
           const err = await res.json().catch(() => ({}));
-          throw new Error(err.detail || "فشل الدخول");
+          throw new Error(err.detail || t().loginFail);
         }
         const data = await res.json();
         setAuth(data);
@@ -951,7 +1096,7 @@
         if (!window.isSecureContext) link.classList.remove("hidden");
       }
       if (tip && !window.isSecureContext) {
-        tip.textContent = "للموقع على الخريطة: اضغط زر HTTPS أعلاه أو اسمح بالموقع";
+        tip.textContent = t().insecureTip;
         tip.style.color = "#fbbf24";
       } else if (tip && window.isSecureContext) {
         tip.textContent = t().gpsTip;

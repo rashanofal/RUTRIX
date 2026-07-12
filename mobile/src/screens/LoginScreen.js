@@ -61,6 +61,9 @@ export default function LoginScreen({ apiUrl, onLoggedIn }) {
 
   return (
     <LinearGradient colors={colors.gradientDark} style={styles.flex}>
+      <TouchableOpacity style={styles.langBtn} onPress={toggleLocale}>
+        <Text style={styles.langText}>{t.lang}</Text>
+      </TouchableOpacity>
       <KeyboardAvoidingView
         style={styles.flex}
         behavior={Platform.OS === "ios" ? "padding" : undefined}
@@ -68,9 +71,6 @@ export default function LoginScreen({ apiUrl, onLoggedIn }) {
         <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
           <View style={styles.hero}>
             <BrandLogo size="lg" />
-            <TouchableOpacity style={styles.langBtn} onPress={toggleLocale}>
-              <Text style={styles.langText}>{t.lang}</Text>
-            </TouchableOpacity>
           </View>
 
           <View style={styles.card}>
@@ -189,12 +189,16 @@ const styles = StyleSheet.create({
   scroll: { flexGrow: 1, padding: spacing.lg, paddingTop: 56, paddingBottom: 32 },
   hero: { alignItems: "center", marginBottom: spacing.lg, gap: spacing.sm },
   langBtn: {
-    marginTop: 10,
+    position: "absolute",
+    top: Platform.OS === "ios" ? 56 : 40,
+    right: spacing.lg,
+    zIndex: 2,
     paddingHorizontal: 14,
-    paddingVertical: 6,
+    paddingVertical: 7,
     borderRadius: 8,
     borderWidth: 1,
     borderColor: colors.cardBorder,
+    backgroundColor: "rgba(16,26,46,0.8)",
   },
   langText: { color: colors.primary, fontWeight: "800" },
   card: {

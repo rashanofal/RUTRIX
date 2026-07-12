@@ -103,7 +103,6 @@ export default function ProfileScreen({ auth, apiUrl, onApiUrlChange, onLogout }
           <Ionicons name="log-out-outline" size={20} color={colors.danger} />
           <Text style={styles.logoutText}>{t.logout}</Text>
         </TouchableOpacity>
-        <Text style={styles.footerCredit}>{t.creator}</Text>
       </ScrollView>
     </View>
   );
@@ -239,12 +238,4 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(251,113,133,0.08)",
   },
   logoutText: { color: colors.danger, fontWeight: "800" },
-  footerCredit: {
-    color: "#ffc2d6",
-    textAlign: "center",
-    marginTop: spacing.lg,
-    marginBottom: spacing.sm,
-    fontSize: 12,
-    fontWeight: "800",
-  },
 });

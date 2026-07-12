@@ -365,13 +365,35 @@ const SAFE_SURVEY_RUT = 8;
     });
   }, []);
 
+  const [controlsOpen, setControlsOpen] = useState(
+    () => typeof window !== "undefined" && window.innerWidth > 768
+  );
+
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 768px)");
+    const sync = () => setControlsOpen(!mq.matches);
+    sync();
+    mq.addEventListener("change", sync);
+    return () => mq.removeEventListener("change", sync);
+  }, []);
+
   if (!mapReady) {
     return <div className="map-loading">{t.mapLoading}</div>;
   }
 
   return (
     <div className="map-wrap">
-      <div className="map-controls-panel">
+      <button
+        type="button"
+        className="map-controls-toggle"
+        onClick={() => setControlsOpen((open) => !open)}
+        aria-expanded={controlsOpen}
+        aria-label={t.mapLayersLabel}
+      >
+        <NavIcon name="map" />
+        <span>{t.mapLayersLabel}</span>
+      </button>
+      <div className={`map-controls-panel ${controlsOpen ? "is-open" : ""}`}>
         <section className="map-controls-section">
           <h4 className="map-controls-heading">{t.mapBasemapLabel}</h4>
           <div className="basemap-options">

@@ -55,7 +55,7 @@ export default function AppShell({
       </nav>
 
       <div className="app-main">
-        <header className="app-topbar">
+        <header className={`app-topbar${page === "map" ? " app-topbar-map-compact" : ""}`}>
           <div className="topbar-brand">
             {page === "overview" ? (
               <div className="topbar-brand-stack">
@@ -69,6 +69,7 @@ export default function AppShell({
             )}
           </div>
           <div className="topbar-end">
+            <LangToggle className="lang-toggle-topbar" />
             {auth?.organization?.name && (
               <span className="topbar-org-pill">{auth.organization.name}</span>
             )}
@@ -77,7 +78,9 @@ export default function AppShell({
               title={wsConnected ? t.liveSync : t.disconnected}
             >
               <span className={`topbar-live-dot ${wsConnected ? "on" : "off"}`} />
-              {wsConnected ? t.liveSync : t.disconnected}
+              <span className="topbar-live-label">
+                {wsConnected ? t.liveSync : t.disconnected}
+              </span>
             </span>
             <button type="button" className="topbar-logout" onClick={logout}>
               {t.logout}
@@ -85,10 +88,12 @@ export default function AppShell({
           </div>
         </header>
 
-        <main className="app-page">{children}</main>
-        <footer className="app-footer">
-          <p className="app-footer-credit">{t.creator}</p>
-        </footer>
+        <main className={`app-page${page === "map" ? " app-page-map" : ""}`}>{children}</main>
+        {page !== "map" ? (
+          <footer className="app-footer">
+            <p className="app-footer-credit">{t.creator}</p>
+          </footer>
+        ) : null}
       </div>
     </div>
   );
