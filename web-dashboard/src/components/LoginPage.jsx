@@ -3,15 +3,29 @@ import { useAuth } from "../context/AuthContext";
 import { useLocale } from "../context/LocaleContext";
 import LangToggle from "./LangToggle";
 
+function initialAuthMode() {
+  try {
+    const params = new URLSearchParams(window.location.search);
+    const mode = params.get("mode");
+    if (mode === "login" || mode === "register") return mode;
+    if (params.has("login")) return "login";
+    if (params.has("register")) return "register";
+  } catch {
+    /* ignore */
+  }
+  return "register";
+}
+
 export default function LoginPage() {
   const { login, register } = useAuth();
   const { t, locale } = useLocale();
-  const [mode, setMode] = useState("login");
+  const startMode = initialAuthMode();
+  const [mode, setMode] = useState(startMode);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [form, setForm] = useState({
-    email: "demo@pothole.app",
-    password: "demo1234",
+    email: startMode === "login" ? "demo@pothole.app" : "",
+    password: startMode === "login" ? "demo1234" : "",
     full_name: "",
     organization_name: "",
   });
@@ -103,7 +117,16 @@ export default function LoginPage() {
           <button
             type="button"
             className="login-toggle"
-            onClick={() => setMode(mode === "login" ? "register" : "login")}
+            onClick={() => {
+              const next = mode === "login" ? "register" : "login";
+              setMode(next);
+              setError("");
+              setForm((prev) => ({
+                ...prev,
+                email: next === "login" && !prev.email ? "demo@pothole.app" : prev.email,
+                password: next === "login" && !prev.password ? "demo1234" : prev.password,
+              }));
+            }}
           >
             {mode === "login" ? t.toggleRegister : t.toggleLogin}
           </button>

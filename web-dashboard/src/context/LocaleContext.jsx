@@ -7,6 +7,9 @@ const STORAGE_KEY = "rutrix_locale_v2";
 export function LocaleProvider({ children }) {
   const [locale, setLocale] = useState(() => {
     try {
+      const params = new URLSearchParams(window.location.search);
+      const lang = params.get("lang");
+      if (lang === "en" || lang === "ar") return lang;
       return localStorage.getItem(STORAGE_KEY) || "en";
     } catch {
       return "en";
