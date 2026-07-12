@@ -33,10 +33,11 @@ body {
 
 /* ─── Nav rail ─── */
 .app-nav-rail {
-  width: 96px;
-  padding: 1.1rem 0.65rem;
+  width: 132px;
+  padding: 1.1rem 0.5rem;
   background: linear-gradient(180deg, rgba(8, 13, 24, 0.98), rgba(4, 7, 15, 0.99));
   border-inline-end: 1px solid var(--border);
+  overflow: visible;
 }
 
 .nav-rail-btn {
@@ -456,6 +457,18 @@ body {
 
 .rutrix-logo__img {
   box-shadow: none;
+}
+
+.nav-rail-brand {
+  width: 100%;
+  overflow: visible;
+}
+
+.rutrix-logo--sm .rutrix-logo__img {
+  height: 24px;
+  width: auto;
+  max-width: 100%;
+  object-fit: contain;
 }
 
 /* ─── Intelligence / ops panels ─── */
