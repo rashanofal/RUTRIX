@@ -25,8 +25,7 @@ export const translations = {
     logout: "خروج",
     saasBadge: "SaaS",
     uploadTitle: "رفع صورة للكشف",
-    uploadHint:
-      "بدون حفر → نقطة زرقاء فقط. الحفر الحقيقي فوق 62% ثقة. الموقع من EXIF أو GPS الجهاز.",
+    uploadHint: "بدون حفر → ثقة أقل من 62%. مع حفر → ثقة فوق 62%.",
     uploadBtn: "اختيار صورة أو تصوير",
     uploading: "جاري المعالجة...",
     uploadOk: "تم رفع الصورة بنجاح",
@@ -296,8 +295,7 @@ export const translations = {
     logout: "Logout",
     saasBadge: "SaaS",
     uploadTitle: "Upload for Detection",
-    uploadHint:
-      "No pothole → blue pin only. Real defects above 62% confidence. Location from EXIF or device GPS.",
+    uploadHint: "No pothole → confidence below 62%. Pothole → confidence above 62%.",
     uploadBtn: "Choose photo or capture",
     uploading: "Processing...",
     uploadOk: "Image uploaded successfully",

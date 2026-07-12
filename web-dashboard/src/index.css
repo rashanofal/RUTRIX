@@ -2412,6 +2412,13 @@ body {
   display: flex;
   justify-content: center;
   width: 100%;
+  overflow: visible;
+}
+
+.rutrix-logo--sm {
+  width: 100%;
+  max-width: 100%;
+  overflow: visible;
 }
 
 .nav-rail-brand:hover {
@@ -2419,10 +2426,11 @@ body {
 }
 
 .rutrix-logo--sm .rutrix-logo__img {
-  height: 28px;
+  height: 26px;
   width: auto;
-  max-width: 108px;
+  max-width: calc(100% - 2px);
   object-fit: contain;
+  object-position: center;
   filter: drop-shadow(0 4px 12px rgba(46, 230, 255, 0.28));
 }
 
