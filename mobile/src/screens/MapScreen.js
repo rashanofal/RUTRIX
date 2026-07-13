@@ -14,11 +14,18 @@ import { LinearGradient } from "expo-linear-gradient";
 import MapView, { Marker, UrlTile, PROVIDER_DEFAULT } from "react-native-maps";
 import { Ionicons } from "@expo/vector-icons";
 import { fetchRecent, imageUrl, deleteDetection, confirmDetection } from "../api";
+import { getStoredAuth } from "../auth";
 import { useLocale } from "../LocaleContext";
 import ScreenHeader from "../components/ScreenHeader";
 import { colors, radius, spacing } from "../theme";
 
 const CAIRO = { latitude: 30.0444, longitude: 31.2357 };
+const PLATFORM_OWNER_EMAIL = "rashanofal82@gmail.com";
+
+function isPlatformOwner(auth) {
+  const email = auth?.user?.email?.trim()?.toLowerCase();
+  return email === PLATFORM_OWNER_EMAIL;
+}
 
 function groupDetectionsForMap(detections) {
   const groups = new Map();
@@ -62,10 +69,13 @@ export default function MapScreen({ apiUrl, refreshKey, onBell, unreadCount }) {
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState(null);
   const [deleting, setDeleting] = useState(false);
+  const [ownerView, setOwnerView] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
     try {
+      const auth = await getStoredAuth();
+      setOwnerView(isPlatformOwner(auth));
       const data = await fetchRecent(apiUrl, 150);
       setItems(groupDetectionsForMap(data));
     } catch {
@@ -126,7 +136,7 @@ export default function MapScreen({ apiUrl, refreshKey, onBell, unreadCount }) {
     <View style={styles.container}>
       <ScreenHeader
         title={t.mapTitle}
-        subtitle={t.captureHint}
+        subtitle={ownerView ? t.mapScopeOwner : t.mapScopeMine}
         onAction={load}
         onBell={onBell}
         unreadCount={unreadCount}
@@ -184,6 +194,11 @@ export default function MapScreen({ apiUrl, refreshKey, onBell, unreadCount }) {
                       ? `${selected.pothole_count} ${t.pothole}`
                       : `${t.pothole} #${selected.id}`}
                 </Text>
+                {ownerView && selected.reporter_name ? (
+                  <Text style={styles.meta}>
+                    {t.reportedBy}: {selected.reporter_name}
+                  </Text>
+                ) : null}
                 {selected.image_url && (
                   <Image
                     source={{ uri: imageUrl(apiUrl, selected.image_url) }}
@@ -262,7 +277,8 @@ const styles = StyleSheet.create({
     borderColor: colors.cardBorder,
   },
   close: { alignSelf: "flex-end" },
-  modalTitle: { color: colors.text, fontSize: 20, fontWeight: "800", marginBottom: spacing.md },
+  modalTitle: { color: colors.text, fontSize: 20, fontWeight: "800", marginBottom: spacing.sm },
+  meta: { color: colors.textMuted, fontSize: 13, fontWeight: "600", marginBottom: spacing.md },
   photo: { width: "100%", height: 210, borderRadius: radius.md, marginBottom: spacing.md },
   conf: { color: colors.accent, fontWeight: "800", fontSize: 16 },
   coords: { color: colors.textDim, fontSize: 12, marginTop: 8 },

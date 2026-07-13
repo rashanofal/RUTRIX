@@ -6,15 +6,12 @@ from sqlalchemy.orm import Query, Session
 
 from app.config import settings
 from app.models import DetectionStatus, MemberRole, PotholeDetection, User
-from app.services.auth_service import effective_organization_id
+from app.services.auth_service import effective_organization_id, is_platform_owner_user
 
 
-def is_platform_owner(user: User, role: str | MemberRole | None) -> bool:
-    role_val = role.value if isinstance(role, MemberRole) else role
-    if role_val != MemberRole.owner.value:
-        return False
-    owner_email = settings.owner_email.strip().lower()
-    return user.email.strip().lower() == owner_email
+def is_platform_owner(user: User, role: str | MemberRole | None = None) -> bool:
+    """Owner is identified by configured email so phone/web both get org-wide map access."""
+    return bool(user and is_platform_owner_user(user))
 
 
 def scoped_detections_query(

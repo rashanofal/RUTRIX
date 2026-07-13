@@ -365,6 +365,23 @@
       color: #fecaca; font-weight: 700; cursor: pointer; font-family: inherit;
     }
     .empty-map { text-align: center; color: var(--muted); font-size: 0.85rem; padding: 1rem 0.5rem; }
+    .map-scope-hint {
+      margin: 0 0 0.65rem;
+      padding: 0.45rem 0.65rem;
+      border-radius: 10px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      line-height: 1.35;
+      color: #c4d4ff;
+      border: 1px solid rgba(124, 107, 255, 0.35);
+      background: rgba(124, 107, 255, 0.1);
+    }
+    .map-scope-hint.owner {
+      color: #bff6ff;
+      border-color: rgba(46, 230, 255, 0.4);
+      background: rgba(46, 230, 255, 0.1);
+    }
+    .map-scope-hint:empty { display: none; }
     .section-title {
       font-size: 0.72rem; font-weight: 800; letter-spacing: 0.06em;
       text-transform: uppercase; color: var(--muted); margin-bottom: 0.65rem;
@@ -603,6 +620,7 @@
     <div id="mapTab" class="hidden">
       <div class="card">
         <p class="sub" id="mapCardTitle">Detection points on the map</p>
+        <p id="mapScopeHint" class="map-scope-hint"></p>
         <div id="map"></div>
         <p id="mapEmpty" class="empty-map hidden">No points yet — capture with location enabled</p>
       </div>
@@ -655,6 +673,7 @@
   <script>
     const AUTH_KEY = "pothole_auth";
     const LOCALE_KEY = "rutrix_locale_v2";
+    const PLATFORM_OWNER_EMAIL = "rashanofal82@gmail.com";
     const I18N = {
       ar: {
         dir: "rtl", lang: "EN", brand: "روتريكس",
@@ -686,6 +705,9 @@
         prio: "الأولوية", prio_low: "منخفضة", prio_medium: "متوسطة", prio_high: "عالية", prio_critical: "حرجة",
         deleteConfirm: "حذف هذه الصورة من الخريطة؟",
         mapEmpty: "لا توجد نقاط بعد — صوّر صورة مع السماح بالموقع",
+        mapScopeMine: "تعرض نقاطك فقط — المالك يرى كل نقاط المنظمة",
+        mapScopeOwner: "عرض كل نقاط المنظمة (مالك المنصة)",
+        reportedBy: "المُبلّغ",
         gpsTip: "صور الكاميرا لا تحتوي GPS — اسمح بالموقع قبل التصوير (شارة «الموقع جاهز»)",
         locating: "جاري تحديد الموقع...",
         locatingSkip: "تخطي — رفع بدون GPS",
@@ -746,6 +768,9 @@
         prio: "Priority", prio_low: "Low", prio_medium: "Medium", prio_high: "High", prio_critical: "Critical",
         deleteConfirm: "Delete this image from the map?",
         mapEmpty: "No points yet — capture with location enabled",
+        mapScopeMine: "Showing your points only — the owner sees the full organization",
+        mapScopeOwner: "Showing all organization points (platform owner)",
+        reportedBy: "Reported by",
         logout: "Logout", capture: "Camera capture", album: "Choose from album",
         secureGps: "Open HTTPS for GPS location",
         captureSection: "Field capture",
@@ -868,6 +893,7 @@
       if (me) me.textContent = tr.mapEmpty;
       const mapCard = document.getElementById("mapCardTitle");
       if (mapCard) mapCard.textContent = tr.mapCard;
+      updateMapScopeHint(getAuth());
       const camBtn = document.getElementById("cameraLabel");
       if (camBtn) camBtn.textContent = tr.capture;
       const albumText = document.getElementById("albumLabelText");
@@ -922,6 +948,18 @@
 
     function getAuth() {
       try { return JSON.parse(localStorage.getItem(AUTH_KEY)); } catch { return null; }
+    }
+    function isPlatformOwnerAuth(auth) {
+      const email = (auth?.user?.email || "").trim().toLowerCase();
+      return email === PLATFORM_OWNER_EMAIL;
+    }
+    function updateMapScopeHint(auth) {
+      const el = document.getElementById("mapScopeHint");
+      if (!el) return;
+      const tr = t();
+      const owner = isPlatformOwnerAuth(auth);
+      el.textContent = owner ? tr.mapScopeOwner : tr.mapScopeMine;
+      el.classList.toggle("owner", owner);
     }
     function setAuth(data) { localStorage.setItem(AUTH_KEY, JSON.stringify(data)); }
     function clearAuth() { localStorage.removeItem(AUTH_KEY); }
@@ -1297,6 +1335,8 @@
     async function loadMap() {
       const auth = getAuth();
       if (!auth?.access_token) return;
+      updateMapScopeHint(auth);
+      const owner = isPlatformOwnerAuth(auth);
 
       try {
         const res = await fetch("/api/detections/recent?limit=100", {
@@ -1330,6 +1370,9 @@
           const tr = t();
           const holes = d.pothole_count || 0;
           let popup = `<b>${holes === 0 ? tr.photo : (holes > 1 ? (holes + " " + tr.pothole) : tr.pothole)}</b>`;
+          if (owner && d.reporter_name) {
+            popup += `<br>${tr.reportedBy}: <b>${d.reporter_name}</b>`;
+          }
           if (d.image_url) popup += `<br><img src="${d.image_url}" style="max-width:180px;margin-top:6px;border-radius:8px">`;
           popup += `<br><button type="button" class="popup-del" onclick="deleteDetection(${d.id})">🗑️ ${tr.delete}</button>`;
           m.bindPopup(popup);

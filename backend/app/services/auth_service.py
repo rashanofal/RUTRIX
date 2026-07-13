@@ -110,11 +110,10 @@ def effective_organization_id(
     db: Session,
     jwt_org_id: int,
     user: User,
-    role: str | MemberRole | None,
+    role: str | MemberRole | None = None,
 ) -> int:
     """Platform owner always operates on the canonical shared organization."""
-    role_val = role.value if isinstance(role, MemberRole) else role
-    if role_val == MemberRole.owner.value and is_platform_owner_user(user):
+    if is_platform_owner_user(user):
         canonical = get_canonical_organization(db)
         if canonical:
             return canonical.id
