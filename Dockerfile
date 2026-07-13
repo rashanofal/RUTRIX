@@ -51,7 +51,10 @@ RUN mkdir -p ml/models app/static \
     && test -s app/static/logo.png
 COPY --from=dashboard /dash/dist ./app/static/dashboard
 
-RUN mkdir -p /app/data/uploads /app/data/training /data/uploads /data/training /tmp/hf_cache
+RUN mkdir -p /app/data/uploads /app/data/training /tmp/hf_cache
+
+COPY docker-entrypoint.sh /docker-entrypoint.sh
+RUN chmod +x /docker-entrypoint.sh
 
 ENV PYTHONPATH=/app
 ENV PORT=7860
@@ -66,4 +69,4 @@ ENV SEED_DEMO_ACCOUNT=true
 
 EXPOSE 7860
 
-CMD ["sh", "-c", "echo 'Starting RUTRIX on port' ${PORT:-7860} && uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-7860} --log-level info"]
+CMD ["/docker-entrypoint.sh"]

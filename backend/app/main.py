@@ -7,6 +7,7 @@ from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
 from app.bootstrap import bootstrap
+from app.persistence import storage_status
 from app.config import settings
 from app.routers import auth, detections, intelligence, maintenance, notifications, team
 from app.services.inference import get_model_info
@@ -51,14 +52,17 @@ app.include_router(team.router)
 @app.get("/api/health")
 def health():
     model = get_model_info()
+    store = storage_status()
     return {
         "status": "ok",
         "service": "rutrix-api",
-        "version": "2.0.1",
-        "upload_ready": True,
+        "version": "2.0.2",
+        "upload_ready": store["upload_writable"],
+        "storage": store,
         "features": {
             "unique_inspection_stats": True,
             "reports_v2": True,
+            "persistent_storage_recommended": store["ephemeral_warning"],
         },
         "model": model.get("classes", {}),
         "confidence_threshold": model.get("confidence_threshold"),

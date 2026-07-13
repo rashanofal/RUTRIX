@@ -4,6 +4,7 @@ from sqlalchemy import inspect, text
 from sqlalchemy.orm import Session
 
 from app.config import settings
+from app.persistence import ensure_storage_dirs
 from app.database import SessionLocal, engine
 from app.models import Base, MemberRole, Organization, OrganizationMember, PotholeDetection, User
 from app.services.auth_service import hash_password, register_user, verify_password
@@ -151,6 +152,7 @@ def seed_demo_account() -> None:
 
 
 def bootstrap() -> None:
+    ensure_storage_dirs()
     run_migrations()
     seed_demo_account()
     backfill_intelligence()

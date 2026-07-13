@@ -75,6 +75,10 @@ export const translations = {
     deleteSuccessMany: "تم حذف {n} كشوفات من نفس الصورة",
     deleteFailHint: "أعد تشغيل START.bat ثم حاول مرة أخرى",
     staleServer: "الخادم قديم — أغلق كل نوافذ Backend وشغّل START.bat من جديد",
+    storageEphemeralWarning:
+      "تحذير تخزين: عند كل تحديث/إعادة تشغيل للتطبيق على Hugging Face تُمسح الصور والنقاط ما لم يُفعَّل Storage Bucket على /data",
+    storageEphemeralHint:
+      "الحذف اليدوي فقط يزيل البيانات — التحديث (F5) لا يحذف. لحفظ دائم: اربطي Bucket من إعدادات الـ Space.",
     deleting: "جاري الحذف...",
     openImage: "فتح الصورة كاملة",
     noPotholes: "لا حفر في هذه الصورة",
@@ -396,6 +400,10 @@ export const translations = {
     deleteSuccessMany: "Deleted {n} detections from the same image",
     deleteFailHint: "Restart START.bat and try again",
     staleServer: "Server outdated — close all Backend windows and run START.bat again",
+    storageEphemeralWarning:
+      "Storage warning: Hugging Face wipes photos and map data on every redeploy unless a Storage Bucket is mounted at /data",
+    storageEphemeralHint:
+      "Data is only removed by explicit delete — refresh (F5) does not clear. Attach a Bucket in Space settings for permanent storage.",
     deleting: "Deleting...",
     openImage: "Open full image",
     noPotholes: "No potholes in this image",

@@ -836,6 +836,35 @@ body {
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
 }
 
+.app-storage-banner {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 10000;
+  background: linear-gradient(90deg, #1e3a5f, #0f766e);
+  color: #e0f2fe;
+  text-align: center;
+  padding: 0.5rem 1rem 0.6rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.app-storage-banner-hint {
+  font-size: 0.72rem;
+  font-weight: 500;
+  opacity: 0.92;
+}
+
+.app-stale-banner ~ .app-storage-banner,
+.app-storage-banner ~ .app-stale-banner {
+  top: 2.4rem;
+}
+
 .app-toast-success {
   background: rgba(6, 78, 59, 0.95);
   border: 1px solid rgba(74, 222, 128, 0.45);

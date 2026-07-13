@@ -41,6 +41,7 @@ function Dashboard() {
   const [toast, setToast] = useState(null);
   const [maintRefresh, setMaintRefresh] = useState(0);
   const [staleServer, setStaleServer] = useState(false);
+  const [storageEphemeral, setStorageEphemeral] = useState(false);
 
   const showToast = (message, type = "info") => {
     setToast({ message, type });
@@ -271,6 +272,7 @@ function Dashboard() {
     fetchApiHealth()
       .then((h) => {
         if (!h?.features?.unique_inspection_stats) setStaleServer(true);
+        if (h?.storage?.ephemeral_warning) setStorageEphemeral(true);
       })
       .catch(() => {});
     const timer = setInterval(() => loadStats(), 30_000);
@@ -373,6 +375,12 @@ function Dashboard() {
 
   return (
     <>
+      {storageEphemeral && (
+        <div className="app-storage-banner" role="alert">
+          <strong>💾 {t.storageEphemeralWarning}</strong>
+          <span className="app-storage-banner-hint">{t.storageEphemeralHint}</span>
+        </div>
+      )}
       {staleServer && (
         <div className="app-stale-banner" role="alert">
           ⚠️ {t.staleServer}
