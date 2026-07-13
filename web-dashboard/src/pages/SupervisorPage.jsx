@@ -9,9 +9,7 @@ import SupervisorMembersRail from "../components/SupervisorMembersRail";
 import {
   enrichMembersWithReporters,
   filterDetectionsByMember,
-  formatSelectedCount,
   hasMemberSelection,
-  normalizeMemberFilter,
 } from "../utils/memberFilter";
 
 export default function SupervisorPage({
@@ -50,26 +48,10 @@ export default function SupervisorPage({
     [members, detections]
   );
 
-  const filter = useMemo(() => normalizeMemberFilter(memberFilter), [memberFilter]);
-
   const filteredDetections = useMemo(
     () => filterDetectionsByMember(detections, memberFilter),
     [detections, memberFilter]
   );
-
-  const selectedMembers = useMemo(() => {
-    if (filter.mode !== "users") return [];
-    const ids = new Set(filter.userIds);
-    return displayMembers.filter((m) => ids.has(Number(m.user_id)));
-  }, [filter, displayMembers]);
-
-  const selectedLabel = useMemo(() => {
-    if (filter.mode !== "users" || !selectedMembers.length) return null;
-    if (selectedMembers.length <= 3) {
-      return selectedMembers.map((m) => m.full_name).join(" · ");
-    }
-    return formatSelectedCount(t.supervisorSelectedCount, selectedMembers.length);
-  }, [filter.mode, selectedMembers, t.supervisorSelectedCount]);
 
   useEffect(() => {
     if (!hasMemberSelection(memberFilter)) {
@@ -132,34 +114,6 @@ export default function SupervisorPage({
           </span>
         </div>
       </header>
-
-      {filter.mode === "users" && selectedLabel ? (
-        <div className="supervisor-selected-banner" role="status">
-          <span>
-            {t.memberShowingOnMap}: <strong>{selectedLabel}</strong>
-          </span>
-          <button
-            type="button"
-            className="supervisor-clear-select"
-            onClick={() => setMemberFilter({ mode: "none" })}
-          >
-            {t.clearMemberSelection}
-          </button>
-        </div>
-      ) : null}
-
-      {filter.mode === "all" ? (
-        <div className="supervisor-selected-banner supervisor-selected-banner-all" role="status">
-          <span>{t.supervisorShowingAll}</span>
-          <button
-            type="button"
-            className="supervisor-clear-select"
-            onClick={() => setMemberFilter({ mode: "none" })}
-          >
-            {t.clearMemberSelection}
-          </button>
-        </div>
-      ) : null}
 
       <section className="supervisor-map-section" aria-label={t.supervisorMapTitle}>
         <div className="supervisor-map-layout">

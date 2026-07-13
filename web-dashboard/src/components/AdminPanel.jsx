@@ -9,10 +9,8 @@ import {
 import { useIsAdmin, useIsOwner } from "../hooks/useIsAdmin";
 import {
   filterDetectionsByMember,
-  formatSelectedCount,
   hasMemberSelection,
   isMemberSelected,
-  normalizeMemberFilter,
   toggleMemberInFilter,
 } from "../utils/memberFilter";
 
@@ -67,6 +65,8 @@ export default function AdminPanel({
   });
 
   const roleLabels = ROLE_LABELS[locale] || ROLE_LABELS.ar;
+  const filter = normalizeMemberFilter(memberFilter);
+  const selectionActive = supervisorMode ? hasMemberSelection(memberFilter) : true;
   const visibleDetections = useMemo(() => {
     if (!supervisorMode) return detections;
     return filterDetectionsByMember(detections, memberFilter);
@@ -165,28 +165,27 @@ export default function AdminPanel({
         </div>
       ) : null}
 
-      <h3 className="intel-h3">
-        {t.adminUsersTitle} ({members.length})
-      </h3>
-      {supervisorMode && hideMemberTable ? (
-        <button
-          type="button"
-          className="supervisor-table-toggle"
-          onClick={() => setShowFullTable((v) => !v)}
-          aria-expanded={showFullTable}
-        >
-          {showFullTable ? t.supervisorHideTable : t.supervisorShowTable}
-        </button>
-      ) : null}
-      {supervisorMode && (!hideMemberTable || showFullTable) ? (
-        <p className="intel-sub admin-users-sub">{t.adminUsersSub}</p>
-      ) : null}
-      {supervisorMode && (!hideMemberTable || showFullTable) ? (
-        <p className="admin-select-hint">{t.memberSelectHint}</p>
-      ) : null}
+      {!(supervisorMode && hideMemberTable) ? (
+        <>
+          <h3 className="intel-h3">
+            {t.adminUsersTitle} ({members.length})
+          </h3>
+          {supervisorMode && hideMemberTable ? (
+            <button
+              type="button"
+              className="supervisor-table-toggle"
+              onClick={() => setShowFullTable((v) => !v)}
+              aria-expanded={showFullTable}
+            >
+              {showFullTable ? t.supervisorHideTable : t.supervisorShowTable}
+            </button>
+          ) : null}
+          {supervisorMode && (!hideMemberTable || showFullTable) ? (
+            <p className="intel-sub admin-users-sub">{t.adminUsersSub}</p>
+          ) : null}
 
-      {(!hideMemberTable || showFullTable) ? (
-      <div className="admin-table-wrap">
+          {(!hideMemberTable || showFullTable) ? (
+          <div className="admin-table-wrap">
         <table className={`admin-table${supervisorMode ? " admin-table-supervisor" : ""}`}>
           <thead>
             <tr>
@@ -353,17 +352,7 @@ export default function AdminPanel({
       )}
 
       <h3 className="intel-h3 admin-media-title">
-        {(() => {
-          const f = normalizeMemberFilter(memberFilter);
-          if (f.mode === "users" && f.userIds.length === 1) {
-            const one = members.find((m) => Number(m.user_id) === f.userIds[0]);
-            if (one) return `${t.adminMediaTitle} — ${one.full_name} (${media.length})`;
-          }
-          if (f.mode === "users" && f.userIds.length > 1) {
-            return `${t.adminMediaTitle} — ${formatSelectedCount(t.supervisorSelectedCount, f.userIds.length)} (${media.length})`;
-          }
-          return `${t.adminMediaTitle} (${media.length})`;
-        })()}
+        {t.adminMediaTitle} ({media.length})
       </h3>
       {!supervisorMode ? <p className="intel-sub">{t.adminMediaSub}</p> : null}
       <div className="admin-media-grid">

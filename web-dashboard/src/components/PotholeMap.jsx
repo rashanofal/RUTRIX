@@ -70,6 +70,7 @@ const verifiedIcon = new L.Icon({
 function BoundsWatcher({ onBoundsChange }) {
   useMapEvents({
     moveend: (e) => {
+      if (typeof onBoundsChange !== "function") return;
       const b = e.target.getBounds();
       onBoundsChange({
         south: b.getSouth(),
@@ -79,6 +80,7 @@ function BoundsWatcher({ onBoundsChange }) {
       });
     },
     load: (e) => {
+      if (typeof onBoundsChange !== "function") return;
       const b = e.target.getBounds();
       onBoundsChange({
         south: b.getSouth(),
@@ -146,14 +148,18 @@ function FitAllMarkers({ detections, positions, refitOnChange = false }) {
 
     pinKey.current = nextKey;
     didFit.current = true;
-    if (pts.length === 1) {
-      map.setView(pts[0], 16, { animate: refitOnChange });
-    } else {
-      map.fitBounds(L.latLngBounds(pts), {
-        padding: [50, 50],
-        maxZoom: 16,
-        animate: refitOnChange,
-      });
+    try {
+      if (pts.length === 1) {
+        map.setView(pts[0], 16, { animate: refitOnChange });
+      } else {
+        map.fitBounds(L.latLngBounds(pts), {
+          padding: [50, 50],
+          maxZoom: 16,
+          animate: refitOnChange,
+        });
+      }
+    } catch {
+      /* map not ready */
     }
   }, [detections, map, positions, refitOnChange]);
 
@@ -555,7 +561,7 @@ const SAFE_SURVEY_RUT = 8;
           url={layer.url}
           {...(layer.subdomains ? { subdomains: layer.subdomains } : {})}
         />
-        <BoundsWatcher onBoundsChange={onBoundsChange} />
+        {onBoundsChange ? <BoundsWatcher onBoundsChange={onBoundsChange} /> : null}
         <FitAllMarkers detections={visible} positions={positions} refitOnChange={refitOnChange} />
         <FlyToSelected selectedId={selectedId} positions={positions} />
 
