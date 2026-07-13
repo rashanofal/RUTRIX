@@ -58,22 +58,33 @@ async function fromLogoCrop() {
   const bounds = await findGreenIconBounds();
   if (!bounds) throw new Error("Green icon not found in logo.png");
 
-  const pad = 24;
-  const left = Math.max(0, bounds.minX - pad);
-  const top = Math.max(0, bounds.minY - pad);
-  const width = bounds.maxX - bounds.minX + 1 + pad * 2;
-  const height = bounds.maxY - bounds.minY + 1 + pad * 2;
-  const side = Math.max(width, height);
+  const iconW = bounds.maxX - bounds.minX + 1;
+  const iconH = bounds.maxY - bounds.minY + 1;
+  const margin = 40;
+  const side = Math.max(iconW, iconH) + margin * 2;
 
-  return sharp(LOGO)
-    .extract({ left, top, width: side, height: side })
-    .extend({
-      top: 44,
-      bottom: 44,
-      left: 44,
-      right: 44,
-      background: { r: 0, g: 0, b: 0, alpha: 0 },
+  const iconBuf = await sharp(LOGO)
+    .extract({
+      left: bounds.minX,
+      top: bounds.minY,
+      width: iconW,
+      height: iconH,
     })
+    .png()
+    .toBuffer();
+
+  const leftPad = Math.floor((side - iconW) / 2);
+  const topPad = Math.floor((side - iconH) / 2);
+
+  return sharp({
+    create: {
+      width: side,
+      height: side,
+      channels: 4,
+      background: { r: 0, g: 0, b: 0, alpha: 0 },
+    },
+  })
+    .composite([{ input: iconBuf, left: leftPad, top: topPad }])
     .resize(512, 512, {
       fit: "contain",
       background: { r: 0, g: 0, b: 0, alpha: 0 },

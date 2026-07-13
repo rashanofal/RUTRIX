@@ -36,7 +36,7 @@ export default function AppShell({
           title={t.brand}
           aria-label={t.brand}
         >
-          <BrandLogo size="sm" variant="mark" />
+          <BrandLogo size="sm" variant="lockup" />
         </button>
         <div className="nav-rail-items">
           {navItems.map((item) => (

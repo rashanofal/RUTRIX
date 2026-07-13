@@ -2528,11 +2528,16 @@ body {
 }
 
 .rutrix-logo--mark.rutrix-logo--sm .rutrix-logo__img {
-  width: 40px;
-  height: 40px;
+  width: 44px;
+  height: 44px;
   object-fit: contain;
   object-position: center;
+  background: transparent;
   filter: drop-shadow(0 6px 16px rgba(46, 230, 255, 0.35));
+}
+
+.rutrix-logo--lockup-stack .rutrix-logo__mark {
+  background: transparent;
 }
 
 .nav-rail-items {

@@ -506,6 +506,30 @@ body {
   gap: 0.55rem;
 }
 
+.rutrix-logo--lockup-stack {
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.nav-rail-brand .rutrix-logo--lockup-stack .rutrix-logo__mark {
+  width: 44px;
+  height: 44px;
+  object-fit: contain;
+  background: transparent;
+}
+
+.nav-rail-brand .rutrix-logo--lockup-stack .rutrix-logo__word {
+  font-family: var(--font);
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  color: #f8fbff;
+  line-height: 1.15;
+  text-align: center;
+  white-space: nowrap;
+}
+
 .rutrix-logo--image .rutrix-logo__full-img {
   height: 40px;
   width: auto;
