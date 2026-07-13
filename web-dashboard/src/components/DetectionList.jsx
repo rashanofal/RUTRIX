@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import { useLocale } from "../context/LocaleContext";
 import { deviceLabel } from "../i18n/translations";
+import { countClusterReports } from "../hooks/useCriticalAlerts";
 import NavIcon from "./NavIcons";
 
 function groupDetectionsForList(detections) {
@@ -36,6 +37,15 @@ export default function DetectionList({
 }) {
   const { t } = useLocale();
   const grouped = useMemo(() => groupDetectionsForList(detections), [detections]);
+  const clusterCounts = useMemo(() => {
+    const counts = {};
+    for (const d of detections) {
+      if (d.cluster_id && d.class_name !== "photo") {
+        counts[d.cluster_id] = (counts[d.cluster_id] || 0) + 1;
+      }
+    }
+    return counts;
+  }, [detections]);
 
   return (
     <section className={`detection-section ${compact ? "compact" : ""}`}>
@@ -78,6 +88,11 @@ export default function DetectionList({
                 {potholeCount > 0 && (
                   <span className="badge badge-count">
                     {t.potholesDetected.replace("{n}", String(potholeCount))}
+                  </span>
+                )}
+                {d.cluster_id && (clusterCounts[d.cluster_id] ?? 0) > 1 && (
+                  <span className="badge badge-cluster">
+                    {t.clusterReports.replace("{n}", String(clusterCounts[d.cluster_id]))}
                   </span>
                 )}
               </div>

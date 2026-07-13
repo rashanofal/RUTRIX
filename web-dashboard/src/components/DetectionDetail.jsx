@@ -1,5 +1,6 @@
 import { useLocale } from "../context/LocaleContext";
 import DetectionStatusPipeline from "./DetectionStatusPipeline";
+import { countClusterReports } from "../hooks/useCriticalAlerts";
 
 export default function DetectionDetail({
   selected,
@@ -39,6 +40,14 @@ export default function DetectionDetail({
           </>
         )}
       </p>
+      {selected.class_name !== "photo" && selected.cluster_id && detections.length > 0 && (
+        <p className="detail-cluster-note">
+          {t.clusterReports.replace(
+            "{n}",
+            String(countClusterReports(detections, selected.cluster_id))
+          )}
+        </p>
+      )}
       <DetectionStatusPipeline detection={selected} />
       <button
         type="button"

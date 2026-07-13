@@ -9,6 +9,7 @@ import IntelligencePage from "./pages/IntelligencePage";
 import MobilePage from "./pages/MobilePage";
 import { useAuth } from "./context/AuthContext";
 import { useLocale } from "./context/LocaleContext";
+import { useCriticalAlerts } from "./hooks/useCriticalAlerts";
 import {
   clearMap,
   confirmDetection,
@@ -43,6 +44,12 @@ function Dashboard() {
     setToast({ message, type });
     setTimeout(() => setToast(null), 4200);
   };
+
+  const { notifyDetection, requestPermission } = useCriticalAlerts({ t, showToast });
+
+  useEffect(() => {
+    requestPermission();
+  }, [requestPermission]);
 
   const selected = detections.find((d) => d.id === selectedId) ?? selectedSnapshot;
 
@@ -137,9 +144,10 @@ function Dashboard() {
         });
         if (msg.data.latitude != null) setSelectedId(msg.data.id);
         loadStats();
+        void notifyDetection(msg.data);
       }
     },
-    [refreshAll, loadStats]
+    [refreshAll, loadStats, notifyDetection]
   );
 
   const handleClearMap = async () => {

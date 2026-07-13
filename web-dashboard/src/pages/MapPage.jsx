@@ -47,6 +47,7 @@ export default function MapPage({
           </button>
           <DetectionDetail
             selected={selected}
+            detections={detections}
             deletingId={deletingId}
             onDelete={onDelete}
             onConfirm={onConfirm}

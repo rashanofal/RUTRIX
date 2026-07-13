@@ -6,6 +6,7 @@ import {
   openReportHtml,
   openReportPdf,
 } from "../hooks/useApi";
+import ClusterSummaryPanel from "./ClusterSummaryPanel";
 import NavIcon from "./NavIcons";
 
 const SEV_LABELS = {
@@ -91,6 +92,8 @@ export default function IntelligencePanel({ stats, refreshKey = 0, detections = 
           📥 {t.reportPdf}
         </button>
       </div>
+
+      <ClusterSummaryPanel refreshKey={refreshKey} />
 
       <h3 className="intel-h3">
         {t.prioritiesTitle}

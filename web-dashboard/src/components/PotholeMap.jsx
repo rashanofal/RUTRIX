@@ -173,19 +173,21 @@ function DetectionImage({ detection, openLabel }) {
   );
 }
 
-function MapLegend({ t, showSeverity, showPriority }) {
+function MapLegend({ t, showSeverity, showPriority, showHeatmap }) {
   return (
     <div className="map-legend-bottom">
-      <div className="map-legend-block map-legend-rut">
-        <span className="map-legend-title">{t.mapLegendRut}</span>
-        <div className="map-legend-gradient rut-gradient" />
-        <div className="map-legend-labels map-legend-labels-ltr">
-          <span className="legend-rut-safe">{t.rutLabelSafe}</span>
-          <span>{t.rutLabelFair}</span>
-          <span>{t.rutLabelPoor}</span>
-          <span className="legend-rut-danger">{t.rutLabelCritical}</span>
+      {showHeatmap && (
+        <div className="map-legend-block map-legend-rut">
+          <span className="map-legend-title">{t.mapLegendRut}</span>
+          <div className="map-legend-gradient rut-gradient" />
+          <div className="map-legend-labels map-legend-labels-ltr">
+            <span className="legend-rut-safe">{t.rutLabelSafe}</span>
+            <span>{t.rutLabelFair}</span>
+            <span>{t.rutLabelPoor}</span>
+            <span className="legend-rut-danger">{t.rutLabelCritical}</span>
+          </div>
         </div>
-      </div>
+      )}
       {showSeverity && (
         <div className="map-legend-block">
           <span className="map-legend-title">{t.mapLegendSeverity}</span>
@@ -244,9 +246,10 @@ export default function PotholeMap({
   const [baseLayer, setBaseLayer] = useState("street");
   const [layers, setLayers] = useState({
     markers: true,
-    roadQuality: true,
+    roadQuality: false,
+    rutHeatmap: true,
     severity: false,
-    maintenancePriority: false,
+    maintenancePriority: true,
   });
   const mapPins = useMemo(() => groupDetectionsForMap(detections), [detections]);
   const positions = useMemo(() => {
@@ -334,6 +337,45 @@ const SAFE_SURVEY_RUT = 8;
       }),
     [severityTargets]
   );
+
+  const rutHeatmapCircles = useMemo(() => {
+    const SEV_RANK = { low: 1, medium: 2, high: 3, critical: 4 };
+    const clusters = new Map();
+    for (const d of visible) {
+      if ((d.pothole_count ?? 0) === 0) continue;
+      const cid = d.cluster_id || `solo-${d.id}`;
+      if (!clusters.has(cid)) {
+        clusters.set(cid, {
+          latSum: 0,
+          lonSum: 0,
+          n: 0,
+          rutSum: 0,
+          maxRut: 0,
+          severity: d.severity || "low",
+          clusterId: cid,
+        });
+      }
+      const c = clusters.get(cid);
+      c.latSum += d.latitude;
+      c.lonSum += d.longitude;
+      c.n += 1;
+      c.rutSum += d.rut_score || 0;
+      c.maxRut = Math.max(c.maxRut, d.rut_score || 0);
+      if ((SEV_RANK[d.severity] || 0) > (SEV_RANK[c.severity] || 0)) {
+        c.severity = d.severity;
+      }
+    }
+    return [...clusters.values()].map((c) => ({
+      key: c.clusterId,
+      center: [c.latSum / c.n, c.lonSum / c.n],
+      rut: c.rutSum / c.n,
+      maxRut: c.maxRut,
+      count: c.n,
+      severity: c.severity,
+      radius: Math.min(95, 28 + c.n * 14 + (c.maxRut / 100) * 30),
+      color: rutHeatColor(c.maxRut),
+    }));
+  }, [visible]);
 
   const roadQualityCircles = useMemo(() => {
     const circles = [];
@@ -429,6 +471,13 @@ const SAFE_SURVEY_RUT = 8;
               icon="map"
             />
             <LayerToggle
+              id="layer-heatmap"
+              checked={layers.rutHeatmap}
+              onChange={(v) => setLayer("rutHeatmap", v)}
+              label={t.layerRutHeatmap}
+              icon="intel"
+            />
+            <LayerToggle
               id="layer-quality"
               checked={layers.roadQuality}
               onChange={(v) => setLayer("roadQuality", v)}
@@ -457,6 +506,7 @@ const SAFE_SURVEY_RUT = 8;
         t={t}
         showSeverity={layers.severity}
         showPriority={layers.maintenancePriority}
+        showHeatmap={layers.rutHeatmap}
       />
 
       <MapContainer
@@ -475,6 +525,35 @@ const SAFE_SURVEY_RUT = 8;
         <BoundsWatcher onBoundsChange={onBoundsChange} />
         <FitAllMarkers detections={visible} positions={positions} />
         <FlyToSelected selectedId={selectedId} positions={positions} />
+
+        {layers.rutHeatmap &&
+          rutHeatmapCircles.map((c) => (
+            <Circle
+              key={`heat-${c.key}`}
+              center={c.center}
+              radius={c.radius}
+              pathOptions={{
+                color: c.color,
+                fillColor: c.color,
+                fillOpacity: 0.42,
+                weight: 1,
+                opacity: 0.75,
+              }}
+            >
+              <Popup>
+                <div className="popup-content">
+                  <h3>{t.rutHeatmapZone}</h3>
+                  <p>
+                    RUT: <strong>{Math.round(c.rut)}</strong> · {t.severity}:{" "}
+                    <strong>{c.severity}</strong>
+                  </p>
+                  {c.count > 1 && (
+                    <p>{t.clusterReports.replace("{n}", String(c.count))}</p>
+                  )}
+                </div>
+              </Popup>
+            </Circle>
+          ))}
 
         {layers.roadQuality &&
           roadQualityCircles.map((c) => (
