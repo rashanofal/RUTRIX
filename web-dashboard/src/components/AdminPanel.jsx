@@ -115,7 +115,6 @@ export default function AdminPanel({
             <span className="section-label-icon">🛡️</span>
             <span>{t.adminPanelTitle}</span>
           </div>
-          <p className="intel-sub">{t.adminPanelSub}</p>
         </>
       ) : null}
 

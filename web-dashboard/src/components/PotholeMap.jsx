@@ -198,9 +198,6 @@ function MapLegend({ t, showSeverity, showPriority, showHeatmap, showRoadQuality
       {showRutKey && (
         <div className="map-legend-block map-legend-rut">
           <span className="map-legend-title">{t.mapLegendRut}</span>
-          {showRoadQuality && !showHeatmap ? (
-            <p className="map-legend-note">{t.mapLegendDotsHint}</p>
-          ) : null}
           <div className="map-legend-gradient rut-gradient" />
           <div className="map-legend-labels map-legend-labels-ltr">
             <span className="legend-rut-safe">{t.rutLabelSafe}</span>

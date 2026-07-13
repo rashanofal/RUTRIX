@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useLocale } from "../context/LocaleContext";
+import NavIcon from "./NavIcons";
 import QrCodeBlock from "./QrCodeBlock";
 
 export default function MobileAppPanel({ compact = false }) {
@@ -28,58 +29,51 @@ export default function MobileAppPanel({ compact = false }) {
 
   return (
     <div className={`mobile-app-panel ${compact ? "compact" : ""}`}>
-      {!compact && (
-        <>
-          <div className="section-label">
-            <span className="section-label-icon">📱</span>
-            <span>{t.mobileAppTitle}</span>
-          </div>
-          <p className="mobile-app-hint">{t.mobileAppHint}</p>
-        </>
-      )}
+      {!compact ? (
+        <div className="mobile-app-head">
+          <span className="mobile-app-head-icon" aria-hidden>
+            <NavIcon name="mobile" />
+          </span>
+          <h2 className="mobile-app-head-title">{t.mobileAppTitle}</h2>
+        </div>
+      ) : null}
 
-      <div className="mobile-platform-card android">
-        <div className="platform-head">
-          <span className="platform-icon">🤖</span>
-          <div>
+      <div className="mobile-platform-grid">
+        <article className="mobile-platform-card android">
+          <header className="platform-head">
+            <span className="platform-icon platform-icon-svg" aria-hidden>
+              <NavIcon name="mobile" />
+            </span>
             <h3>{t.androidTitle}</h3>
-            <p>{t.androidSub}</p>
-          </div>
-        </div>
+          </header>
 
-        <QrCodeBlock
-          url={phoneUrl}
-          label={t.scanQrAndroid}
-          variant="highlight"
-          onCopy={copy}
-          copyLabel={t.copy}
-          loadingText={t.loading}
-        />
+          <QrCodeBlock
+            url={phoneUrl}
+            label={t.scanQrAndroid}
+            variant="highlight"
+            onCopy={copy}
+            copyLabel={t.copy}
+            loadingText={t.loading}
+          />
+        </article>
 
-        <ul className="platform-steps-short">
-          <li>{t.mobileStep1}</li>
-          <li>{t.mobileStep2}</li>
-          <li>{t.mobileStepLogin}</li>
-        </ul>
-      </div>
-
-      <div className="mobile-platform-card iphone">
-        <div className="platform-head">
-          <span className="platform-icon">🍎</span>
-          <div>
+        <article className="mobile-platform-card iphone">
+          <header className="platform-head">
+            <span className="platform-icon platform-icon-svg" aria-hidden>
+              <NavIcon name="mobile" />
+            </span>
             <h3>{t.iphoneTitle}</h3>
-            <p>{t.iphoneSub}</p>
-          </div>
-        </div>
+          </header>
 
-        <QrCodeBlock
-          url={httpsUrl}
-          label={t.scanQrIphone}
-          variant="https"
-          onCopy={copy}
-          copyLabel={t.copy}
-          loadingText={t.loading}
-        />
+          <QrCodeBlock
+            url={httpsUrl}
+            label={t.scanQrIphone}
+            variant="https"
+            onCopy={copy}
+            copyLabel={t.copy}
+            loadingText={t.loading}
+          />
+        </article>
       </div>
     </div>
   );

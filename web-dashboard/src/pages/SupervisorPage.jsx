@@ -45,9 +45,7 @@ export default function SupervisorPage({
     <div className="page-supervisor">
       <header className="supervisor-hero">
         <div className="supervisor-hero-text">
-          <p className="supervisor-kicker">{t.supervisorKicker}</p>
           <h2 className="supervisor-title">{t.adminPanelTitle}</h2>
-          <p className="supervisor-sub">{t.adminPanelSub}</p>
         </div>
         <div className="supervisor-kpis">
           <article className="supervisor-kpi">
@@ -70,10 +68,6 @@ export default function SupervisorPage({
       </header>
 
       <section className="supervisor-map-section" aria-label={t.supervisorMapTitle}>
-        <div className="supervisor-map-head">
-          <h3>{t.supervisorMapTitle}</h3>
-          <p>{t.supervisorMapSub}</p>
-        </div>
         <div className="supervisor-map-frame">
           <PotholeMap
             detections={detections}

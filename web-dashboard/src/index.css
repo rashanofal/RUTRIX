@@ -160,40 +160,78 @@ body {
 .mobile-platform-card {
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
-  padding: 0.85rem;
-  margin-bottom: 0.75rem;
-  background: rgba(17, 24, 39, 0.5);
+  padding: 1rem;
+  background: rgba(12, 18, 34, 0.72);
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.mobile-platform-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.mobile-app-head {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  margin-bottom: 1.1rem;
+}
+
+.mobile-app-head-icon {
+  display: inline-flex;
+  width: 2.25rem;
+  height: 2.25rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  background: rgba(46, 230, 255, 0.1);
+  border: 1px solid rgba(46, 230, 255, 0.22);
+  color: var(--primary);
+}
+
+.mobile-app-head-title {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 800;
 }
 
 .mobile-platform-card.android {
-  border-color: rgba(52, 211, 153, 0.25);
+  border-color: rgba(52, 211, 153, 0.28);
+  background: linear-gradient(160deg, rgba(6, 78, 59, 0.18), rgba(12, 18, 34, 0.85));
 }
 
 .mobile-platform-card.iphone {
-  border-color: rgba(251, 191, 36, 0.25);
+  border-color: rgba(46, 230, 255, 0.22);
+  background: linear-gradient(160deg, rgba(14, 116, 144, 0.14), rgba(12, 18, 34, 0.85));
 }
 
 .platform-head {
   display: flex;
-  gap: 0.65rem;
-  align-items: flex-start;
-  margin-bottom: 0.65rem;
+  gap: 0.55rem;
+  align-items: center;
+  margin: 0;
 }
 
-.platform-icon {
-  font-size: 1.5rem;
-  line-height: 1;
+.platform-icon-svg {
+  display: inline-flex;
+  width: 1.75rem;
+  height: 1.75rem;
+  align-items: center;
+  justify-content: center;
+  color: var(--primary);
+}
+
+.platform-icon-svg .nav-svg-icon svg {
+  width: 1.2rem;
+  height: 1.2rem;
 }
 
 .platform-head h3 {
-  font-size: 0.88rem;
+  font-size: 0.92rem;
   font-weight: 800;
-  margin: 0 0 0.15rem;
-}
-
-.platform-head p {
-  font-size: 0.72rem;
-  color: var(--text-dim);
   margin: 0;
 }
 
@@ -834,35 +872,6 @@ body {
   font-size: 0.85rem;
   font-weight: 700;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
-}
-
-.app-storage-banner {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  z-index: 10000;
-  background: linear-gradient(90deg, #1e3a5f, #0f766e);
-  color: #e0f2fe;
-  text-align: center;
-  padding: 0.5rem 1rem 0.6rem;
-  font-size: 0.8rem;
-  font-weight: 600;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-  display: flex;
-  flex-direction: column;
-  gap: 0.2rem;
-}
-
-.app-storage-banner-hint {
-  font-size: 0.72rem;
-  font-weight: 500;
-  opacity: 0.92;
-}
-
-.app-stale-banner ~ .app-storage-banner,
-.app-storage-banner ~ .app-stale-banner {
-  top: 2.4rem;
 }
 
 .app-toast-success {
@@ -3239,11 +3248,17 @@ body {
 
 .mobile-page-inner {
   width: 100%;
-  max-width: 520px;
+  max-width: 920px;
   background: var(--gradient-card);
   border: 1px solid var(--border);
   border-radius: var(--radius-xl);
-  padding: 1.5rem;
+  padding: 1.35rem 1.5rem 1.5rem;
+}
+
+@media (max-width: 768px) {
+  .mobile-platform-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 .mobile-page-inner .mobile-app-panel {
