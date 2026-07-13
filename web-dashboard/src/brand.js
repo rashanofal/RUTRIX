@@ -20,3 +20,15 @@ export const BRAND_COLORS = {
 
 /** Platform owner — must match backend settings.owner_email */
 export const PLATFORM_OWNER_EMAIL = "rashanofal82@gmail.com";
+
+/**
+ * Mobile / store distribution config.
+ * For beta: leave playStoreUrl / appStoreUrl null → "Coming soon" cards.
+ * When apps publish, set the real store URLs here.
+ */
+export const APP_DISTRIBUTION = {
+  /** Prefer current Space/origin; override only if you use a custom domain */
+  publicMobilePath: "/mobile",
+  playStoreUrl: null,
+  appStoreUrl: null,
+};

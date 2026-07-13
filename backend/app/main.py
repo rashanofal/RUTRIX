@@ -74,28 +74,39 @@ def health():
 
 
 @app.get("/api/network")
-def network_info():
-    """LAN IP for iPhone QR codes (never use localhost on phone)."""
+def network_info(request: Request):
+    """Public mobile URL + optional LAN URLs for local WiFi testing."""
     import socket
 
+    public_base = str(request.base_url).rstrip("/")
+    public_mobile = f"{public_base}/mobile"
+
+    host = (request.url.hostname or "").lower()
+    is_local = host in {"localhost", "127.0.0.1"} or host.startswith(
+        ("192.168.", "10.", "172.")
+    )
+
     lan_ip = None
-    try:
-        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        s.connect(("8.8.8.8", 80))
-        lan_ip = s.getsockname()[0]
-        s.close()
-    except OSError:
-        pass
+    if is_local:
+        try:
+            s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            s.connect(("8.8.8.8", 80))
+            lan_ip = s.getsockname()[0]
+            s.close()
+        except OSError:
+            lan_ip = None
+        if not lan_ip or lan_ip.startswith("127."):
+            lan_ip = None
 
-    if not lan_ip or lan_ip.startswith("127."):
-        lan_ip = "192.168.3.105"
-
-    return {
+    payload = {
+        "public_mobile": public_mobile,
+        "is_local": is_local,
         "lan_ip": lan_ip,
-        "mobile_http": f"http://{lan_ip}:8000/mobile",
-        "mobile_https": f"https://{lan_ip}:8443/mobile",
-        "dashboard_pc": "http://localhost:5173",
+        "mobile_http": f"http://{lan_ip}:8000/mobile" if lan_ip else None,
+        "mobile_https": f"https://{lan_ip}:8443/mobile" if lan_ip else None,
+        "dashboard_pc": "http://localhost:5173" if is_local else public_base,
     }
+    return payload
 
 
 @app.get("/api/info")
