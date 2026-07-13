@@ -389,14 +389,44 @@
     }
     .filter-btn.active { border-color: var(--primary); color: var(--primary); background: rgba(46,230,255,0.1); }
     .modal-overlay {
-      position: fixed; inset: 0; z-index: 60; background: rgba(2,4,10,0.72);
+      position: fixed; inset: 0; z-index: 5000;
+      background: rgba(2, 4, 10, 0.82);
+      backdrop-filter: blur(6px);
       display: flex; align-items: flex-end; justify-content: center;
+      padding: 0;
+    }
+    .modal-overlay.notif-panel {
+      align-items: stretch;
+      justify-content: stretch;
     }
     .modal-sheet {
-      width: 100%; max-width: 640px; max-height: 92vh; overflow-y: auto;
+      width: 100%; max-width: 640px; max-height: 88vh; overflow-y: auto;
       background: var(--bg-soft); border-top-left-radius: 22px; border-top-right-radius: 22px;
-      border: 1px solid var(--border); padding: 1rem 1.1rem calc(1.5rem + env(safe-area-inset-bottom));
+      border: 1px solid var(--border);
+      padding: 1rem 1.1rem calc(5.5rem + env(safe-area-inset-bottom));
+      box-shadow: 0 -12px 40px rgba(0, 0, 0, 0.45);
+      -webkit-overflow-scrolling: touch;
     }
+    .modal-sheet.notif-sheet {
+      max-width: none; max-height: none; height: 100%;
+      border-radius: 0; border: none;
+      padding: max(0.85rem, env(safe-area-inset-top)) 1rem calc(1rem + env(safe-area-inset-bottom));
+      display: flex; flex-direction: column;
+      box-shadow: none;
+    }
+    .notif-scroll { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; padding-bottom: 0.5rem; }
+    .notif-toolbar {
+      display: flex; align-items: center; justify-content: space-between; gap: 0.6rem;
+      margin-bottom: 0.85rem; padding-bottom: 0.75rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .notif-toolbar h2 { font-size: 1.15rem; font-weight: 900; flex: 1; }
+    .notif-readall {
+      padding: 0.45rem 0.75rem; border-radius: 10px; font-family: inherit; cursor: pointer;
+      background: rgba(46, 230, 255, 0.12); border: 1px solid rgba(46, 230, 255, 0.35);
+      color: var(--primary); font-weight: 800; font-size: 0.72rem; white-space: nowrap;
+    }
+    body.modal-open { overflow: hidden; touch-action: none; }
     .modal-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.85rem; }
     .modal-head h2 { font-size: 1.05rem; font-weight: 800; }
     .modal-close {
@@ -427,6 +457,13 @@
     }
     .proof-img { width: 100%; border-radius: 12px; margin-top: 0.4rem; }
     .proof-preview { width: 100%; border-radius: 12px; margin-top: 0.5rem; max-height: 220px; object-fit: cover; }
+    .proof-zone {
+      margin-top: 0.55rem; border: 2px dashed rgba(46, 230, 255, 0.45); border-radius: 14px;
+      padding: 1.1rem 0.75rem; text-align: center; background: rgba(46, 230, 255, 0.06); cursor: pointer;
+    }
+    .proof-zone-icon { font-size: 2rem; margin-bottom: 0.35rem; }
+    .proof-zone-title { font-weight: 800; font-size: 0.9rem; color: var(--primary); }
+    .proof-zone-hint { color: var(--muted); font-size: 0.76rem; margin-top: 0.35rem; line-height: 1.45; }
     .timeline-row { display: flex; gap: 0.6rem; margin-top: 0.5rem; }
     .timeline-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--primary); margin-top: 5px; flex-shrink: 0; }
     .timeline-type { font-weight: 700; font-size: 0.8rem; }
@@ -556,9 +593,6 @@
       </div>
     </div>
 
-    <div id="woModal" class="modal-overlay hidden"></div>
-    <div id="notifModal" class="modal-overlay hidden"></div>
-
     <div id="uploadToast" class="upload-toast hidden" role="status" aria-live="polite"></div>
 
     <div class="bottom-dock">
@@ -586,6 +620,9 @@
     </div>
   </div>
 
+  <div id="woModal" class="modal-overlay hidden" aria-hidden="true"></div>
+  <div id="notifModal" class="modal-overlay notif-panel hidden" aria-hidden="true"></div>
+
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script>
     const AUTH_KEY = "pothole_auth";
@@ -611,6 +648,8 @@
         decline: "رفض", navigate: "فتح الخرائط للتنقّل", addProof: "التقاط صورة إثبات",
         changeProof: "تغيير الصورة", submitComplete: "تأكيد الإنجاز", proofPhoto: "صورة الإثبات",
         notesPlaceholder: "ملاحظات الإنجاز (اختياري)", proofRequired: "أضِف صورة إثبات قبل الإنهاء",
+        proofHint: "صورة واحدة على الأقل للموقع بعد الإصلاح — إلزامية",
+        proofTap: "اضغطي لالتقاط صورة الإثبات",
         timeline: "المسار الزمني", location: "الموقع", actionFail: "تعذّر تنفيذ الإجراء",
         declineReason: "سبب الرفض (اختياري):", cancel: "إلغاء", loadingTasks: "جاري التحميل...",
         woStatus_open: "مفتوح", woStatus_assigned: "مُسند", woStatus_accepted: "مقبول",
@@ -669,6 +708,8 @@
         decline: "Decline", navigate: "Open in Maps", addProof: "Capture proof photo",
         changeProof: "Change photo", submitComplete: "Confirm completion", proofPhoto: "Proof photo",
         notesPlaceholder: "Completion notes (optional)", proofRequired: "Add a proof photo before completing",
+        proofHint: "At least one photo of the repaired site is required",
+        proofTap: "Tap to capture proof photo",
         timeline: "Timeline", location: "Location", actionFail: "Action failed",
         declineReason: "Decline reason (optional):", cancel: "Cancel", loadingTasks: "Loading...",
         woStatus_open: "Open", woStatus_assigned: "Assigned", woStatus_accepted: "Accepted",
@@ -1392,7 +1433,7 @@
       const tr = t();
       const modal = document.getElementById("woModal");
       proofDataUri = null; proofFile = null;
-      modal.classList.remove("hidden");
+      openModal(modal);
       modal.innerHTML = '<div class="modal-sheet"><p class="wo-empty">' + tr.loadingTasks + "</p></div>";
       let wo;
       try {
@@ -1400,7 +1441,7 @@
         if (!res.ok) throw new Error("load");
         wo = await res.json();
       } catch {
-        modal.classList.add("hidden");
+        closeModal(modal);
         return;
       }
       renderWorkOrderModal(wo, false);
@@ -1441,9 +1482,16 @@
 
       if (completing) {
         html += '<div class="wo-info-card"><div class="wo-info-label">' + tr.completeWork + "</div>";
-        html += '<label class="action-btn action-start" style="display:block;text-align:center">' + (proofDataUri ? tr.changeProof : "📷 " + tr.addProof);
-        html += '<input type="file" id="woProofInput" accept="image/*" capture="environment" style="display:none"></label>';
-        if (proofDataUri) html += '<img class="proof-preview" src="' + proofDataUri + '" alt="preview">';
+        html += '<p class="proof-zone-hint" style="margin-top:0">' + tr.proofHint + "</p>";
+        if (proofDataUri) {
+          html += '<img class="proof-preview" src="' + proofDataUri + '" alt="preview">';
+          html += '<label class="action-btn action-start" style="display:block;text-align:center;margin-top:0.55rem">' + tr.changeProof;
+          html += '<input type="file" id="woProofInput" accept="image/*" capture="environment" style="display:none"></label>';
+        } else {
+          html += '<label class="proof-zone"><input type="file" id="woProofInput" accept="image/*" capture="environment" style="display:none">';
+          html += '<div class="proof-zone-icon">📷</div><div class="proof-zone-title">' + tr.proofTap + "</div>";
+          html += '<div class="proof-zone-hint">' + tr.proofHint + "</div></label>";
+        }
         html += '<textarea class="wo-textarea" id="woNotes" placeholder="' + tr.notesPlaceholder + '"></textarea>';
         html += '<button type="button" class="action-btn action-complete" id="woSubmitComplete">✓ ' + tr.submitComplete + "</button>";
         html += '<button type="button" class="action-btn action-ghost" id="woCancelComplete">' + tr.cancel + "</button>";
@@ -1455,8 +1503,8 @@
       html += "</div>";
       modal.innerHTML = html;
 
-      document.getElementById("woModalClose").onclick = () => modal.classList.add("hidden");
-      modal.onclick = (e) => { if (e.target === modal) modal.classList.add("hidden"); };
+      document.getElementById("woModalClose").onclick = () => closeModal(modal);
+      modal.onclick = (e) => { if (e.target === modal) closeModal(modal); };
 
       const navBtn = document.getElementById("woNavBtn");
       if (navBtn) navBtn.onclick = () => {
@@ -1560,18 +1608,22 @@
     async function openNotifications() {
       const tr = t();
       const modal = document.getElementById("notifModal");
-      modal.classList.remove("hidden");
-      modal.innerHTML = '<div class="modal-sheet"><p class="wo-empty">' + tr.loadingTasks + "</p></div>";
+      openModal(modal);
+      modal.innerHTML = '<div class="modal-sheet notif-sheet"><p class="wo-empty">' + tr.loadingTasks + "</p></div>";
       let items = [];
       try {
         const res = await authFetch("/api/notifications");
         if (res.ok) items = await res.json();
       } catch { /* ignore */ }
 
-      let html = '<div class="modal-sheet"><div class="modal-head"><h2>' + tr.notifications + "</h2>";
-      html += '<button type="button" class="modal-close" id="notifClose">×</button></div>';
+      let html = '<div class="modal-sheet notif-sheet">';
+      html += '<div class="notif-toolbar">';
+      html += '<h2>🔔 ' + tr.notifications + "</h2>";
+      if (items.length) html += '<button type="button" class="notif-readall" id="notifReadAll">' + tr.markAllRead + "</button>";
+      html += '<button type="button" class="modal-close" id="notifClose" aria-label="Close">×</button>';
+      html += "</div>";
+      html += '<div class="notif-scroll">';
       if (items.length) {
-        html += '<button type="button" class="filter-btn" id="notifReadAll" style="margin-bottom:0.7rem">' + tr.markAllRead + "</button>";
         items.forEach((n) => {
           const icon = NOTIF_ICON[n.type] || "🔔";
           html += '<div class="notif-item ' + (n.is_read ? "" : "unread") + '" data-id="' + n.id + '" data-wo="' + (n.work_order_id || "") + '">';
@@ -1583,11 +1635,10 @@
       } else {
         html += '<p class="wo-empty">' + tr.notifEmpty + "</p>";
       }
-      html += "</div>";
+      html += "</div></div>";
       modal.innerHTML = html;
 
-      document.getElementById("notifClose").onclick = () => modal.classList.add("hidden");
-      modal.onclick = (e) => { if (e.target === modal) modal.classList.add("hidden"); };
+      document.getElementById("notifClose").onclick = () => closeModal(modal);
       const readAll = document.getElementById("notifReadAll");
       if (readAll) readAll.onclick = async () => {
         try { await authFetch("/api/notifications/read-all", { method: "POST" }); } catch { /* ignore */ }
@@ -1601,7 +1652,7 @@
           try { await authFetch("/api/notifications/" + nid + "/read", { method: "POST" }); } catch { /* ignore */ }
           refreshNotifBadge();
           if (woId) {
-            modal.classList.add("hidden");
+            closeModal(modal);
             document.querySelector('.tab[data-tab="tasks"]').click();
             openWorkOrder(Number(woId));
           }
@@ -1613,6 +1664,22 @@
       return String(s == null ? "" : s).replace(/[&<>"']/g, (c) =>
         ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])
       );
+    }
+
+    function openModal(el) {
+      if (!el) return;
+      el.classList.remove("hidden");
+      el.setAttribute("aria-hidden", "false");
+      document.body.classList.add("modal-open");
+    }
+
+    function closeModal(el) {
+      if (!el) return;
+      el.classList.add("hidden");
+      el.setAttribute("aria-hidden", "true");
+      if (!document.querySelector(".modal-overlay:not(.hidden)")) {
+        document.body.classList.remove("modal-open");
+      }
     }
 
     document.getElementById("bellBtn").onclick = openNotifications;
