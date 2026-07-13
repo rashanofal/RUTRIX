@@ -302,11 +302,7 @@ export default function AdminPanel({
       </div>
       ) : null}
 
-      {supervisorMode && hideMemberTable && !showFullTable ? (
-        <p className="intel-sub admin-users-rail-hint">{t.supervisorSelectMemberPrompt}</p>
-      ) : null}
-
-      {supervisorMode ? (
+      {supervisorMode && showFullTable ? (
         <p className="admin-password-hint">{t.memberPasswordHint}</p>
       ) : null}
 
@@ -369,13 +365,7 @@ export default function AdminPanel({
           return `${t.adminMediaTitle} (${media.length})`;
         })()}
       </h3>
-      <p className="intel-sub">
-        {!hasMemberSelection(memberFilter)
-          ? t.supervisorSelectMemberPrompt
-          : normalizeMemberFilter(memberFilter).mode === "users"
-            ? t.adminMediaSubSelected
-            : t.adminMediaSub}
-      </p>
+      {!supervisorMode ? <p className="intel-sub">{t.adminMediaSub}</p> : null}
       <div className="admin-media-grid">
         {media.map(({ url, items, primary }) => (
           <article key={url} className="admin-media-card">
@@ -397,7 +387,11 @@ export default function AdminPanel({
             </button>
           </article>
         ))}
-        {!media.length && <p className="intel-empty">{t.noDetections}</p>}
+        {!media.length && (
+          <p className="intel-empty">
+            {supervisorMode && hasMemberSelection(memberFilter) ? t.noFieldPhotos : t.noDetections}
+          </p>
+        )}
       </div>
 
       <div className="admin-danger">

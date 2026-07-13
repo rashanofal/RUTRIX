@@ -2,8 +2,6 @@ import { useMemo } from "react";
 import { useLocale } from "../context/LocaleContext";
 import {
   enrichMembersWithReporters,
-  filterDetectionsByMember,
-  formatSelectedCount,
   isMemberSelected,
   normalizeMemberFilter,
   toggleAllMembersFilter,
@@ -45,9 +43,6 @@ export default function SupervisorMembersRail({
     [detections]
   );
 
-  const selectedCount =
-    filter.mode === "all" ? members.length : filter.mode === "users" ? filter.userIds.length : 0;
-
   const toggleAll = () => {
     if (typeof onMemberFilterChange !== "function") return;
     onMemberFilterChange(toggleAllMembersFilter(filter));
@@ -67,12 +62,6 @@ export default function SupervisorMembersRail({
             {members.length}
           </span>
         </div>
-        <p>{t.memberSelectHint}</p>
-        {selectedCount > 0 && filter.mode !== "all" ? (
-          <p className="supervisor-members-selected-count" dir="ltr">
-            {formatSelectedCount(t.supervisorSelectedCount, selectedCount)}
-          </p>
-        ) : null}
       </div>
       <div
         className="supervisor-members-rail-list"

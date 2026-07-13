@@ -98,8 +98,6 @@ export default function SupervisorPage({
   const pinned = filteredDetections.filter(
     (item) => item.latitude != null && item.longitude != null
   ).length;
-  const showSelectPrompt = !hasMemberSelection(memberFilter);
-  const showNoPinsHint = hasMemberSelection(memberFilter) && pinned === 0;
   const reporters = new Set(
     filteredDetections.map((item) => item.reporter_user_id).filter(Boolean)
   ).size;
@@ -175,16 +173,6 @@ export default function SupervisorPage({
               refitOnChange
               showReporter
             />
-            {showSelectPrompt ? (
-              <div className="supervisor-map-empty" role="status">
-                <p>{t.supervisorSelectMemberPrompt}</p>
-              </div>
-            ) : null}
-            {showNoPinsHint ? (
-              <div className="supervisor-map-empty" role="status">
-                <p>{t.supervisorNoPinsForUser}</p>
-              </div>
-            ) : null}
           </div>
           <SupervisorMembersRail
             members={displayMembers}
