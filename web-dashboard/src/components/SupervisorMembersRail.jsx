@@ -11,6 +11,31 @@ export function filterDetectionsByMember(detections, memberFilter) {
   return detections.filter((d) => Number(d.reporter_user_id) === userId);
 }
 
+/** Include reporters visible on the map even if team API missed them (org merge lag). */
+export function enrichMembersWithReporters(members, detections) {
+  const byId = new Map(
+    (Array.isArray(members) ? members : []).map((m) => [Number(m.user_id), { ...m }])
+  );
+  for (const d of detections || []) {
+    const id = Number(d.reporter_user_id);
+    if (!id || byId.has(id)) continue;
+    const mine = detections.filter((x) => Number(x.reporter_user_id) === id);
+    byId.set(id, {
+      user_id: id,
+      full_name: d.reporter_name || `#${id}`,
+      email: "",
+      role: "field",
+      map_pins: mine.filter((x) => x.latitude != null && x.longitude != null).length,
+      total_detections: mine.length,
+    });
+  }
+  return Array.from(byId.values()).sort((a, b) =>
+    String(a.full_name || "").localeCompare(String(b.full_name || ""), undefined, {
+      sensitivity: "base",
+    })
+  );
+}
+
 export default function SupervisorMembersRail({
   members = [],
   detections = [],
@@ -47,10 +72,15 @@ export default function SupervisorMembersRail({
   return (
     <aside className="supervisor-members-rail" aria-label={t.supervisorMembersRail}>
       <div className="supervisor-members-rail-head">
-        <h3>{t.supervisorMembersRail}</h3>
+        <div className="supervisor-members-rail-head-row">
+          <h3>{t.supervisorMembersRail}</h3>
+          <span className="supervisor-members-count" dir="ltr">
+            {members.length}
+          </span>
+        </div>
         <p>{t.memberSelectHint}</p>
       </div>
-      <div className="supervisor-members-rail-list">
+      <div className="supervisor-members-rail-list" role="listbox" aria-label={t.supervisorMembersRail}>
         <button
           type="button"
           className={`supervisor-member-chip${memberFilter?.mode === "all" ? " active" : ""}`}
@@ -74,7 +104,14 @@ export default function SupervisorMembersRail({
               aria-pressed={active}
             >
               <span className="supervisor-member-dot" aria-hidden />
-              <span className="supervisor-member-name">{m.full_name}</span>
+              <span className="supervisor-member-text">
+                <span className="supervisor-member-name">{m.full_name}</span>
+                {m.email ? (
+                  <span className="supervisor-member-email" dir="ltr">
+                    {m.email}
+                  </span>
+                ) : null}
+              </span>
               <span className="supervisor-member-pins" dir="ltr" title={t.memberMapPins}>
                 {pins}
               </span>

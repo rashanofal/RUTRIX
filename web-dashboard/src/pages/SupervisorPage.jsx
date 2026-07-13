@@ -1,10 +1,14 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useLocale } from "../context/LocaleContext";
 import { useIsOwner } from "../hooks/useIsAdmin";
+import { fetchTeamMembers } from "../hooks/useApi";
 import PotholeMap from "../components/PotholeMap";
 import DetectionDetail from "../components/DetectionDetail";
 import AdminPanel from "../components/AdminPanel";
-import SupervisorMembersRail, { filterDetectionsByMember } from "../components/SupervisorMembersRail";
+import SupervisorMembersRail, {
+  enrichMembersWithReporters,
+  filterDetectionsByMember,
+} from "../components/SupervisorMembersRail";
 
 export default function SupervisorPage({
   detections,
@@ -25,6 +29,22 @@ export default function SupervisorPage({
   const isOwner = useIsOwner();
   const [members, setMembers] = useState([]);
   const [memberFilter, setMemberFilter] = useState({ mode: "none" });
+
+  const loadMembers = useCallback(() => {
+    fetchTeamMembers()
+      .then((rows) => setMembers(Array.isArray(rows) ? rows : []))
+      .catch(() => setMembers([]));
+  }, []);
+
+  useEffect(() => {
+    if (!isOwner) return;
+    loadMembers();
+  }, [isOwner, loadMembers, detections.length]);
+
+  const displayMembers = useMemo(
+    () => enrichMembersWithReporters(members, detections),
+    [members, detections]
+  );
 
   const filteredDetections = useMemo(
     () => filterDetectionsByMember(detections, memberFilter),
@@ -67,7 +87,7 @@ export default function SupervisorPage({
 
   const selectedMember =
     memberFilter.mode === "user"
-      ? members.find((m) => Number(m.user_id) === Number(memberFilter.userId))
+      ? displayMembers.find((m) => Number(m.user_id) === Number(memberFilter.userId))
       : null;
 
   return (
@@ -83,7 +103,7 @@ export default function SupervisorPage({
             <span className="supervisor-kpi-label">{t.supervisorKpiPins}</span>
           </article>
           <article className="supervisor-kpi">
-            <span className="supervisor-kpi-value">{members.length || "—"}</span>
+            <span className="supervisor-kpi-value">{displayMembers.length || "—"}</span>
             <span className="supervisor-kpi-label">{t.supervisorKpiMembers}</span>
           </article>
           <article className="supervisor-kpi">
@@ -154,7 +174,7 @@ export default function SupervisorPage({
             ) : null}
           </div>
           <SupervisorMembersRail
-            members={members}
+            members={displayMembers}
             detections={detections}
             memberFilter={memberFilter}
             onMemberFilterChange={setMemberFilter}

@@ -2218,8 +2218,8 @@ body {
 .supervisor-members-rail {
   display: flex;
   flex-direction: column;
-  min-height: 320px;
-  max-height: min(58vh, 620px);
+  min-height: 360px;
+  max-height: min(72vh, 720px);
   border-radius: var(--radius-xl, 20px);
   border: 1px solid var(--border);
   background: var(--gradient-card);
@@ -2229,6 +2229,25 @@ body {
 .supervisor-members-rail-head {
   padding: 0.85rem 1rem;
   border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.supervisor-members-rail-head-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.supervisor-members-count {
+  font-family: var(--font-numeric);
+  font-variant-numeric: tabular-nums lining-nums;
+  font-size: 0.72rem;
+  font-weight: 800;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  border: 1px solid rgba(46, 230, 255, 0.35);
+  color: var(--primary);
   flex-shrink: 0;
 }
 
@@ -2247,13 +2266,36 @@ body {
 
 .supervisor-members-rail-list {
   flex: 1;
+  min-height: 0;
   overflow-y: auto;
+  overflow-x: hidden;
   padding: 0.55rem;
   display: flex;
   flex-direction: column;
   gap: 0.4rem;
   scrollbar-width: thin;
-  scrollbar-color: rgba(46, 230, 255, 0.35) transparent;
+  scrollbar-color: rgba(46, 230, 255, 0.45) rgba(255, 255, 255, 0.04);
+}
+
+.supervisor-members-rail-list::-webkit-scrollbar {
+  width: 9px;
+}
+
+.supervisor-members-rail-list::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 999px;
+}
+
+.supervisor-members-rail-list::-webkit-scrollbar-thumb {
+  background: rgba(46, 230, 255, 0.4);
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+.supervisor-members-rail-list::-webkit-scrollbar-thumb:hover {
+  background: rgba(46, 230, 255, 0.65);
+  background-clip: padding-box;
 }
 
 .supervisor-member-chip {
@@ -2296,10 +2338,26 @@ body {
 }
 
 .supervisor-member-name {
-  flex: 1;
+  display: block;
   min-width: 0;
   font-size: 0.8rem;
   font-weight: 700;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.supervisor-member-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.supervisor-member-email {
+  display: block;
+  margin-top: 0.1rem;
+  font-size: 0.68rem;
+  font-weight: 500;
+  color: var(--text-muted);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;

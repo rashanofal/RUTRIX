@@ -21,8 +21,10 @@ from app.services.auth_service import (
     authenticate,
     change_user_password,
     create_access_token,
+    decode_token,
     register_user,
     register_user_in_demo_org,
+    resolve_login_organization,
     update_user_profile,
 )
 
@@ -87,11 +89,12 @@ def login(payload: LoginRequest, db: Session = Depends(get_db)):
     user.last_login_at = datetime.now(timezone.utc)
     db.commit()
     db.refresh(user)
-    token = create_access_token(user.id, org.id, user.email)
+    login_org = resolve_login_organization(db, user) or org
+    token = create_access_token(user.id, login_org.id, user.email)
     return AuthResponse(
         access_token=token,
-        user=_user_response(db, user, org.id),
-        organization=OrganizationResponse.model_validate(org),
+        user=_user_response(db, user, login_org.id),
+        organization=OrganizationResponse.model_validate(login_org),
     )
 
 
@@ -102,10 +105,15 @@ def me(
     org: Organization = Depends(get_current_organization),
     db: Session = Depends(get_db),
 ):
+    session_org = resolve_login_organization(db, user) or org
+    token = credentials.credentials
+    payload = decode_token(token) if credentials else None
+    if payload and int(payload.get("org_id", 0)) != session_org.id:
+        token = create_access_token(user.id, session_org.id, user.email)
     return AuthResponse(
-        access_token=credentials.credentials,
-        user=_user_response(db, user, org.id),
-        organization=OrganizationResponse.model_validate(org),
+        access_token=token,
+        user=_user_response(db, user, session_org.id),
+        organization=OrganizationResponse.model_validate(session_org),
     )
 
 

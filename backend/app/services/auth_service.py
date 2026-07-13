@@ -81,6 +81,62 @@ def register_user(
     return user, org
 
 
+def is_platform_owner_user(user: User) -> bool:
+    return user.email.strip().lower() == settings.owner_email.strip().lower()
+
+
+def get_canonical_organization(db: Session) -> Organization | None:
+    """Shared org where field users register and the platform owner supervises."""
+    if settings.demo_shared_registration and settings.seed_demo_account:
+        return get_demo_organization(db)
+    owner = db.query(User).filter(User.email == settings.owner_email.strip().lower()).first()
+    if not owner:
+        return None
+    membership = (
+        db.query(OrganizationMember)
+        .filter(
+            OrganizationMember.user_id == owner.id,
+            OrganizationMember.role == MemberRole.owner,
+        )
+        .order_by(OrganizationMember.id.asc())
+        .first()
+    )
+    if not membership:
+        return None
+    return db.query(Organization).filter(Organization.id == membership.organization_id).first()
+
+
+def effective_organization_id(
+    db: Session,
+    jwt_org_id: int,
+    user: User,
+    role: str | MemberRole | None,
+) -> int:
+    """Platform owner always operates on the canonical shared organization."""
+    role_val = role.value if isinstance(role, MemberRole) else role
+    if role_val == MemberRole.owner.value and is_platform_owner_user(user):
+        canonical = get_canonical_organization(db)
+        if canonical:
+            return canonical.id
+    return jwt_org_id
+
+
+def resolve_login_organization(db: Session, user: User) -> Organization | None:
+    if is_platform_owner_user(user):
+        canonical = get_canonical_organization(db)
+        if canonical:
+            return canonical
+    membership = (
+        db.query(OrganizationMember)
+        .filter(OrganizationMember.user_id == user.id)
+        .order_by(OrganizationMember.id.asc())
+        .first()
+    )
+    if not membership:
+        return None
+    return db.query(Organization).filter(Organization.id == membership.organization_id).first()
+
+
 def get_demo_organization(db: Session) -> Organization | None:
     demo_user = db.query(User).filter(User.email == settings.demo_email).first()
     if not demo_user:
@@ -137,17 +193,12 @@ def authenticate(db: Session, email: str, password: str) -> tuple[User, Organiza
     if not user or not verify_password(password, user.password_hash):
         return None
 
-    membership = (
-        db.query(OrganizationMember)
-        .filter(OrganizationMember.user_id == user.id)
-        .order_by(OrganizationMember.id.asc())
-        .first()
-    )
-    if not membership:
+    org = resolve_login_organization(db, user)
+    if not org or not org.is_active:
         return None
 
-    org = db.query(Organization).filter(Organization.id == membership.organization_id).first()
-    if not org or not org.is_active:
+    membership = get_user_org_membership(db, user.id, org.id)
+    if not membership:
         return None
 
     return user, org

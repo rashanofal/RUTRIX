@@ -8,7 +8,7 @@ from app.database import get_db
 from app.dependencies import get_current_organization, get_current_role, get_current_user
 from app.models import MemberRole, Organization, OrganizationMember, User
 from app.schemas import TeamInviteRequest, TeamMemberResponse, TeamResetPasswordRequest
-from app.services.auth_service import invite_user_to_organization, reset_member_password
+from app.services.auth_service import effective_organization_id, invite_user_to_organization, reset_member_password
 from app.services.team_service import member_activity_stats
 
 router = APIRouter(prefix="/api/team", tags=["team"])
@@ -59,19 +59,22 @@ def _member_payload(
 
 @router.get("/members", response_model=list[TeamMemberResponse])
 def list_members(
+    current: User = Depends(get_current_user),
     org: Organization = Depends(get_current_organization),
     role: str = Depends(get_current_role),
     db: Session = Depends(get_db),
 ):
+    org_id = effective_organization_id(db, org.id, current, role)
     include_password = role == MemberRole.owner.value
     rows = (
         db.query(OrganizationMember, User)
         .join(User, User.id == OrganizationMember.user_id)
-        .filter(OrganizationMember.organization_id == org.id)
+        .filter(OrganizationMember.organization_id == org_id)
+        .filter(User.is_active.is_(True))
         .order_by(OrganizationMember.created_at)
         .all()
     )
-    return [_member_payload(m, u, org.id, db, include_password=include_password) for m, u in rows]
+    return [_member_payload(m, u, org_id, db, include_password=include_password) for m, u in rows]
 
 
 @router.post("/invite", response_model=TeamMemberResponse)

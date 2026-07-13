@@ -7,7 +7,7 @@ from app.config import settings
 from app.persistence import ensure_storage_dirs
 from app.database import SessionLocal, engine
 from app.models import Base, MemberRole, Organization, OrganizationMember, PotholeDetection, User
-from app.services.auth_service import hash_password, register_user, verify_password
+from app.services.auth_service import get_demo_organization, get_user_org_membership, hash_password, register_user, verify_password
 from app.services.inference import reload_model
 from app.services.rut_intelligence import analyze_detection
 
@@ -248,12 +248,79 @@ def seed_demo_account() -> None:
         db.close()
 
 
+def reconcile_canonical_organization(db: Session) -> None:
+    """Unify self-registered users into the shared org; attach platform owner for supervision."""
+    if not settings.demo_shared_registration or not settings.seed_demo_account:
+        return
+
+    canonical = get_demo_organization(db)
+    if not canonical:
+        return
+
+    owner_user = _resolve_platform_owner(db)
+    owner_email = settings.owner_email.strip().lower()
+    changed = False
+
+    if owner_user:
+        owner_m = get_user_org_membership(db, owner_user.id, canonical.id)
+        if not owner_m:
+            db.add(
+                OrganizationMember(
+                    organization_id=canonical.id,
+                    user_id=owner_user.id,
+                    role=MemberRole.owner,
+                )
+            )
+            changed = True
+        elif owner_m.role != MemberRole.owner:
+            owner_m.role = MemberRole.owner
+            changed = True
+
+    demo_email = settings.demo_email.strip().lower()
+    for org in db.query(Organization).filter(Organization.id != canonical.id).all():
+        members = (
+            db.query(OrganizationMember)
+            .filter(OrganizationMember.organization_id == org.id)
+            .all()
+        )
+        if len(members) != 1:
+            continue
+        m = members[0]
+        user = db.query(User).filter(User.id == m.user_id, User.is_active.is_(True)).first()
+        if not user:
+            continue
+        email = user.email.strip().lower()
+        if email == owner_email or email == demo_email:
+            continue
+        if get_user_org_membership(db, user.id, canonical.id):
+            continue
+
+        db.query(PotholeDetection).filter(
+            PotholeDetection.reporter_user_id == user.id,
+        ).update({PotholeDetection.organization_id: canonical.id}, synchronize_session=False)
+
+        db.add(
+            OrganizationMember(
+                organization_id=canonical.id,
+                user_id=user.id,
+                role=MemberRole.field,
+                provisioned_password=m.provisioned_password,
+            )
+        )
+        db.delete(m)
+        changed = True
+
+    if changed:
+        db.commit()
+
+
 def bootstrap() -> None:
     ensure_storage_dirs()
     run_migrations()
     seed_demo_account()
     db = SessionLocal()
     try:
+        reconcile_canonical_organization(db)
         reconcile_detection_orgs(db)
         reconcile_owner_roles(db)
     finally:

@@ -28,6 +28,7 @@ from app.schemas import (
     UploadResponse,
 )
 from app.services.access_control import is_platform_owner, scoped_detections_query
+from app.services.auth_service import effective_organization_id
 from app.services.exif_geo import extract_gps_from_bytes, normalize_image_for_processing
 from app.services.geo_service import (
     clear_all_map_data,
@@ -147,7 +148,8 @@ def detection_stats(
     db: Session = Depends(get_db),
 ):
     reporter_user_id = None if is_platform_owner(user, role) else user.id
-    data = StatsResponse(**get_stats(db, org.id, reporter_user_id=reporter_user_id))
+    org_id = effective_organization_id(db, org.id, user, role)
+    data = StatsResponse(**get_stats(db, org_id, reporter_user_id=reporter_user_id))
     return JSONResponse(
         content=data.model_dump(mode="json"),
         headers={"Cache-Control": "no-store, no-cache, must-revalidate"},

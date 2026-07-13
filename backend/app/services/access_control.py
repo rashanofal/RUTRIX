@@ -6,6 +6,7 @@ from sqlalchemy.orm import Query, Session
 
 from app.config import settings
 from app.models import DetectionStatus, MemberRole, PotholeDetection, User
+from app.services.auth_service import effective_organization_id
 
 
 def is_platform_owner(user: User, role: str | MemberRole | None) -> bool:
@@ -22,9 +23,10 @@ def scoped_detections_query(
     user: User,
     role: str | MemberRole | None,
 ) -> Query:
+    org_id = effective_organization_id(db, organization_id, user, role)
     q = (
         db.query(PotholeDetection)
-        .filter(PotholeDetection.organization_id == organization_id)
+        .filter(PotholeDetection.organization_id == org_id)
         .filter(PotholeDetection.detection_status != DetectionStatus.rejected)
     )
     if not is_platform_owner(user, role):

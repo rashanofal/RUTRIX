@@ -31,7 +31,10 @@ export function AuthProvider({ children }) {
       signal: controller.signal,
     })
       .then((r) => (r.ok ? r.json() : Promise.reject()))
-      .then((data) => setAuth(data))
+      .then((data) => {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+        setAuth(data);
+      })
       .catch(() => {
         localStorage.removeItem(STORAGE_KEY);
         setAuth(null);
