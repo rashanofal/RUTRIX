@@ -6,6 +6,7 @@ import PotholeMap from "../components/PotholeMap";
 import DetectionDetail from "../components/DetectionDetail";
 import AdminPanel from "../components/AdminPanel";
 import SupervisorMembersRail from "../components/SupervisorMembersRail";
+import ReportExportPanel from "../components/ReportExportPanel";
 import {
   enrichMembersWithReporters,
   filterDetectionsByMember,
@@ -139,6 +140,8 @@ export default function SupervisorPage({
           </span>
         </div>
       </header>
+
+      <ReportExportPanel variant="compact" className="supervisor-report-panel" />
 
       <section className="supervisor-map-section" aria-label={t.supervisorMapTitle}>
         <div className="supervisor-map-layout">

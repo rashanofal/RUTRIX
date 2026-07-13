@@ -1521,6 +1521,21 @@ body {
   padding: 1.15rem 1.25rem;
 }
 
+.report-export-panel--compact {
+  padding: 0.9rem 1rem;
+}
+
+.report-export-panel--compact.section-card {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.overview-reports .report-export-panel {
+  border: none;
+  background: transparent;
+  padding: 0;
+  box-shadow: none;
+}
+
 .report-export-title {
   font-size: 1rem;
   font-weight: 800;
@@ -1532,6 +1547,46 @@ body {
   font-size: 0.85rem;
   line-height: 1.55;
   margin-bottom: 0.85rem;
+}
+
+.report-export-sub--tight {
+  margin-bottom: 0.65rem;
+  font-size: 0.78rem;
+}
+
+.report-export-toolbar {
+  display: flex;
+  align-items: center;
+  margin-inline-start: auto;
+}
+
+.report-btns--toolbar {
+  gap: 0.35rem;
+  flex-wrap: wrap;
+}
+
+.report-btns--toolbar .report-btn {
+  padding: 0.35rem 0.65rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  border-radius: 999px;
+}
+
+.map-report-toolbar {
+  flex: 1 1 auto;
+  justify-content: flex-end;
+}
+
+.supervisor-report-panel {
+  margin-bottom: 0.85rem;
+}
+
+.field-dashboard-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
 }
 
 .detection-workflow {

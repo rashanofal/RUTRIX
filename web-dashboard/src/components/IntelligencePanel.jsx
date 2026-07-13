@@ -3,11 +3,10 @@ import { useLocale } from "../context/LocaleContext";
 import {
   fetchLeaderboard,
   fetchPriorities,
-  openReportHtml,
-  openReportPdf,
 } from "../hooks/useApi";
 import ClusterSummaryPanel from "./ClusterSummaryPanel";
 import NavIcon from "./NavIcons";
+import ReportExportPanel from "./ReportExportPanel";
 import { severityLabel } from "../i18n/translations";
 
 export default function IntelligencePanel({ stats, refreshKey = 0, detections = [] }) {
@@ -58,34 +57,7 @@ export default function IntelligencePanel({ stats, refreshKey = 0, detections = 
         </div>
       </div>
 
-      <div className="report-btns">
-        <button
-          type="button"
-          className="report-btn"
-          onClick={async () => {
-            try {
-              await openReportHtml();
-            } catch (err) {
-              window.alert(err?.message || t.reportHtmlFail);
-            }
-          }}
-        >
-          📄 {t.reportHtml}
-        </button>
-        <button
-          type="button"
-          className="report-btn primary"
-          onClick={async () => {
-            try {
-              await openReportPdf();
-            } catch (err) {
-              window.alert(err?.message || t.reportPdfFail);
-            }
-          }}
-        >
-          📥 {t.reportPdf}
-        </button>
-      </div>
+      <ReportExportPanel variant="compact" />
 
       <ClusterSummaryPanel refreshKey={refreshKey} />
 

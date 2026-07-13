@@ -15,6 +15,10 @@ export default function OperationsPage({
     <div className="page-ops">
       <div className="ops-sections">
         <section className="ops-block">
+          <ReportExportPanel />
+        </section>
+
+        <section className="ops-block">
           <ExecutiveDashboard stats={stats} refreshKey={maintRefresh} />
         </section>
 
@@ -27,10 +31,6 @@ export default function OperationsPage({
             isAdmin={isAdmin}
             onChanged={onMaintChanged}
           />
-        </section>
-
-        <section className="ops-block">
-          <ReportExportPanel />
         </section>
       </div>
     </div>

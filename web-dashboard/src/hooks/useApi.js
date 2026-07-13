@@ -310,7 +310,7 @@ export async function fetchRouteQuality(fromLat, fromLon, toLat, toLon) {
   return res.json();
 }
 
-export async function openReportHtml() {
+export async function openReportHtml({ print = false } = {}) {
   const res = await apiFetch("/api/intelligence/report/html");
   if (!res.ok) {
     let detail = "";
@@ -322,11 +322,29 @@ export async function openReportHtml() {
     }
     throw new Error(detail || `فشل تحميل HTML (HTTP ${res.status})`);
   }
-  const html = await res.text();
+  let html = await res.text();
+  if (print) {
+    const hook = `<script>
+      window.addEventListener("load", function () {
+        setTimeout(function () {
+          window.focus();
+          window.print();
+        }, 350);
+      });
+    </script>`;
+    html = html.includes("</body>")
+      ? html.replace("</body>", `${hook}</body>`)
+      : `${html}${hook}`;
+  }
   const blob = new Blob([html], { type: "text/html;charset=utf-8" });
   const url = URL.createObjectURL(blob);
-  window.open(url, "_blank", "noopener,noreferrer");
-  setTimeout(() => URL.revokeObjectURL(url), 120_000);
+  const win = window.open(url, "_blank", "noopener,noreferrer");
+  if (!win) throw new Error("popup_blocked");
+  setTimeout(() => URL.revokeObjectURL(url), 180_000);
+}
+
+export async function printReport() {
+  return openReportHtml({ print: true });
 }
 
 export async function openReportPdf() {

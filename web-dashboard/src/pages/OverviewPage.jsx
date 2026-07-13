@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useLocale } from "../context/LocaleContext";
 import { BrandLogo } from "../components/LangToggle";
 import NavIcon from "../components/NavIcons";
+import ReportExportPanel from "../components/ReportExportPanel";
 
 const QUICK_LINKS = [
   { page: "map", icon: "map", labelKey: "navMap", descKey: "quickMapDesc" },
@@ -67,6 +68,11 @@ export default function OverviewPage({ detections, onNavigate }) {
             </button>
           ))}
         </div>
+      </section>
+
+      <section className="overview-card overview-reports" aria-label={t.overviewReportsTitle}>
+        <h3 className="overview-card-title">{t.overviewReportsTitle}</h3>
+        <ReportExportPanel variant="compact" />
       </section>
     </div>
   );
