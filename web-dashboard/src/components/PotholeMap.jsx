@@ -267,7 +267,7 @@ export default function PotholeMap({
   const [baseLayer, setBaseLayer] = useState("street");
   const [layers, setLayers] = useState({
     markers: true,
-    roadQuality: false,
+    roadQuality: true,
     rutHeatmap: false,
     severity: false,
     maintenancePriority: false,
