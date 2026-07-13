@@ -351,6 +351,112 @@
       position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
       overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0;
     }
+    /* ── Tasks + notifications ── */
+    .bell-btn {
+      position: relative; width: 40px; height: 40px; border-radius: 12px;
+      background: rgba(255,255,255,0.05); border: 1px solid var(--border);
+      color: var(--primary); cursor: pointer; display: flex;
+      align-items: center; justify-content: center; flex-shrink: 0;
+    }
+    .bell-btn svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; }
+    .bell-badge {
+      position: absolute; top: -5px; inset-inline-end: -5px; min-width: 18px; height: 18px;
+      padding: 0 4px; border-radius: 9px; background: var(--danger); color: #fff;
+      font-size: 0.66rem; font-weight: 900; display: flex; align-items: center;
+      justify-content: center; border: 2px solid var(--bg-soft);
+    }
+    .wo-card {
+      background: var(--gradient-card); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 0.9rem; margin-bottom: 0.7rem;
+      display: flex; gap: 0.7rem; align-items: stretch; cursor: pointer;
+      position: relative; overflow: hidden;
+    }
+    .wo-stripe { width: 4px; border-radius: 4px; flex-shrink: 0; }
+    .wo-card-body { flex: 1; min-width: 0; }
+    .wo-card-top { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; }
+    .wo-card-title { font-weight: 800; font-size: 0.9rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .wo-pill {
+      font-size: 0.66rem; font-weight: 800; padding: 0.2rem 0.55rem; border-radius: 999px;
+      white-space: nowrap; border: 1px solid transparent;
+    }
+    .wo-card-meta { color: var(--muted); font-size: 0.76rem; margin-top: 0.35rem; }
+    .wo-empty { text-align: center; color: var(--muted); font-size: 0.85rem; padding: 2rem 0.5rem; }
+    .filter-row { display: flex; gap: 0.4rem; margin-bottom: 0.75rem; }
+    .filter-btn {
+      flex: 1; padding: 0.5rem; border-radius: 12px; font-family: inherit; cursor: pointer;
+      background: var(--card); border: 1px solid var(--border); color: var(--muted);
+      font-weight: 700; font-size: 0.78rem;
+    }
+    .filter-btn.active { border-color: var(--primary); color: var(--primary); background: rgba(46,230,255,0.1); }
+    .modal-overlay {
+      position: fixed; inset: 0; z-index: 60; background: rgba(2,4,10,0.72);
+      display: flex; align-items: flex-end; justify-content: center;
+    }
+    .modal-sheet {
+      width: 100%; max-width: 640px; max-height: 92vh; overflow-y: auto;
+      background: var(--bg-soft); border-top-left-radius: 22px; border-top-right-radius: 22px;
+      border: 1px solid var(--border); padding: 1rem 1.1rem calc(1.5rem + env(safe-area-inset-bottom));
+    }
+    .modal-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.85rem; }
+    .modal-head h2 { font-size: 1.05rem; font-weight: 800; }
+    .modal-close {
+      width: 38px; height: 38px; border-radius: 50%; background: var(--card);
+      border: 1px solid var(--border); color: var(--text); font-size: 1.3rem; cursor: pointer; line-height: 1;
+    }
+    .pipeline { display: flex; align-items: center; margin: 0.5rem 0 1rem; }
+    .pipeline-step { display: flex; align-items: center; flex: 1; }
+    .pipeline-dot {
+      width: 26px; height: 26px; border-radius: 50%; border: 2px solid var(--border);
+      display: flex; align-items: center; justify-content: center; font-size: 0.7rem;
+      color: var(--muted); background: var(--surface); flex-shrink: 0; font-weight: 800;
+    }
+    .pipeline-dot.done { border-color: var(--primary); color: var(--primary); background: rgba(46,230,255,0.14); }
+    .pipeline-bar { flex: 1; height: 2px; background: var(--border); margin: 0 2px; }
+    .pipeline-bar.done { background: var(--primary); }
+    .wo-info-card {
+      background: var(--card); border: 1px solid var(--border); border-radius: 14px;
+      padding: 0.85rem; margin-bottom: 0.7rem;
+    }
+    .wo-info-label { color: var(--muted); font-size: 0.72rem; font-weight: 800; margin-bottom: 0.35rem; }
+    .wo-coords { font-weight: 800; font-size: 0.95rem; letter-spacing: 0.03em; }
+    .btn-nav {
+      display: flex; align-items: center; justify-content: center; gap: 0.5rem;
+      margin-top: 0.65rem; padding: 0.75rem; border-radius: 12px; text-decoration: none;
+      background: var(--primary); color: #04121a; font-weight: 800; border: none;
+      cursor: pointer; font-family: inherit; width: 100%; font-size: 0.9rem;
+    }
+    .proof-img { width: 100%; border-radius: 12px; margin-top: 0.4rem; }
+    .proof-preview { width: 100%; border-radius: 12px; margin-top: 0.5rem; max-height: 220px; object-fit: cover; }
+    .timeline-row { display: flex; gap: 0.6rem; margin-top: 0.5rem; }
+    .timeline-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--primary); margin-top: 5px; flex-shrink: 0; }
+    .timeline-type { font-weight: 700; font-size: 0.8rem; }
+    .timeline-meta { color: var(--muted); font-size: 0.68rem; margin-top: 1px; }
+    .wo-textarea {
+      width: 100%; background: var(--surface); border: 1px solid var(--border);
+      border-radius: 12px; padding: 0.7rem; color: var(--text); font-family: inherit;
+      font-size: 0.85rem; min-height: 64px; resize: vertical; margin-top: 0.5rem;
+    }
+    .action-btn {
+      width: 100%; padding: 0.85rem; border-radius: 12px; font-family: inherit;
+      font-weight: 800; font-size: 0.92rem; cursor: pointer; border: none; margin-top: 0.55rem;
+    }
+    .action-accept { background: var(--gradient-brand); color: #04121a; }
+    .action-start { background: linear-gradient(135deg, #ffd27a, #ff9d5c); color: #3a1f04; }
+    .action-complete { background: linear-gradient(135deg, #3dffa8, #22c1a5); color: #04241a; }
+    .action-ghost { background: transparent; border: 1px solid rgba(255,107,138,0.4); color: var(--danger); }
+    .notif-item {
+      display: flex; gap: 0.7rem; align-items: flex-start; padding: 0.8rem;
+      background: var(--card); border: 1px solid var(--border); border-radius: 14px; margin-bottom: 0.55rem;
+    }
+    .notif-item.unread { border-color: rgba(46,230,255,0.4); background: rgba(46,230,255,0.06); }
+    .notif-dot-icon {
+      width: 36px; height: 36px; border-radius: 10px; flex-shrink: 0; display: flex;
+      align-items: center; justify-content: center; font-size: 1rem;
+      background: rgba(46,230,255,0.14);
+    }
+    .notif-title { font-weight: 800; font-size: 0.85rem; }
+    .notif-body { color: var(--muted); font-size: 0.76rem; margin-top: 2px; }
+    .notif-time { color: var(--muted); font-size: 0.66rem; margin-top: 3px; opacity: 0.8; }
   </style>
 </head>
 <body>
@@ -391,7 +497,13 @@
             <p class="sub" id="orgName">—</p>
           </div>
         </div>
-        <button type="button" class="lang-btn" id="langBtnApp">ع</button>
+        <div style="display:flex;align-items:center;gap:0.5rem">
+          <button type="button" class="bell-btn" id="bellBtn" aria-label="Notifications">
+            <svg viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+            <span class="bell-badge hidden" id="bellBadge">0</span>
+          </button>
+          <button type="button" class="lang-btn" id="langBtnApp">ع</button>
+        </div>
       </div>
       <div class="chip-row">
         <div class="chip" id="statusChip"><span class="dot"></span> Connected</div>
@@ -431,6 +543,22 @@
       </div>
     </div>
 
+    <div id="tasksTab" class="hidden">
+      <div class="card">
+        <p class="section-title" id="tasksSectionTitle">My maintenance tasks</p>
+        <div class="filter-row">
+          <button type="button" class="filter-btn active" data-filter="active" id="filterActiveBtn">Active</button>
+          <button type="button" class="filter-btn" data-filter="all" id="filterAllBtn">All</button>
+          <button type="button" class="filter-btn" data-filter="done" id="filterDoneBtn">Done</button>
+        </div>
+        <div id="tasksList"></div>
+        <p id="tasksEmpty" class="wo-empty hidden">No tasks assigned to you</p>
+      </div>
+    </div>
+
+    <div id="woModal" class="modal-overlay hidden"></div>
+    <div id="notifModal" class="modal-overlay hidden"></div>
+
     <div id="uploadToast" class="upload-toast hidden" role="status" aria-live="polite"></div>
 
     <div class="bottom-dock">
@@ -440,6 +568,12 @@
             <svg viewBox="0 0 24 24"><path d="M4 7V5a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v2"/><rect x="4" y="7" width="16" height="13" rx="2"/><circle cx="12" cy="13.5" r="3.2"/></svg>
           </span>
           <span class="tab-label" id="tabCameraLabel">Capture</span>
+        </button>
+        <button class="tab" data-tab="tasks" type="button">
+          <span class="tab-icon" aria-hidden>
+            <svg viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="m9 14 2 2 4-4"/></svg>
+          </span>
+          <span class="tab-label" id="tabTasksLabel">Tasks</span>
         </button>
         <button class="tab" data-tab="map" type="button">
           <span class="tab-icon" aria-hidden>
@@ -468,7 +602,21 @@
         fullNamePh: "الاسم الكامل", orgNamePh: "اسم المنظمة / البلدية",
         photo: "صورة", pothole: "حفرة",
         connected: "متصل بالسيرفر", offline: "غير متصل",
-        tabCamera: "تصوير", tabMap: "الخريطة", delete: "حذف الصورة",
+        tabCamera: "تصوير", tabMap: "الخريطة", tabTasks: "المهام", delete: "حذف الصورة",
+        tasksSection: "مهام الصيانة المُسندة إليّ",
+        filterActive: "الجارية", filterAll: "الكل", filterDone: "المنجزة",
+        tasksEmpty: "لا توجد مهام مُسندة إليك",
+        notifications: "الإشعارات", notifEmpty: "لا توجد إشعارات", markAllRead: "تعليم الكل كمقروء",
+        accept: "قبول المهمة", startWork: "بدء العمل", completeWork: "إنهاء العمل",
+        decline: "رفض", navigate: "فتح الخرائط للتنقّل", addProof: "التقاط صورة إثبات",
+        changeProof: "تغيير الصورة", submitComplete: "تأكيد الإنجاز", proofPhoto: "صورة الإثبات",
+        notesPlaceholder: "ملاحظات الإنجاز (اختياري)", proofRequired: "أضِف صورة إثبات قبل الإنهاء",
+        timeline: "المسار الزمني", location: "الموقع", actionFail: "تعذّر تنفيذ الإجراء",
+        declineReason: "سبب الرفض (اختياري):", cancel: "إلغاء", loadingTasks: "جاري التحميل...",
+        woStatus_open: "مفتوح", woStatus_assigned: "مُسند", woStatus_accepted: "مقبول",
+        woStatus_in_progress: "قيد التنفيذ", woStatus_completed: "بانتظار الاعتماد",
+        woStatus_verified: "معتمد", woStatus_cancelled: "ملغى", woStatus_declined: "مرفوض",
+        prio: "الأولوية", prio_low: "منخفضة", prio_medium: "متوسطة", prio_high: "عالية", prio_critical: "حرجة",
         deleteConfirm: "حذف هذه الصورة من الخريطة؟",
         mapEmpty: "لا توجد نقاط بعد — صوّر صورة مع السماح بالموقع",
         gpsTip: "صور الكاميرا لا تحتوي GPS — اسمح بالموقع قبل التصوير (شارة «الموقع جاهز»)",
@@ -512,7 +660,21 @@
         fullNamePh: "Full name", orgNamePh: "Organization / municipality",
         photo: "Photo", pothole: "Pothole",
         connected: "Connected", offline: "Offline",
-        tabCamera: "Capture", tabMap: "Map", delete: "Delete image",
+        tabCamera: "Capture", tabMap: "Map", tabTasks: "Tasks", delete: "Delete image",
+        tasksSection: "My maintenance tasks",
+        filterActive: "Active", filterAll: "All", filterDone: "Done",
+        tasksEmpty: "No tasks assigned to you",
+        notifications: "Notifications", notifEmpty: "No notifications", markAllRead: "Mark all read",
+        accept: "Accept task", startWork: "Start work", completeWork: "Complete",
+        decline: "Decline", navigate: "Open in Maps", addProof: "Capture proof photo",
+        changeProof: "Change photo", submitComplete: "Confirm completion", proofPhoto: "Proof photo",
+        notesPlaceholder: "Completion notes (optional)", proofRequired: "Add a proof photo before completing",
+        timeline: "Timeline", location: "Location", actionFail: "Action failed",
+        declineReason: "Decline reason (optional):", cancel: "Cancel", loadingTasks: "Loading...",
+        woStatus_open: "Open", woStatus_assigned: "Assigned", woStatus_accepted: "Accepted",
+        woStatus_in_progress: "In progress", woStatus_completed: "Awaiting verification",
+        woStatus_verified: "Verified", woStatus_cancelled: "Cancelled", woStatus_declined: "Declined",
+        prio: "Priority", prio_low: "Low", prio_medium: "Medium", prio_high: "High", prio_critical: "Critical",
         deleteConfirm: "Delete this image from the map?",
         mapEmpty: "No points yet — capture with location enabled",
         logout: "Logout", capture: "Camera capture", album: "Choose from album",
@@ -629,6 +791,14 @@
       const tabMap = document.getElementById("tabMapLabel");
       if (tabCam) tabCam.textContent = tr.tabCamera;
       if (tabMap) tabMap.textContent = tr.tabMap;
+      const tabTasks = document.getElementById("tabTasksLabel");
+      if (tabTasks) tabTasks.textContent = tr.tabTasks;
+      const setText = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+      setText("tasksSectionTitle", tr.tasksSection);
+      setText("filterActiveBtn", tr.filterActive);
+      setText("filterAllBtn", tr.filterAll);
+      setText("filterDoneBtn", tr.filterDone);
+      setText("tasksEmpty", tr.tasksEmpty);
       const me = document.getElementById("mapEmpty");
       if (me) me.textContent = tr.mapEmpty;
       const mapCard = document.getElementById("mapCardTitle");
@@ -679,8 +849,11 @@
     const statusChip = document.getElementById("statusChip");
     const cameraTab = document.getElementById("cameraTab");
     const mapTab = document.getElementById("mapTab");
+    const tasksTab = document.getElementById("tasksTab");
     let leafletMap = null;
     let markersLayer = null;
+    let taskFilter = "active";
+    let notifPollTimer = null;
 
     function getAuth() {
       try { return JSON.parse(localStorage.getItem(AUTH_KEY)); } catch { return null; }
@@ -699,10 +872,14 @@
       startLocationWatch();
       updateGpsChip();
       if (mapTab && !mapTab.classList.contains("hidden")) loadMap();
+      refreshNotifBadge();
+      if (notifPollTimer) clearInterval(notifPollTimer);
+      notifPollTimer = setInterval(refreshNotifBadge, 20000);
     }
 
     function showLogin() {
       stopLocationWatch();
+      if (notifPollTimer) { clearInterval(notifPollTimer); notifPollTimer = null; }
       clearAuth();
       appView.classList.add("hidden");
       loginView.classList.remove("hidden");
@@ -1109,7 +1286,342 @@
         const tab = btn.dataset.tab;
         cameraTab.classList.toggle("hidden", tab !== "camera");
         mapTab.classList.toggle("hidden", tab !== "map");
+        tasksTab.classList.toggle("hidden", tab !== "tasks");
         if (tab === "map") loadMap();
+        if (tab === "tasks") loadTasks();
+      };
+    });
+
+    // ── Work orders / tasks ──
+    const WO_STATUS_COLOR = {
+      open: "#6f7f9e", assigned: "#2ee6ff", accepted: "#9d8cff",
+      in_progress: "#ffd27a", completed: "#3dffa8", verified: "#3dffa8",
+      cancelled: "#ff6b8a", declined: "#ff6b8a",
+    };
+    const WO_PRIO_COLOR = { low: "#6f7f9e", medium: "#2ee6ff", high: "#ffd27a", critical: "#ff6b8a" };
+    const WO_PIPELINE = ["assigned", "accepted", "in_progress", "completed", "verified"];
+    const NOTIF_ICON = {
+      work_order_assigned: "📋", work_order_accepted: "✅", work_order_declined: "⛔",
+      work_order_started: "🔧", work_order_completed: "📷", work_order_verified: "🛡️",
+      work_order_cancelled: "🚫", critical_detection: "⚠️",
+    };
+
+    async function authFetch(path, options) {
+      const auth = getAuth();
+      if (!auth?.access_token) { showLogin(); throw new Error("no-auth"); }
+      const opts = options || {};
+      opts.headers = Object.assign({}, opts.headers || {}, {
+        Authorization: "Bearer " + auth.access_token,
+      });
+      const res = await fetch(path, opts);
+      if (res.status === 401) { showLogin(); throw new Error("session"); }
+      return res;
+    }
+
+    async function loadTasks() {
+      const list = document.getElementById("tasksList");
+      const empty = document.getElementById("tasksEmpty");
+      const tr = t();
+      list.innerHTML = '<p class="wo-empty">' + tr.loadingTasks + "</p>";
+      empty.classList.add("hidden");
+      try {
+        const res = await authFetch("/api/maintenance/work-orders?assigned_to_me=true");
+        if (!res.ok) throw new Error("load");
+        let orders = await res.json();
+        const groups = {
+          active: ["assigned", "accepted", "in_progress"],
+          done: ["completed", "verified"],
+        };
+        if (groups[taskFilter]) orders = orders.filter((o) => groups[taskFilter].includes(o.status));
+        list.innerHTML = "";
+        if (!orders.length) { empty.classList.remove("hidden"); return; }
+        orders.forEach((wo) => list.appendChild(renderTaskCard(wo)));
+      } catch (e) {
+        if (e.message !== "session" && e.message !== "no-auth") {
+          list.innerHTML = '<p class="wo-empty">' + tr.actionFail + "</p>";
+        }
+      }
+    }
+
+    function renderTaskCard(wo) {
+      const tr = t();
+      const el = document.createElement("div");
+      el.className = "wo-card";
+      const color = WO_STATUS_COLOR[wo.status] || "#6f7f9e";
+      const prioColor = WO_PRIO_COLOR[wo.priority] || "#6f7f9e";
+      const statusLabel = tr["woStatus_" + wo.status] || wo.status;
+      const prioLabel = tr["prio_" + wo.priority] || wo.priority;
+      let loc = "";
+      if (wo.detection && wo.detection.latitude != null) {
+        loc = "📍 " + wo.detection.latitude.toFixed(3) + ", " + wo.detection.longitude.toFixed(3);
+      }
+      el.innerHTML =
+        '<div class="wo-stripe" style="background:' + prioColor + '"></div>' +
+        '<div class="wo-card-body">' +
+          '<div class="wo-card-top">' +
+            '<span class="wo-card-title">#' + wo.id + " · " + escapeHtml(wo.title) + "</span>" +
+            '<span class="wo-pill" style="color:' + color + ";background:" + color + "1e;border-color:" + color + '55">' + statusLabel + "</span>" +
+          "</div>" +
+          '<div class="wo-card-meta">' + tr.prio + ": " + prioLabel + (loc ? " · " + loc : "") + "</div>" +
+        "</div>";
+      el.onclick = () => openWorkOrder(wo.id);
+      return el;
+    }
+
+    function pipelineHtml(status) {
+      const idx = WO_PIPELINE.indexOf(status);
+      const bad = status === "cancelled" || status === "declined";
+      let html = '<div class="pipeline">';
+      WO_PIPELINE.forEach((stage, i) => {
+        const done = !bad && idx >= i;
+        html += '<div class="pipeline-step">';
+        html += '<div class="pipeline-dot ' + (done ? "done" : "") + '">' + (done && idx > i ? "✓" : i + 1) + "</div>";
+        if (i < WO_PIPELINE.length - 1) {
+          html += '<div class="pipeline-bar ' + (!bad && idx > i ? "done" : "") + '"></div>';
+        }
+        html += "</div>";
+      });
+      html += "</div>";
+      return html;
+    }
+
+    let proofDataUri = null;
+    let proofFile = null;
+
+    async function openWorkOrder(id) {
+      const tr = t();
+      const modal = document.getElementById("woModal");
+      proofDataUri = null; proofFile = null;
+      modal.classList.remove("hidden");
+      modal.innerHTML = '<div class="modal-sheet"><p class="wo-empty">' + tr.loadingTasks + "</p></div>";
+      let wo;
+      try {
+        const res = await authFetch("/api/maintenance/work-orders/" + id);
+        if (!res.ok) throw new Error("load");
+        wo = await res.json();
+      } catch {
+        modal.classList.add("hidden");
+        return;
+      }
+      renderWorkOrderModal(wo, false);
+    }
+
+    function renderWorkOrderModal(wo, completing) {
+      const tr = t();
+      const modal = document.getElementById("woModal");
+      const color = WO_STATUS_COLOR[wo.status] || "#6f7f9e";
+      const statusLabel = tr["woStatus_" + wo.status] || wo.status;
+      let html = '<div class="modal-sheet">';
+      html += '<div class="modal-head"><h2>#' + wo.id + " · " + escapeHtml(wo.title) + "</h2>";
+      html += '<button type="button" class="modal-close" id="woModalClose">×</button></div>';
+      html += '<div style="text-align:center;margin-bottom:0.5rem"><span class="wo-pill" style="color:' + color + ";background:" + color + "1e;border-color:" + color + '55">' + statusLabel + "</span></div>";
+      html += pipelineHtml(wo.status);
+
+      if (wo.detection && wo.detection.latitude != null) {
+        const lat = wo.detection.latitude, lon = wo.detection.longitude;
+        html += '<div class="wo-info-card"><div class="wo-info-label">' + tr.location + "</div>";
+        html += '<div class="wo-coords">' + lat.toFixed(5) + ", " + lon.toFixed(5) + "</div>";
+        html += '<button type="button" class="btn-nav" id="woNavBtn" data-lat="' + lat + '" data-lon="' + lon + '">🧭 ' + tr.navigate + "</button></div>";
+      }
+
+      if (wo.proof_image_url) {
+        html += '<div class="wo-info-card"><div class="wo-info-label">' + tr.proofPhoto + "</div>";
+        html += '<img class="proof-img" src="' + wo.proof_image_url + '" alt="proof"></div>';
+      }
+
+      if (Array.isArray(wo.events) && wo.events.length) {
+        html += '<div class="wo-info-card"><div class="wo-info-label">' + tr.timeline + "</div>";
+        wo.events.forEach((ev) => {
+          const lbl = tr["woStatus_" + ev.to_status] || ev.event_type;
+          html += '<div class="timeline-row"><div class="timeline-dot"></div><div><div class="timeline-type">' + lbl + "</div>";
+          html += '<div class="timeline-meta">' + (ev.actor_name ? escapeHtml(ev.actor_name) + " · " : "") + new Date(ev.created_at).toLocaleString() + "</div></div></div>";
+        });
+        html += "</div>";
+      }
+
+      if (completing) {
+        html += '<div class="wo-info-card"><div class="wo-info-label">' + tr.completeWork + "</div>";
+        html += '<label class="action-btn action-start" style="display:block;text-align:center">' + (proofDataUri ? tr.changeProof : "📷 " + tr.addProof);
+        html += '<input type="file" id="woProofInput" accept="image/*" capture="environment" style="display:none"></label>';
+        if (proofDataUri) html += '<img class="proof-preview" src="' + proofDataUri + '" alt="preview">';
+        html += '<textarea class="wo-textarea" id="woNotes" placeholder="' + tr.notesPlaceholder + '"></textarea>';
+        html += '<button type="button" class="action-btn action-complete" id="woSubmitComplete">✓ ' + tr.submitComplete + "</button>";
+        html += '<button type="button" class="action-btn action-ghost" id="woCancelComplete">' + tr.cancel + "</button>";
+        html += "</div>";
+      } else {
+        html += woActionsHtml(wo, tr);
+      }
+
+      html += "</div>";
+      modal.innerHTML = html;
+
+      document.getElementById("woModalClose").onclick = () => modal.classList.add("hidden");
+      modal.onclick = (e) => { if (e.target === modal) modal.classList.add("hidden"); };
+
+      const navBtn = document.getElementById("woNavBtn");
+      if (navBtn) navBtn.onclick = () => {
+        const lat = navBtn.dataset.lat, lon = navBtn.dataset.lon;
+        window.open("https://www.google.com/maps/dir/?api=1&destination=" + lat + "," + lon, "_blank");
+      };
+
+      wireWorkOrderActions(wo);
+    }
+
+    function woActionsHtml(wo, tr) {
+      let h = "";
+      if (wo.status === "assigned") {
+        h += '<button type="button" class="action-btn action-accept" data-act="accept">✓ ' + tr.accept + "</button>";
+        h += '<button type="button" class="action-btn action-start" data-act="start">🔧 ' + tr.startWork + "</button>";
+        h += '<button type="button" class="action-btn action-ghost" data-act="decline">' + tr.decline + "</button>";
+      } else if (wo.status === "accepted") {
+        h += '<button type="button" class="action-btn action-start" data-act="start">🔧 ' + tr.startWork + "</button>";
+      } else if (wo.status === "in_progress") {
+        h += '<button type="button" class="action-btn action-complete" data-act="complete">📷 ' + tr.completeWork + "</button>";
+      }
+      return h;
+    }
+
+    function wireWorkOrderActions(wo) {
+      const modal = document.getElementById("woModal");
+      modal.querySelectorAll("[data-act]").forEach((btn) => {
+        btn.onclick = async () => {
+          const act = btn.dataset.act;
+          if (act === "complete") { renderWorkOrderModal(wo, true); return; }
+          if (act === "decline") {
+            const reason = prompt(t().declineReason) || "";
+            await doWoAction(wo.id, "decline", { reason });
+            return;
+          }
+          await doWoAction(wo.id, act, {});
+        };
+      });
+
+      const proofInput = document.getElementById("woProofInput");
+      if (proofInput) proofInput.onchange = (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        proofFile = file;
+        const reader = new FileReader();
+        reader.onload = () => { proofDataUri = reader.result; renderWorkOrderModal(wo, true); };
+        reader.readAsDataURL(file);
+      };
+      const cancelBtn = document.getElementById("woCancelComplete");
+      if (cancelBtn) cancelBtn.onclick = () => renderWorkOrderModal(wo, false);
+      const submitBtn = document.getElementById("woSubmitComplete");
+      if (submitBtn) submitBtn.onclick = async () => {
+        if (!proofFile) { alert(t().proofRequired); return; }
+        const notes = (document.getElementById("woNotes") || {}).value || "";
+        const fd = new FormData();
+        fd.append("proof", proofFile);
+        if (notes) fd.append("notes", notes);
+        await doWoAction(wo.id, "complete", null, fd);
+      };
+    }
+
+    async function doWoAction(id, action, jsonBody, formData) {
+      const tr = t();
+      try {
+        const opts = { method: "POST" };
+        if (formData) {
+          opts.body = formData;
+        } else {
+          opts.headers = { "Content-Type": "application/json" };
+          opts.body = JSON.stringify(jsonBody || {});
+        }
+        const res = await authFetch("/api/maintenance/work-orders/" + id + "/" + action, opts);
+        if (!res.ok) throw new Error("act");
+        const updated = await res.json();
+        proofDataUri = null; proofFile = null;
+        renderWorkOrderModal(updated, false);
+        loadTasks();
+        refreshNotifBadge();
+      } catch (e) {
+        if (e.message !== "session") alert(tr.actionFail);
+      }
+    }
+
+    // ── Notifications ──
+    async function refreshNotifBadge() {
+      try {
+        const res = await authFetch("/api/notifications/unread-count");
+        if (!res.ok) return;
+        const data = await res.json();
+        const badge = document.getElementById("bellBadge");
+        if (!badge) return;
+        if (data.unread > 0) {
+          badge.textContent = data.unread > 99 ? "99+" : data.unread;
+          badge.classList.remove("hidden");
+        } else {
+          badge.classList.add("hidden");
+        }
+      } catch { /* ignore */ }
+    }
+
+    async function openNotifications() {
+      const tr = t();
+      const modal = document.getElementById("notifModal");
+      modal.classList.remove("hidden");
+      modal.innerHTML = '<div class="modal-sheet"><p class="wo-empty">' + tr.loadingTasks + "</p></div>";
+      let items = [];
+      try {
+        const res = await authFetch("/api/notifications");
+        if (res.ok) items = await res.json();
+      } catch { /* ignore */ }
+
+      let html = '<div class="modal-sheet"><div class="modal-head"><h2>' + tr.notifications + "</h2>";
+      html += '<button type="button" class="modal-close" id="notifClose">×</button></div>';
+      if (items.length) {
+        html += '<button type="button" class="filter-btn" id="notifReadAll" style="margin-bottom:0.7rem">' + tr.markAllRead + "</button>";
+        items.forEach((n) => {
+          const icon = NOTIF_ICON[n.type] || "🔔";
+          html += '<div class="notif-item ' + (n.is_read ? "" : "unread") + '" data-id="' + n.id + '" data-wo="' + (n.work_order_id || "") + '">';
+          html += '<div class="notif-dot-icon">' + icon + "</div><div style=\"flex:1;min-width:0\">";
+          html += '<div class="notif-title">' + escapeHtml(n.title) + "</div>";
+          if (n.body) html += '<div class="notif-body">' + escapeHtml(n.body) + "</div>";
+          html += '<div class="notif-time">' + new Date(n.created_at).toLocaleString() + "</div></div></div>";
+        });
+      } else {
+        html += '<p class="wo-empty">' + tr.notifEmpty + "</p>";
+      }
+      html += "</div>";
+      modal.innerHTML = html;
+
+      document.getElementById("notifClose").onclick = () => modal.classList.add("hidden");
+      modal.onclick = (e) => { if (e.target === modal) modal.classList.add("hidden"); };
+      const readAll = document.getElementById("notifReadAll");
+      if (readAll) readAll.onclick = async () => {
+        try { await authFetch("/api/notifications/read-all", { method: "POST" }); } catch { /* ignore */ }
+        refreshNotifBadge();
+        openNotifications();
+      };
+      modal.querySelectorAll(".notif-item").forEach((item) => {
+        item.onclick = async () => {
+          const nid = item.dataset.id;
+          const woId = item.dataset.wo;
+          try { await authFetch("/api/notifications/" + nid + "/read", { method: "POST" }); } catch { /* ignore */ }
+          refreshNotifBadge();
+          if (woId) {
+            modal.classList.add("hidden");
+            document.querySelector('.tab[data-tab="tasks"]').click();
+            openWorkOrder(Number(woId));
+          }
+        };
+      });
+    }
+
+    function escapeHtml(s) {
+      return String(s == null ? "" : s).replace(/[&<>"']/g, (c) =>
+        ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])
+      );
+    }
+
+    document.getElementById("bellBtn").onclick = openNotifications;
+    document.querySelectorAll(".filter-btn[data-filter]").forEach((btn) => {
+      btn.onclick = () => {
+        document.querySelectorAll(".filter-btn[data-filter]").forEach((b) => b.classList.remove("active"));
+        btn.classList.add("active");
+        taskFilter = btn.dataset.filter;
+        loadTasks();
       };
     });
 
