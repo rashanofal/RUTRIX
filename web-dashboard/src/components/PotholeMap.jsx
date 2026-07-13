@@ -5,6 +5,7 @@ import {
   Marker,
   Popup,
   Circle,
+  CircleMarker,
   useMap,
   useMapEvents,
   ZoomControl,
@@ -14,7 +15,6 @@ import { useLocale } from "../context/LocaleContext";
 import { deviceLabel, severityLabel } from "../i18n/translations";
 import NavIcon from "./NavIcons";
 import {
-  bufferRadiusM,
   rutHeatColor,
   severityColor,
   maintenancePriorityColor,
@@ -188,12 +188,19 @@ function DetectionImage({ detection, openLabel }) {
   );
 }
 
-function MapLegend({ t, showSeverity, showPriority, showHeatmap }) {
+function MapLegend({ t, showSeverity, showPriority, showHeatmap, showRoadQuality }) {
+  const showRutKey = showHeatmap || showRoadQuality;
+  const hasLegend = showRutKey || showSeverity || showPriority;
+  if (!hasLegend) return null;
+
   return (
     <div className="map-legend-bottom">
-      {showHeatmap && (
+      {showRutKey && (
         <div className="map-legend-block map-legend-rut">
           <span className="map-legend-title">{t.mapLegendRut}</span>
+          {showRoadQuality && !showHeatmap ? (
+            <p className="map-legend-note">{t.mapLegendDotsHint}</p>
+          ) : null}
           <div className="map-legend-gradient rut-gradient" />
           <div className="map-legend-labels map-legend-labels-ltr">
             <span className="legend-rut-safe">{t.rutLabelSafe}</span>
@@ -264,9 +271,9 @@ export default function PotholeMap({
   const [layers, setLayers] = useState({
     markers: true,
     roadQuality: false,
-    rutHeatmap: true,
+    rutHeatmap: false,
     severity: false,
-    maintenancePriority: true,
+    maintenancePriority: false,
   });
   const mapPins = useMemo(() => groupDetectionsForMap(detections), [detections]);
   const positions = useMemo(() => {
@@ -389,27 +396,27 @@ const SAFE_SURVEY_RUT = 8;
       maxRut: c.maxRut,
       count: c.n,
       severity: c.severity,
-      radius: Math.min(95, 28 + c.n * 14 + (c.maxRut / 100) * 30),
+      radius: Math.min(55, 22 + c.n * 10 + (c.maxRut / 100) * 18),
       color: rutHeatColor(c.maxRut),
     }));
   }, [visible]);
 
-  const roadQualityCircles = useMemo(() => {
-    const circles = [];
+  const roadQualityDots = useMemo(() => {
+    const dots = [];
     for (const buf of roadQualityBuffers) {
       for (const pt of buf.points) {
-        circles.push({
+        dots.push({
           key: `${buf.key}-${pt.id}`,
           center: [pt.latitude, pt.longitude],
-          radius: bufferRadiusM({ isSurvey: buf.isSurvey, rut: buf.rut }),
           color: rutHeatColor(buf.isSurvey ? SAFE_SURVEY_RUT : buf.rut),
           isSurvey: buf.isSurvey,
           rut: buf.rut,
           pointCount: buf.points.length,
+          detectionId: pt.id,
         });
       }
     }
-    return circles;
+    return dots;
   }, [roadQualityBuffers]);
 
   useEffect(() => {
@@ -524,6 +531,7 @@ const SAFE_SURVEY_RUT = 8;
         showSeverity={layers.severity}
         showPriority={layers.maintenancePriority}
         showHeatmap={layers.rutHeatmap}
+        showRoadQuality={layers.roadQuality}
       />
 
       <MapContainer
@@ -573,16 +581,19 @@ const SAFE_SURVEY_RUT = 8;
           ))}
 
         {layers.roadQuality &&
-          roadQualityCircles.map((c) => (
-            <Circle
+          roadQualityDots.map((c) => (
+            <CircleMarker
               key={c.key}
               center={c.center}
-              radius={c.radius}
+              radius={9}
               pathOptions={{
-                color: c.color,
+                color: "#0f172a",
                 fillColor: c.color,
-                fillOpacity: c.isSurvey ? 0.35 : 0.28,
-                weight: c.isSurvey ? 2.5 : 2,
+                fillOpacity: 0.92,
+                weight: 2,
+              }}
+              eventHandlers={{
+                click: () => onSelect?.(c.detectionId),
               }}
             >
               <Popup>
@@ -600,25 +611,25 @@ const SAFE_SURVEY_RUT = 8;
                   </p>
                 </div>
               </Popup>
-            </Circle>
+            </CircleMarker>
           ))}
 
         {layers.severity &&
           severityTargets.map((d) => {
             const color = severityColor(d.severity);
-            const radius = bufferRadiusM({ severity: d.severity, rut: d.rut_score });
             return (
-              <Circle
+              <CircleMarker
                 key={`sev-${d.id}`}
                 center={[d.latitude, d.longitude]}
-                radius={radius}
+                radius={8}
                 pathOptions={{
-                  color,
+                  color: "#0f172a",
                   fillColor: color,
-                  fillOpacity: 0.3,
-                  weight: 1.5,
-                  dashArray: "4 4",
+                  fillOpacity: 0.88,
+                  weight: 2,
+                  dashArray: "3 2",
                 }}
+                eventHandlers={{ click: () => onSelect?.(d.id) }}
               />
             );
           })}
@@ -626,18 +637,18 @@ const SAFE_SURVEY_RUT = 8;
         {layers.maintenancePriority &&
           priorityTargets.map((d) => {
             const color = maintenancePriorityColor(d);
-            const radius = bufferRadiusM({ severity: d.severity, rut: d.rut_score });
             return (
-              <Circle
+              <CircleMarker
                 key={`pri-${d.id}`}
                 center={[d.latitude, d.longitude]}
-                radius={radius}
+                radius={10}
                 pathOptions={{
                   color,
                   fillColor: color,
-                  fillOpacity: 0.34,
-                  weight: 2.5,
+                  fillOpacity: 0.75,
+                  weight: 3,
                 }}
+                eventHandlers={{ click: () => onSelect?.(d.id) }}
               >
                 <Popup>
                   <div className="popup-content">
@@ -648,7 +659,7 @@ const SAFE_SURVEY_RUT = 8;
                     </p>
                   </div>
                 </Popup>
-              </Circle>
+              </CircleMarker>
             );
           })}
 
