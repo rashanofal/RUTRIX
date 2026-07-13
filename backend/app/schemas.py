@@ -368,8 +368,17 @@ class TeamMemberResponse(BaseModel):
     role: str
     joined_at: datetime
     last_login_at: datetime | None = None
+    provisioned_password: str | None = None
+    total_detections: int = 0
+    phone_uploads: int = 0
+    dashboard_uploads: int = 0
+    map_pins: int = 0
 
     model_config = {"from_attributes": True}
+
+
+class TeamResetPasswordRequest(BaseModel):
+    new_password: str = Field(..., min_length=6)
 
 
 class TeamInviteRequest(BaseModel):

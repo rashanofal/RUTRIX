@@ -4,8 +4,9 @@ import {
   fetchTeamMembers,
   inviteTeamMember,
   removeTeamMember,
+  resetTeamMemberPassword,
 } from "../hooks/useApi";
-import { useIsAdmin } from "../hooks/useIsAdmin";
+import { useIsAdmin, useIsOwner } from "../hooks/useIsAdmin";
 
 const ROLES = ["field", "admin", "viewer"];
 
@@ -36,9 +37,13 @@ export default function AdminPanel({
   clearing,
   onChanged,
   embedded = false,
+  supervisorMode = false,
+  onMembersChange,
 }) {
   const { t, locale } = useLocale();
   const isAdmin = useIsAdmin();
+  const isOwner = useIsOwner();
+  const canManage = supervisorMode ? isOwner : isAdmin;
   const [members, setMembers] = useState([]);
   const [showForm, setShowForm] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -54,19 +59,25 @@ export default function AdminPanel({
 
   const loadMembers = () => {
     fetchTeamMembers()
-      .then(setMembers)
-      .catch(() => setMembers([]));
+      .then((rows) => {
+        setMembers(rows);
+        onMembersChange?.(rows);
+      })
+      .catch(() => {
+        setMembers([]);
+        onMembersChange?.([]);
+      });
   };
 
   useEffect(() => {
-    if (isAdmin) loadMembers();
-  }, [isAdmin]);
+    if (canManage) loadMembers();
+  }, [canManage]);
 
-  if (!isAdmin) {
+  if (!canManage) {
     if (embedded) return null;
     return (
       <section className="admin-panel section-card admin-panel-locked">
-        <p className="intel-sub">{t.adminOnlyHint}</p>
+        <p className="intel-sub">{supervisorMode ? t.ownerOnlyHint : t.adminOnlyHint}</p>
       </section>
     );
   }
@@ -98,6 +109,18 @@ export default function AdminPanel({
     }
   };
 
+  const handleResetPassword = async (member) => {
+    const next = window.prompt(t.resetPasswordPrompt, member.provisioned_password || "");
+    if (!next || next.length < 6) return;
+    try {
+      await resetTeamMemberPassword(member.user_id, next);
+      loadMembers();
+      window.alert(t.resetPasswordDone);
+    } catch (err) {
+      window.alert(err?.message || t.resetPasswordFail);
+    }
+  };
+
   const formatWhen = (iso) => {
     if (!iso) return t.neverLoggedIn;
     try {
@@ -108,24 +131,39 @@ export default function AdminPanel({
   };
 
   return (
-    <section className={`admin-panel section-card${embedded ? " admin-panel-embedded" : ""}`}>
+    <section
+      className={`admin-panel section-card${embedded ? " admin-panel-embedded" : ""}${
+        supervisorMode ? " admin-panel-supervisor" : ""
+      }`}
+    >
       {!embedded ? (
-        <>
-          <div className="section-label">
-            <span className="section-label-icon">🛡️</span>
-            <span>{t.adminPanelTitle}</span>
-          </div>
-        </>
+        <div className="section-label">
+          <span className="section-label-icon">🛡️</span>
+          <span>{t.adminPanelTitle}</span>
+        </div>
       ) : null}
 
-      <h3 className="intel-h3">{t.adminUsersTitle} ({members.length})</h3>
+      <h3 className="intel-h3">
+        {t.adminUsersTitle} ({members.length})
+      </h3>
+      {supervisorMode ? <p className="intel-sub admin-users-sub">{t.adminUsersSub}</p> : null}
+
       <div className="admin-table-wrap">
-        <table className="admin-table">
+        <table className={`admin-table${supervisorMode ? " admin-table-supervisor" : ""}`}>
           <thead>
             <tr>
               <th>{t.fullName}</th>
               <th>{t.email}</th>
+              {supervisorMode ? <th>{t.memberPassword}</th> : null}
               <th>{t.roleCol}</th>
+              {supervisorMode ? (
+                <>
+                  <th>{t.memberDashboard}</th>
+                  <th>{t.memberPhone}</th>
+                  <th>{t.memberMapPins}</th>
+                  <th>{t.memberDetections}</th>
+                </>
+              ) : null}
               <th>{t.lastLogin}</th>
               <th />
             </tr>
@@ -134,29 +172,63 @@ export default function AdminPanel({
             {members.map((m) => (
               <tr key={m.user_id}>
                 <td>{m.full_name}</td>
-                <td dir="ltr">{m.email}</td>
+                <td dir="ltr" className="admin-email">
+                  {m.email}
+                </td>
+                {supervisorMode ? (
+                  <td dir="ltr" className="admin-password">
+                    <code>{m.provisioned_password || t.memberPasswordUnknown}</code>
+                  </td>
+                ) : null}
                 <td>
                   <span className={`team-role-pill role-${m.role}`}>
                     {roleLabels[m.role] || m.role}
                   </span>
                 </td>
+                {supervisorMode ? (
+                  <>
+                    <td className="admin-num" dir="ltr">
+                      {m.dashboard_uploads ?? 0}
+                    </td>
+                    <td className="admin-num" dir="ltr">
+                      {m.phone_uploads ?? 0}
+                    </td>
+                    <td className="admin-num" dir="ltr">
+                      {m.map_pins ?? 0}
+                    </td>
+                    <td className="admin-num" dir="ltr">
+                      {m.total_detections ?? 0}
+                    </td>
+                  </>
+                ) : null}
                 <td className="admin-when">{formatWhen(m.last_login_at)}</td>
-                <td>
+                <td className="admin-actions">
                   {m.role !== "owner" ? (
-                    <button
-                      type="button"
-                      className="admin-remove-btn"
-                      onClick={() => handleRemove(m)}
-                    >
-                      {t.removeMember}
-                    </button>
+                    <div className="admin-action-btns">
+                      {supervisorMode ? (
+                        <button
+                          type="button"
+                          className="admin-reset-btn"
+                          onClick={() => handleResetPassword(m)}
+                        >
+                          {t.resetPassword}
+                        </button>
+                      ) : null}
+                      <button
+                        type="button"
+                        className="admin-remove-btn"
+                        onClick={() => handleRemove(m)}
+                      >
+                        {t.removeMember}
+                      </button>
+                    </div>
                   ) : null}
                 </td>
               </tr>
             ))}
             {!members.length && (
               <tr>
-                <td colSpan={5} className="intel-empty">
+                <td colSpan={supervisorMode ? 10 : 5} className="intel-empty">
                   {t.noTeamMembers}
                 </td>
               </tr>
@@ -164,6 +236,10 @@ export default function AdminPanel({
           </tbody>
         </table>
       </div>
+
+      {supervisorMode ? (
+        <p className="admin-password-hint">{t.memberPasswordHint}</p>
+      ) : null}
 
       {!showForm ? (
         <button type="button" className="team-invite-btn" onClick={() => setShowForm(true)}>
@@ -185,11 +261,13 @@ export default function AdminPanel({
             required
           />
           <input
-            type="password"
+            type="text"
             placeholder={t.password}
             value={form.password}
             onChange={(e) => setForm({ ...form, password: e.target.value })}
             required
+            minLength={6}
+            autoComplete="new-password"
           />
           <select value={form.role} onChange={(e) => setForm({ ...form, role: e.target.value })}>
             {ROLES.map((r) => (
@@ -212,6 +290,7 @@ export default function AdminPanel({
       <h3 className="intel-h3 admin-media-title">
         {t.adminMediaTitle} ({media.length})
       </h3>
+      <p className="intel-sub">{t.adminMediaSub}</p>
       <div className="admin-media-grid">
         {media.map(({ url, items, primary }) => (
           <article key={url} className="admin-media-card">

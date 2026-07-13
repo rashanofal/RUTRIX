@@ -151,6 +151,7 @@ class OrganizationMember(Base):
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()
     )
+    provisioned_password: Mapped[str | None] = mapped_column(String(120), nullable=True)
 
     organization: Mapped["Organization"] = relationship(back_populates="members")
     user: Mapped["User"] = relationship(back_populates="memberships")

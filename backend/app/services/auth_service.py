@@ -72,6 +72,7 @@ def register_user(
             organization_id=org.id,
             user_id=user.id,
             role=MemberRole.owner,
+            provisioned_password=password,
         )
     )
     db.commit()
@@ -121,6 +122,7 @@ def register_user_in_demo_org(
             organization_id=org.id,
             user_id=user.id,
             role=MemberRole.field,
+            provisioned_password=password,
         )
     )
     db.commit()
@@ -188,6 +190,7 @@ def invite_user_to_organization(
                 organization_id=org.id,
                 user_id=existing.id,
                 role=role,
+                provisioned_password=password,
             )
         )
         db.commit()
@@ -206,11 +209,31 @@ def invite_user_to_organization(
             organization_id=org.id,
             user_id=user.id,
             role=role,
+            provisioned_password=password,
         )
     )
     db.commit()
     db.refresh(user)
     return user
+
+
+def reset_member_password(
+    db: Session,
+    org_id: int,
+    user_id: int,
+    new_password: str,
+) -> OrganizationMember:
+    membership = get_user_org_membership(db, user_id, org_id)
+    if not membership:
+        raise ValueError("المستخدم غير موجود في المنظمة")
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise ValueError("المستخدم غير موجود")
+    user.password_hash = hash_password(new_password)
+    membership.provisioned_password = new_password
+    db.commit()
+    db.refresh(membership)
+    return membership
 
 
 def update_user_profile(db: Session, user: User, full_name: str) -> User:

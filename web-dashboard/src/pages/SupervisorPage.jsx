@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useLocale } from "../context/LocaleContext";
 import { useIsOwner } from "../hooks/useIsAdmin";
 import PotholeMap from "../components/PotholeMap";
@@ -21,6 +22,7 @@ export default function SupervisorPage({
 }) {
   const { t } = useLocale();
   const isOwner = useIsOwner();
+  const [members, setMembers] = useState([]);
 
   if (!isOwner) {
     return (
@@ -51,6 +53,10 @@ export default function SupervisorPage({
           <article className="supervisor-kpi">
             <span className="supervisor-kpi-value">{pinned}</span>
             <span className="supervisor-kpi-label">{t.supervisorKpiPins}</span>
+          </article>
+          <article className="supervisor-kpi">
+            <span className="supervisor-kpi-value">{members.length || "—"}</span>
+            <span className="supervisor-kpi-label">{t.supervisorKpiMembers}</span>
           </article>
           <article className="supervisor-kpi">
             <span className="supervisor-kpi-value">{reporters || "—"}</span>
@@ -109,6 +115,8 @@ export default function SupervisorPage({
         onClearMap={onClearMap}
         clearing={clearing}
         onChanged={onMaintChanged}
+        onMembersChange={setMembers}
+        supervisorMode
         embedded
       />
     </div>

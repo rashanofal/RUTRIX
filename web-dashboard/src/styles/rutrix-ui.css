@@ -1759,6 +1759,52 @@ body {
   cursor: pointer;
 }
 
+.admin-reset-btn {
+  border: 1px solid rgba(61, 213, 255, 0.35);
+  background: rgba(61, 213, 255, 0.1);
+  color: #bae6fd;
+  border-radius: 8px;
+  padding: 0.25rem 0.55rem;
+  font-size: 0.72rem;
+  cursor: pointer;
+}
+
+.admin-action-btns {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  justify-content: flex-end;
+}
+
+.admin-table-supervisor {
+  min-width: 920px;
+}
+
+.admin-num {
+  font-family: var(--font-numeric);
+  font-variant-numeric: tabular-nums lining-nums;
+  text-align: center;
+  font-weight: 700;
+}
+
+.admin-password code {
+  font-size: 0.75rem;
+  color: #e2e8f0;
+  background: rgba(255, 255, 255, 0.05);
+  padding: 0.15rem 0.35rem;
+  border-radius: 6px;
+}
+
+.admin-password-hint,
+.admin-users-sub {
+  margin: 0 0 0.75rem;
+  font-size: 0.78rem;
+}
+
+.admin-panel-supervisor .admin-table-wrap {
+  margin-top: 0.35rem;
+}
+
 .admin-media-title { margin-top: 1.35rem; }
 
 .admin-media-grid {

@@ -50,6 +50,10 @@ WORK_ORDER_COLUMNS = [
     ("declined_reason", "TEXT"),
 ]
 
+ORG_MEMBER_COLUMNS = [
+    ("provisioned_password", "VARCHAR(120)"),
+]
+
 USER_COLUMNS = [
     ("last_login_at", "TIMESTAMP"),
 ]
@@ -66,6 +70,8 @@ def run_migrations() -> None:
             _add_column_if_missing("work_orders", col, typ)
         for col, typ in USER_COLUMNS:
             _add_column_if_missing("users", col, typ)
+        for col, typ in ORG_MEMBER_COLUMNS:
+            _add_column_if_missing("organization_members", col, typ)
 
 
 def backfill_intelligence() -> None:
@@ -172,6 +178,9 @@ def seed_demo_account() -> None:
                 .first()
             )
             if membership:
+                if not membership.provisioned_password:
+                    membership.provisioned_password = settings.demo_password
+                    db.commit()
                 _assign_orphan_data(db, membership.organization_id)
             return
 

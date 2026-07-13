@@ -279,6 +279,25 @@ export async function removeTeamMember(userId) {
   return res.json();
 }
 
+export async function resetTeamMemberPassword(userId, new_password) {
+  const res = await apiFetch(`/api/team/members/${userId}/reset-password`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ new_password }),
+  });
+  if (!res.ok) {
+    let detail = "";
+    try {
+      const body = await res.json();
+      detail = body?.detail || "";
+    } catch {
+      /* ignore */
+    }
+    throw new Error(detail || "Reset password failed");
+  }
+  return res.json();
+}
+
 export async function fetchRouteQuality(fromLat, fromLon, toLat, toLon) {
   const params = new URLSearchParams({
     from_lat: fromLat,

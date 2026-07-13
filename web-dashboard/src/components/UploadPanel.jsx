@@ -29,7 +29,7 @@ export default function UploadPanel({ onUploaded }) {  const { t } = useLocale()
     try {
       const formData = new FormData();
       formData.append("file", file);
-      formData.append("device_type", "phone");
+      formData.append("device_type", "mms");
 
       const res = await apiFetch("/api/detections/upload", {
         method: "POST",
