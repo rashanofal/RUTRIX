@@ -65,7 +65,6 @@ export default function AdminPanel({
   });
 
   const roleLabels = ROLE_LABELS[locale] || ROLE_LABELS.ar;
-  const filter = normalizeMemberFilter(memberFilter);
   const selectionActive = supervisorMode ? hasMemberSelection(memberFilter) : true;
   const visibleDetections = useMemo(() => {
     if (!supervisorMode) return detections;
@@ -355,11 +354,13 @@ export default function AdminPanel({
       ) : null}
 
       <h3 className="intel-h3 admin-media-title">
-        {t.adminMediaTitle} ({media.length})
+        {t.adminMediaTitle}
+        {selectionActive ? ` (${media.length})` : ""}
       </h3>
       {!supervisorMode ? <p className="intel-sub">{t.adminMediaSub}</p> : null}
       <div className="admin-media-grid">
-        {media.map(({ url, items, primary }) => (
+        {selectionActive
+          ? media.map(({ url, items, primary }) => (
           <article key={url} className="admin-media-card">
             <img src={url} alt="" className="admin-media-img" loading="lazy" />
             <div className="admin-media-meta">
@@ -378,17 +379,16 @@ export default function AdminPanel({
               {deletingId === primary.id ? t.deleting : `🗑️ ${t.delete}`}
             </button>
           </article>
-        ))}
-        {!media.length && (
-          <p className="intel-empty">
-            {supervisorMode && hasMemberSelection(memberFilter) ? t.noFieldPhotos : t.noDetections}
-          </p>
-        )}
+        ))
+          : null}
+        {selectionActive && !media.length ? (
+          <p className="intel-empty">{t.noFieldPhotos}</p>
+        ) : null}
       </div>
 
       <div className="admin-danger">
         <h3 className="ops-danger-title">{t.dangerZone}</h3>
-        <p className="ops-danger-desc">{t.dangerZoneDesc}</p>
+        {!supervisorMode ? <p className="ops-danger-desc">{t.dangerZoneDesc}</p> : null}
         <button
           type="button"
           className="clear-map-btn"
