@@ -4,6 +4,7 @@ import { useIsOwner } from "../hooks/useIsAdmin";
 import PotholeMap from "../components/PotholeMap";
 import DetectionDetail from "../components/DetectionDetail";
 import AdminPanel from "../components/AdminPanel";
+import SupervisorMembersRail from "../components/SupervisorMembersRail";
 
 export default function SupervisorPage({
   detections,
@@ -54,6 +55,7 @@ export default function SupervisorPage({
   const pinned = filteredDetections.filter(
     (d) => d.latitude != null && d.longitude != null
   ).length;
+  const showNoPinsHint = filterUserId != null && pinned === 0;
   const reporters = new Set(
     filteredDetections.map((d) => d.reporter_user_id).filter(Boolean)
   ).size;
@@ -106,16 +108,29 @@ export default function SupervisorPage({
       ) : null}
 
       <section className="supervisor-map-section" aria-label={t.supervisorMapTitle}>
-        <div className="supervisor-map-frame">
-          <PotholeMap
-            key={filterUserId ?? "all"}
-            detections={filteredDetections}
-            selectedId={selectedId}
-            onSelect={onSelect}
-            onDelete={onDelete}
-            deletingId={deletingId}
-            refitOnChange
-            showReporter
+        <div className="supervisor-map-layout">
+          <div className="supervisor-map-frame">
+            <PotholeMap
+              key={filterUserId ?? "all"}
+              detections={filteredDetections}
+              selectedId={selectedId}
+              onSelect={onSelect}
+              onDelete={onDelete}
+              deletingId={deletingId}
+              refitOnChange
+              showReporter
+            />
+            {showNoPinsHint ? (
+              <div className="supervisor-map-empty" role="status">
+                <p>{t.supervisorNoPinsForUser}</p>
+              </div>
+            ) : null}
+          </div>
+          <SupervisorMembersRail
+            members={members}
+            detections={detections}
+            selectedUserId={filterUserId}
+            onSelectUser={setFilterUserId}
           />
         </div>
         {selectedId && selected ? (
@@ -151,6 +166,7 @@ export default function SupervisorPage({
         onMembersChange={setMembers}
         selectedUserId={filterUserId}
         onSelectUser={setFilterUserId}
+        hideMemberTable
         supervisorMode
         embedded
       />

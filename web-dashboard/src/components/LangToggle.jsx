@@ -20,7 +20,9 @@ export function BrandLogo({ size = "md", variant = "full", showName = true }) {
   if (variant === "lockup") {
     return (
       <div className={`rutrix-logo rutrix-logo--${size} rutrix-logo--lockup rutrix-logo--lockup-stack`} aria-hidden>
-        <RutrixMarkIcon />
+        <span className="rutrix-logo__mark-wrap">
+          <RutrixMarkIcon />
+        </span>
         <span className="rutrix-logo__word">{t.brand}</span>
       </div>
     );

@@ -41,6 +41,7 @@ export default function AdminPanel({
   onMembersChange,
   selectedUserId = null,
   onSelectUser,
+  hideMemberTable = false,
 }) {
   const { t, locale } = useLocale();
   const isAdmin = useIsAdmin();
@@ -48,6 +49,7 @@ export default function AdminPanel({
   const canManage = supervisorMode ? isOwner : isAdmin;
   const [members, setMembers] = useState([]);
   const [showForm, setShowForm] = useState(false);
+  const [showFullTable, setShowFullTable] = useState(false);
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({
     email: "",
@@ -158,9 +160,24 @@ export default function AdminPanel({
       <h3 className="intel-h3">
         {t.adminUsersTitle} ({members.length})
       </h3>
-      {supervisorMode ? <p className="intel-sub admin-users-sub">{t.adminUsersSub}</p> : null}
-      {supervisorMode ? <p className="admin-select-hint">{t.memberSelectHint}</p> : null}
+      {supervisorMode && hideMemberTable ? (
+        <button
+          type="button"
+          className="supervisor-table-toggle"
+          onClick={() => setShowFullTable((v) => !v)}
+          aria-expanded={showFullTable}
+        >
+          {showFullTable ? t.supervisorHideTable : t.supervisorShowTable}
+        </button>
+      ) : null}
+      {supervisorMode && (!hideMemberTable || showFullTable) ? (
+        <p className="intel-sub admin-users-sub">{t.adminUsersSub}</p>
+      ) : null}
+      {supervisorMode && (!hideMemberTable || showFullTable) ? (
+        <p className="admin-select-hint">{t.memberSelectHint}</p>
+      ) : null}
 
+      {(!hideMemberTable || showFullTable) ? (
       <div className="admin-table-wrap">
         <table className={`admin-table${supervisorMode ? " admin-table-supervisor" : ""}`}>
           <thead>
@@ -275,6 +292,11 @@ export default function AdminPanel({
           </tbody>
         </table>
       </div>
+      ) : null}
+
+      {supervisorMode && hideMemberTable && !showFullTable ? (
+        <p className="intel-sub admin-users-rail-hint">{t.supervisorRailHint}</p>
+      ) : null}
 
       {supervisorMode ? (
         <p className="admin-password-hint">{t.memberPasswordHint}</p>

@@ -1,6 +1,7 @@
 import { useLocale } from "../context/LocaleContext";
 import { severityLabel } from "../i18n/translations";
 import { countClusterReports } from "../hooks/useCriticalAlerts";
+import DetectionStatusPipeline from "./DetectionStatusPipeline";
 
 export default function DetectionDetail({
   selected,

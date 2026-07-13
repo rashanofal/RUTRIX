@@ -58,7 +58,7 @@ async function findGreenIconBounds() {
   // Ignore wordmark to the right — keep only the icon column cluster.
   const iconMaxX = Math.min(
     maxX,
-    minX + Math.round((maxY - minY + 1) * 1.45),
+    minX + Math.round((maxY - minY + 1) * 1.05),
   );
 
   return { minX, minY, maxX: iconMaxX, maxY };
