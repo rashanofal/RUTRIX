@@ -65,7 +65,7 @@ class RegisterRequest(BaseModel):
     email: str = Field(..., min_length=5)
     password: str = Field(..., min_length=6)
     full_name: str = Field(..., min_length=2)
-    organization_name: str = Field(..., min_length=2)
+    organization_name: str = Field(default="", min_length=0)
 
 
 class LoginRequest(BaseModel):

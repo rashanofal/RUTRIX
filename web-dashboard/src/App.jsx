@@ -22,12 +22,13 @@ import {
   updateDetectionStatus,
   useWebSocket,
 } from "./hooks/useApi";
-import { useIsAdmin } from "./hooks/useIsAdmin";
+import { useIsAdmin, useIsOwner } from "./hooks/useIsAdmin";
 
 function Dashboard() {
   const { auth, logout } = useAuth();
   const { t } = useLocale();
   const isAdmin = useIsAdmin();
+  const isOwner = useIsOwner();
   const [page, setPage] = useState("overview");
   const [detections, setDetections] = useState([]);
   const [stats, setStats] = useState(null);
@@ -250,8 +251,8 @@ function Dashboard() {
 
   const handleNavigate = useCallback(
     (target) => {
-      if (target === "supervisor" && !isAdmin) {
-        window.alert(t.adminOnlyHint);
+      if (target === "supervisor" && !isOwner) {
+        window.alert(t.ownerOnlyHint);
         return;
       }
       setPage(target);
@@ -260,7 +261,7 @@ function Dashboard() {
         void loadDetections();
       }
     },
-    [loadDetections, isAdmin, t.adminOnlyHint]
+    [loadDetections, isOwner, t.ownerOnlyHint]
   );
 
   const handleBoundsChange = useCallback((b) => {
@@ -336,6 +337,7 @@ function Dashboard() {
             selected={selected}
             onSelect={setSelectedId}
             maintRefresh={maintRefresh}
+            isAdmin={isAdmin}
             onMaintChanged={() => {
               setMaintRefresh((r) => r + 1);
               loadStats();
@@ -393,6 +395,7 @@ function Dashboard() {
         logout={logout}
         wsConnected={wsConnected}
         isAdmin={isAdmin}
+        isOwner={isOwner}
       >
         {renderPage()}
       </AppShell>

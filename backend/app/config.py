@@ -19,6 +19,7 @@ class Settings(BaseSettings):
     demo_email: str = "demo@pothole.app"
     demo_password: str = "demo1234"
     demo_org_name: str = "تجريبي"
+    demo_shared_registration: bool = True
 
     class Config:
         env_file = ".env"

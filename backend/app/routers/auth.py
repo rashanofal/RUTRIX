@@ -16,11 +16,13 @@ from app.schemas import (
     UpdateProfileRequest,
     UserResponse,
 )
+from app.config import settings
 from app.services.auth_service import (
     authenticate,
     change_user_password,
     create_access_token,
     register_user,
+    register_user_in_demo_org,
     update_user_profile,
 )
 
@@ -49,13 +51,21 @@ def _user_response(db: Session, user: User, org_id: int) -> UserResponse:
 @router.post("/register", response_model=AuthResponse)
 def register(payload: RegisterRequest, db: Session = Depends(get_db)):
     try:
-        user, org = register_user(
-            db,
-            email=payload.email,
-            password=payload.password,
-            full_name=payload.full_name,
-            organization_name=payload.organization_name,
-        )
+        if settings.seed_demo_account and settings.demo_shared_registration:
+            user, org = register_user_in_demo_org(
+                db,
+                email=payload.email,
+                password=payload.password,
+                full_name=payload.full_name,
+            )
+        else:
+            user, org = register_user(
+                db,
+                email=payload.email,
+                password=payload.password,
+                full_name=payload.full_name,
+                organization_name=payload.organization_name,
+            )
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e)) from e
 

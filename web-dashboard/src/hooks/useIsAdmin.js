@@ -7,6 +7,15 @@ export function useIsAdmin() {
   return ADMIN_ROLES.has(auth?.user?.role);
 }
 
+export function useIsOwner() {
+  const { auth } = useAuth();
+  return auth?.user?.role === "owner";
+}
+
 export function isAdminRole(role) {
   return ADMIN_ROLES.has(role);
+}
+
+export function isOwnerRole(role) {
+  return role === "owner";
 }

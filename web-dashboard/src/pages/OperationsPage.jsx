@@ -8,6 +8,7 @@ export default function OperationsPage({
   selected,
   onSelect,
   maintRefresh,
+  isAdmin = false,
   onMaintChanged,
 }) {
   return (
@@ -23,6 +24,7 @@ export default function OperationsPage({
             selected={selected}
             onSelect={onSelect}
             onRefresh={maintRefresh}
+            isAdmin={isAdmin}
             onChanged={onMaintChanged}
           />
         </section>

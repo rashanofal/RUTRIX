@@ -123,6 +123,7 @@ export default function MaintenancePanel({
   selected,
   onSelect,
   onRefresh,
+  isAdmin = false,
   onChanged,
 }) {
   const { t, locale } = useLocale();
@@ -135,16 +136,21 @@ export default function MaintenancePanel({
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const [o, m] = await Promise.all([fetchWorkOrders(), fetchTeamMembers()]);
+      const o = await fetchWorkOrders();
       setOrders(o);
-      setTeam(m);
+      if (isAdmin) {
+        const m = await fetchTeamMembers();
+        setTeam(m);
+      } else {
+        setTeam([]);
+      }
     } catch {
       setOrders([]);
       setTeam([]);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [isAdmin]);
 
   useEffect(() => {
     load();
@@ -312,6 +318,8 @@ export default function MaintenancePanel({
       <p className="intel-sub">{t.maintenanceSub}</p>
 
       <div className="wo-create-block">
+        {isAdmin ? (
+          <>
         <label className="wo-detection-label" htmlFor="wo-detection-select">
           {t.pickDetection}
         </label>
@@ -352,6 +360,10 @@ export default function MaintenancePanel({
         >
           {creating ? t.loading : `➕ ${t.createWorkOrder}`}
         </button>
+          </>
+        ) : (
+          <p className="wo-priority-hint">{t.workOrderAdminOnly}</p>
+        )}
       </div>
 
       <h3 className="intel-h3 wo-tracking-heading">
@@ -424,6 +436,8 @@ export default function MaintenancePanel({
               )}
 
               <div className="wo-actions">
+                {isAdmin ? (
+                  <>
                 <select
                   className="wo-assign-select"
                   value={wo.assigned_to_user_id || ""}
@@ -467,6 +481,8 @@ export default function MaintenancePanel({
                     )}
                   </>
                 )}
+                  </>
+                ) : null}
               </div>
             </li>
           ))}

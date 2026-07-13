@@ -1,5 +1,5 @@
 import { useLocale } from "../context/LocaleContext";
-import { useIsAdmin } from "../hooks/useIsAdmin";
+import { useIsOwner } from "../hooks/useIsAdmin";
 import PotholeMap from "../components/PotholeMap";
 import DetectionDetail from "../components/DetectionDetail";
 import AdminPanel from "../components/AdminPanel";
@@ -20,9 +20,9 @@ export default function SupervisorPage({
   wsConnected,
 }) {
   const { t } = useLocale();
-  const isAdmin = useIsAdmin();
+  const isOwner = useIsOwner();
 
-  if (!isAdmin) {
+  if (!isOwner) {
     return (
       <div className="page-supervisor page-supervisor-locked">
         <div className="supervisor-locked-card">
@@ -30,7 +30,7 @@ export default function SupervisorPage({
             🛡️
           </span>
           <h2>{t.adminPanelTitle}</h2>
-          <p>{t.adminOnlyHint}</p>
+          <p>{t.ownerOnlyHint}</p>
         </div>
       </div>
     );

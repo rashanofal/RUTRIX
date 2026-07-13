@@ -75,20 +75,12 @@ export default function LoginPage() {
 
           <form onSubmit={submit} className="login-form">
             {mode === "register" && (
-              <>
-                <input
-                  placeholder={t.fullName}
-                  value={form.full_name}
-                  onChange={(e) => setForm({ ...form, full_name: e.target.value })}
-                  required
-                />
-                <input
-                  placeholder={t.orgName}
-                  value={form.organization_name}
-                  onChange={(e) => setForm({ ...form, organization_name: e.target.value })}
-                  required
-                />
-              </>
+              <input
+                placeholder={t.fullName}
+                value={form.full_name}
+                onChange={(e) => setForm({ ...form, full_name: e.target.value })}
+                required
+              />
             )}
             <input
               type="email"

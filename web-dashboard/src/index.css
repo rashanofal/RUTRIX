@@ -605,10 +605,13 @@ body {
 }
 
 .stat-card .value {
-  font-size: 1.65rem;
+  font-size: 1.75rem;
   font-weight: 800;
-  font-family: var(--font-display);
-  letter-spacing: -0.02em;
+  font-family: var(--font-numeric);
+  font-variant-numeric: lining-nums tabular-nums;
+  letter-spacing: 0.01em;
+  color: #f1f5f9;
+  line-height: 1.15;
 }
 
 .stat-card .label {
@@ -2528,9 +2531,10 @@ body {
 }
 
 .rutrix-logo--lockup-stack.rutrix-logo--sm .rutrix-logo__mark-svg {
-  width: 46px;
-  height: 46px;
-  max-width: 46px;
+  width: 48px;
+  height: 48px;
+  max-width: 48px;
+  min-width: 48px;
   margin-inline: auto;
   overflow: visible;
   flex-shrink: 0;
@@ -3563,6 +3567,10 @@ body {
   font-size: 1.35rem;
   font-weight: 900;
   color: var(--primary);
+  font-family: var(--font-numeric);
+  font-variant-numeric: lining-nums tabular-nums;
+  direction: ltr;
+  unicode-bidi: isolate;
 }
 
 .profile-stat-label {

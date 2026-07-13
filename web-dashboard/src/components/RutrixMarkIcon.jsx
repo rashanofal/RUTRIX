@@ -3,10 +3,11 @@ export default function RutrixMarkIcon({ className = "" }) {
   return (
     <svg
       className={className}
-      viewBox="0 0 512 512"
+      viewBox="96 72 320 360"
       xmlns="http://www.w3.org/2000/svg"
       aria-hidden
       focusable="false"
+      preserveAspectRatio="xMidYMid meet"
     >
       <defs>
         <linearGradient id="rutrix-mark-grad" x1="18%" y1="8%" x2="88%" y2="92%">
@@ -15,7 +16,7 @@ export default function RutrixMarkIcon({ className = "" }) {
           <stop offset="100%" stopColor="#128a58" />
         </linearGradient>
       </defs>
-      <g transform="translate(88, 72) scale(0.68)">
+      <g transform="translate(88, 88) scale(0.64)">
         <path
           fill="url(#rutrix-mark-grad)"
           d="M118 96 L248 96 L318 168 L318 228 L268 228 L268 196 L168 196 L168 416 L118 416 Z"

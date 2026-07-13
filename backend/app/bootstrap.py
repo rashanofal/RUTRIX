@@ -110,13 +110,49 @@ def backfill_intelligence() -> None:
 def _assign_orphan_data(db: Session, org_id: int) -> None:
     from app.models import UploadRecord
 
-    db.query(PotholeDetection).filter(PotholeDetection.organization_id.is_(None)).update(
-        {PotholeDetection.organization_id: org_id}
-    )
-    db.query(UploadRecord).filter(UploadRecord.organization_id.is_(None)).update(
-        {UploadRecord.organization_id: org_id}
-    )
+    member_ids = [
+        m.user_id
+        for m in db.query(OrganizationMember)
+        .filter(OrganizationMember.organization_id == org_id)
+        .all()
+    ]
+    if not member_ids:
+        return
+
+    db.query(PotholeDetection).filter(
+        PotholeDetection.organization_id.is_(None),
+        PotholeDetection.reporter_user_id.in_(member_ids),
+    ).update({PotholeDetection.organization_id: org_id}, synchronize_session=False)
+
+    # Upload records without org: only attach files under this org's upload folder.
+    org_prefix = f"/{org_id}/"
+    orphans = db.query(UploadRecord).filter(UploadRecord.organization_id.is_(None)).all()
+    for row in orphans:
+        if org_prefix in row.file_path.replace("\\", "/"):
+            row.organization_id = org_id
     db.commit()
+
+
+def reconcile_detection_orgs(db: Session) -> None:
+    """Ensure each detection belongs to its reporter's organization."""
+    rows = (
+        db.query(PotholeDetection)
+        .filter(PotholeDetection.reporter_user_id.isnot(None))
+        .all()
+    )
+    changed = False
+    for det in rows:
+        membership = (
+            db.query(OrganizationMember)
+            .filter(OrganizationMember.user_id == det.reporter_user_id)
+            .order_by(OrganizationMember.id.asc())
+            .first()
+        )
+        if membership and det.organization_id != membership.organization_id:
+            det.organization_id = membership.organization_id
+            changed = True
+    if changed:
+        db.commit()
 
 
 def seed_demo_account() -> None:
@@ -155,4 +191,9 @@ def bootstrap() -> None:
     ensure_storage_dirs()
     run_migrations()
     seed_demo_account()
+    db = SessionLocal()
+    try:
+        reconcile_detection_orgs(db)
+    finally:
+        db.close()
     backfill_intelligence()

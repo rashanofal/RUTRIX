@@ -8,7 +8,7 @@ const NAV = [
   { id: "map", icon: "map", labelKey: "navMap" },
   { id: "field", icon: "field", labelKey: "navField" },
   { id: "ops", icon: "ops", labelKey: "navOps" },
-  { id: "supervisor", icon: "supervisor", labelKey: "navSupervisor", adminOnly: true },
+  { id: "supervisor", icon: "supervisor", labelKey: "navSupervisor", ownerOnly: true },
   { id: "intel", icon: "intel", labelKey: "navIntel" },
   { id: "mobile", icon: "mobile", labelKey: "navMobile" },
   { id: "profile", icon: "profile", labelKey: "navProfile" },
@@ -21,10 +21,15 @@ export default function AppShell({
   logout,
   wsConnected,
   isAdmin,
+  isOwner,
   children,
 }) {
   const { t } = useLocale();
-  const navItems = NAV.filter((item) => !item.adminOnly || isAdmin);
+  const navItems = NAV.filter((item) => {
+    if (item.ownerOnly) return isOwner;
+    if (item.adminOnly) return isAdmin;
+    return true;
+  });
 
   return (
     <div className="app-shell">

@@ -519,9 +519,10 @@ body {
 
 .nav-rail-brand .rutrix-logo--lockup-stack .rutrix-logo__mark,
 .nav-rail-brand .rutrix-logo--lockup-stack .rutrix-logo__mark-svg {
-  width: 46px;
-  height: 46px;
-  max-width: 46px;
+  width: 48px;
+  height: 48px;
+  max-width: 48px;
+  min-width: 48px;
   object-fit: contain;
   object-position: center;
   background: transparent;
@@ -529,6 +530,11 @@ body {
   overflow: visible;
   flex-shrink: 0;
   filter: drop-shadow(0 4px 12px rgba(46, 230, 255, 0.28));
+}
+
+.nav-rail-brand .rutrix-logo--lockup-stack {
+  padding-top: 0.15rem;
+  overflow: visible;
 }
 
 .nav-rail-brand .rutrix-logo--lockup-stack .rutrix-logo__word {
@@ -1872,7 +1878,11 @@ body {
   font-size: 1.35rem;
   font-weight: 800;
   font-family: var(--font-numeric, inherit);
+  font-variant-numeric: lining-nums tabular-nums;
   color: var(--text);
+  line-height: 1.15;
+  direction: ltr;
+  unicode-bidi: isolate;
 }
 
 .supervisor-kpi-label {

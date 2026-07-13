@@ -80,6 +80,55 @@ def register_user(
     return user, org
 
 
+def get_demo_organization(db: Session) -> Organization | None:
+    demo_user = db.query(User).filter(User.email == settings.demo_email).first()
+    if not demo_user:
+        return None
+    membership = (
+        db.query(OrganizationMember)
+        .filter(OrganizationMember.user_id == demo_user.id)
+        .order_by(OrganizationMember.id.asc())
+        .first()
+    )
+    if not membership:
+        return None
+    return db.query(Organization).filter(Organization.id == membership.organization_id).first()
+
+
+def register_user_in_demo_org(
+    db: Session,
+    email: str,
+    password: str,
+    full_name: str,
+) -> tuple[User, Organization]:
+    email = email.strip().lower()
+    if db.query(User).filter(User.email == email).first():
+        raise ValueError("البريد مسجّل مسبقاً")
+
+    org = get_demo_organization(db)
+    if not org or not org.is_active:
+        raise ValueError("التسجيل غير متاح حالياً")
+
+    user = User(
+        email=email,
+        full_name=full_name.strip(),
+        password_hash=hash_password(password),
+    )
+    db.add(user)
+    db.flush()
+    db.add(
+        OrganizationMember(
+            organization_id=org.id,
+            user_id=user.id,
+            role=MemberRole.field,
+        )
+    )
+    db.commit()
+    db.refresh(user)
+    db.refresh(org)
+    return user, org
+
+
 def authenticate(db: Session, email: str, password: str) -> tuple[User, Organization] | None:
     email = email.strip().lower()
     user = db.query(User).filter(User.email == email, User.is_active.is_(True)).first()
