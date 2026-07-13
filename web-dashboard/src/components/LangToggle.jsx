@@ -1,4 +1,5 @@
 import { useLocale } from "../context/LocaleContext";
+import RutrixMarkIcon from "./RutrixMarkIcon";
 
 export default function LangToggle({ className = "" }) {
   const { t, toggleLocale } = useLocale();
@@ -12,14 +13,14 @@ export default function LangToggle({ className = "" }) {
 /** Official RUTRIX lockup — mark + word, horizontal image, or icon only */
 export function BrandLogo({ size = "md", variant = "full", showName = true }) {
   const { t } = useLocale();
-  const v = "10";
+  const v = "11";
   const markSrc = `/brand/logo-mark.png?v=${v}`;
   const fullSrc = `/brand/logo.png?v=${v}`;
 
   if (variant === "lockup") {
     return (
       <div className={`rutrix-logo rutrix-logo--${size} rutrix-logo--lockup rutrix-logo--lockup-stack`} aria-hidden>
-        <img className="rutrix-logo__img rutrix-logo__mark" src={markSrc} alt="" />
+        <RutrixMarkIcon className="rutrix-logo__mark rutrix-logo__mark-svg" />
         <span className="rutrix-logo__word">{t.brand}</span>
       </div>
     );

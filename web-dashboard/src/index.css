@@ -2517,13 +2517,23 @@ body {
   transform: scale(1.03);
 }
 
-.rutrix-logo--sm .rutrix-logo__img {
+.rutrix-logo--sm .rutrix-logo__img:not(.rutrix-logo__mark) {
   width: 100%;
   height: auto;
   max-width: 100%;
   display: block;
   object-fit: contain;
   object-position: center;
+  filter: drop-shadow(0 4px 12px rgba(46, 230, 255, 0.28));
+}
+
+.rutrix-logo--lockup-stack.rutrix-logo--sm .rutrix-logo__mark-svg {
+  width: 46px;
+  height: 46px;
+  max-width: 46px;
+  margin-inline: auto;
+  overflow: visible;
+  flex-shrink: 0;
   filter: drop-shadow(0 4px 12px rgba(46, 230, 255, 0.28));
 }
 

@@ -517,7 +517,8 @@ body {
   overflow: visible;
 }
 
-.nav-rail-brand .rutrix-logo--lockup-stack .rutrix-logo__mark {
+.nav-rail-brand .rutrix-logo--lockup-stack .rutrix-logo__mark,
+.nav-rail-brand .rutrix-logo--lockup-stack .rutrix-logo__mark-svg {
   width: 46px;
   height: 46px;
   max-width: 46px;
@@ -525,6 +526,9 @@ body {
   object-position: center;
   background: transparent;
   display: block;
+  overflow: visible;
+  flex-shrink: 0;
+  filter: drop-shadow(0 4px 12px rgba(46, 230, 255, 0.28));
 }
 
 .nav-rail-brand .rutrix-logo--lockup-stack .rutrix-logo__word {

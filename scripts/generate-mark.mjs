@@ -35,6 +35,8 @@ async function findGreenIconBounds() {
   let maxX = 0;
   let maxY = 0;
 
+  const isGreen = (r, g, b, a) => a > 10 && g > 20 && g > r && g > b;
+
   for (let y = 0; y < info.height; y++) {
     for (let x = 0; x < info.width; x++) {
       const i = (y * info.width + x) * 4;
@@ -42,7 +44,7 @@ async function findGreenIconBounds() {
       const g = data[i + 1];
       const b = data[i + 2];
       const a = data[i + 3];
-      if (a > 10 && g > 60 && g > r + 8) {
+      if (isGreen(r, g, b, a)) {
         minX = Math.min(minX, x);
         minY = Math.min(minY, y);
         maxX = Math.max(maxX, x);
@@ -52,12 +54,19 @@ async function findGreenIconBounds() {
   }
 
   if (maxX <= minX) return null;
-  return { minX, minY, maxX, maxY };
+
+  // Ignore wordmark to the right — keep only the icon column cluster.
+  const iconMaxX = Math.min(
+    maxX,
+    minX + Math.round((maxY - minY + 1) * 1.45),
+  );
+
+  return { minX, minY, maxX: iconMaxX, maxY };
 }
 
 async function centerOnCanvas(inputBuf, size = TARGET) {
   const meta = await sharp(inputBuf).metadata();
-  const scale = Math.min((size * 0.72) / meta.width, (size * 0.72) / meta.height);
+  const scale = Math.min((size * 0.62) / meta.width, (size * 0.62) / meta.height);
   const w = Math.max(1, Math.round(meta.width * scale));
   const h = Math.max(1, Math.round(meta.height * scale));
   const resized = await sharp(inputBuf).resize(w, h, { fit: "fill" }).png().toBuffer();
@@ -80,21 +89,26 @@ async function fromLogoCrop() {
   const bounds = await findGreenIconBounds();
   if (!bounds) throw new Error("Green icon not found in logo.png");
 
-  const iconW = bounds.maxX - bounds.minX + 1;
-  const iconH = bounds.maxY - bounds.minY + 1;
+  const pad = 14;
+  const left = Math.max(0, bounds.minX - pad);
+  const top = Math.max(0, bounds.minY - pad);
+  const right = Math.min((await sharp(LOGO).metadata()).width - 1, bounds.maxX + pad);
+  const bottom = Math.min((await sharp(LOGO).metadata()).height - 1, bounds.maxY + pad);
+  const iconW = right - left + 1;
+  const iconH = bottom - top + 1;
 
   const iconBuf = await sharp(LOGO)
     .extract({
-      left: bounds.minX,
-      top: bounds.minY,
+      left,
+      top,
       width: iconW,
       height: iconH,
     })
     .extend({
-      top: 36,
-      bottom: 36,
-      left: 52,
-      right: 28,
+      top: 40,
+      bottom: 40,
+      left: 72,
+      right: 36,
       background: { r: 0, g: 0, b: 0, alpha: 0 },
     })
     .png()
