@@ -9,10 +9,10 @@ export default function LangToggle({ className = "" }) {
   );
 }
 
-/** Brand lockup — icon mark or horizontal wordmark */
+/** Official RUTRIX lockup — horizontal logo image or icon mark only */
 export function BrandLogo({ size = "md", variant = "full", showName = true }) {
-  const { t, locale } = useLocale();
-  const v = "5";
+  const { t } = useLocale();
+  const v = "6";
   const markSrc = `/brand/logo-mark.png?v=${v}`;
   const fullSrc = `/brand/logo.png?v=${v}`;
 
@@ -24,18 +24,9 @@ export function BrandLogo({ size = "md", variant = "full", showName = true }) {
     );
   }
 
-  if (locale === "en") {
-    return (
-      <div className={`rutrix-logo rutrix-logo--${size} rutrix-logo--image`} aria-hidden>
-        <img className="rutrix-logo__img rutrix-logo__full-img" src={fullSrc} alt={t.brand} />
-      </div>
-    );
-  }
-
   return (
-    <div className={`rutrix-logo rutrix-logo--${size} rutrix-logo--lockup`} aria-hidden>
-      <img className="rutrix-logo__img rutrix-logo__mark" src={markSrc} alt="" />
-      <span className="rutrix-logo__word">{t.brand}</span>
+    <div className={`rutrix-logo rutrix-logo--${size} rutrix-logo--image`} aria-hidden>
+      <img className="rutrix-logo__img rutrix-logo__full-img" src={fullSrc} alt={t.brand} />
     </div>
   );
 }
