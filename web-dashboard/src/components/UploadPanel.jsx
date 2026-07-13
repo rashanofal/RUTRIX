@@ -13,7 +13,23 @@ async function readResponseBody(res) {
   }
 }
 
-export default function UploadPanel({ onUploaded }) {  const { t } = useLocale();
+function getDeviceCoords() {
+  if (!navigator.geolocation) return Promise.resolve(null);
+  return new Promise((resolve) => {
+    navigator.geolocation.getCurrentPosition(
+      (pos) =>
+        resolve({
+          latitude: pos.coords.latitude,
+          longitude: pos.coords.longitude,
+        }),
+      () => resolve(null),
+      { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+    );
+  });
+}
+
+export default function UploadPanel({ onUploaded }) {
+  const { t } = useLocale();
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
   const [messageType, setMessageType] = useState("");
@@ -30,6 +46,12 @@ export default function UploadPanel({ onUploaded }) {  const { t } = useLocale()
       const formData = new FormData();
       formData.append("file", file);
       formData.append("device_type", "mms");
+
+      const coords = await getDeviceCoords();
+      if (coords?.latitude != null && coords?.longitude != null) {
+        formData.append("latitude", String(coords.latitude));
+        formData.append("longitude", String(coords.longitude));
+      }
 
       const res = await apiFetch("/api/detections/upload", {
         method: "POST",

@@ -354,16 +354,21 @@ async def _upload_and_detect_impl(
     if not filename.lower().endswith((".jpg", ".jpeg")):
         filename = f"{Path(filename).stem or 'upload'}.jpg"
 
-    location_source = "exif"
-    has_map_location = exif_lat is not None and exif_lon is not None
-    map_lat = exif_lat if has_map_location else None
-    map_lon = exif_lon if has_map_location else None
+    location_source = "none"
+    has_map_location = False
+    map_lat: float | None = None
+    map_lon: float | None = None
 
-    if not has_map_location and device_lat is not None and device_lon is not None:
+    if device_lat is not None and device_lon is not None:
         if -90 <= device_lat <= 90 and -180 <= device_lon <= 180:
             map_lat, map_lon = device_lat, device_lon
             has_map_location = True
             location_source = "device_gps"
+
+    if not has_map_location and exif_lat is not None and exif_lon is not None:
+        map_lat, map_lon = exif_lat, exif_lon
+        has_map_location = True
+        location_source = "exif"
 
     saved_path = save_upload_file(content, filename, org.id)
     save_training_sample(

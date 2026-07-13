@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useLocale } from "../context/LocaleContext";
 import { useIsOwner } from "../hooks/useIsAdmin";
 import PotholeMap from "../components/PotholeMap";
 import DetectionDetail from "../components/DetectionDetail";
 import AdminPanel from "../components/AdminPanel";
+import SupervisorMapFilter from "../components/SupervisorMapFilter";
 
 export default function SupervisorPage({
   detections,
@@ -23,6 +24,19 @@ export default function SupervisorPage({
   const { t } = useLocale();
   const isOwner = useIsOwner();
   const [members, setMembers] = useState([]);
+  const [filterUserId, setFilterUserId] = useState(null);
+
+  const filteredDetections = useMemo(() => {
+    if (filterUserId == null) return detections;
+    return detections.filter((d) => d.reporter_user_id === filterUserId);
+  }, [detections, filterUserId]);
+
+  useEffect(() => {
+    if (filterUserId == null) return;
+    if (selectedId && !filteredDetections.some((d) => d.id === selectedId)) {
+      onSelect?.(null);
+    }
+  }, [filterUserId, filteredDetections, selectedId, onSelect]);
 
   if (!isOwner) {
     return (
@@ -38,9 +52,11 @@ export default function SupervisorPage({
     );
   }
 
-  const pinned = detections.filter((d) => d.latitude != null && d.longitude != null).length;
+  const pinned = filteredDetections.filter(
+    (d) => d.latitude != null && d.longitude != null
+  ).length;
   const reporters = new Set(
-    detections.map((d) => d.reporter_name).filter(Boolean)
+    filteredDetections.map((d) => d.reporter_user_id).filter(Boolean)
   ).size;
 
   return (
@@ -48,6 +64,7 @@ export default function SupervisorPage({
       <header className="supervisor-hero">
         <div className="supervisor-hero-text">
           <h2 className="supervisor-title">{t.adminPanelTitle}</h2>
+          <p className="supervisor-sub">{t.supervisorMapSub}</p>
         </div>
         <div className="supervisor-kpis">
           <article className="supervisor-kpi">
@@ -63,7 +80,7 @@ export default function SupervisorPage({
             <span className="supervisor-kpi-label">{t.supervisorKpiReporters}</span>
           </article>
           <article className="supervisor-kpi">
-            <span className="supervisor-kpi-value">{detections.length}</span>
+            <span className="supervisor-kpi-value">{filteredDetections.length}</span>
             <span className="supervisor-kpi-label">{t.supervisorKpiRecords}</span>
           </article>
           <span className={`supervisor-live ${wsConnected ? "on" : "off"}`}>
@@ -73,10 +90,18 @@ export default function SupervisorPage({
         </div>
       </header>
 
+      <SupervisorMapFilter
+        members={members}
+        detections={detections}
+        value={filterUserId}
+        onChange={setFilterUserId}
+      />
+
       <section className="supervisor-map-section" aria-label={t.supervisorMapTitle}>
         <div className="supervisor-map-frame">
           <PotholeMap
-            detections={detections}
+            key={filterUserId ?? "all"}
+            detections={filteredDetections}
             selectedId={selectedId}
             onSelect={onSelect}
             onDelete={onDelete}
@@ -97,7 +122,7 @@ export default function SupervisorPage({
             </button>
             <DetectionDetail
               selected={selected}
-              detections={detections}
+              detections={filteredDetections}
               deletingId={deletingId}
               onDelete={onDelete}
               onConfirm={onConfirm}
