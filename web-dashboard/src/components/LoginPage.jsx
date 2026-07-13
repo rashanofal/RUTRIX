@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import { useLocale } from "../context/LocaleContext";
 import LangToggle from "./LangToggle";
+import PasswordInput from "./PasswordInput";
 
 function initialAuthMode() {
   try {
@@ -96,13 +97,13 @@ export default function LoginPage() {
               onChange={(e) => setForm({ ...form, email: e.target.value })}
               required
             />
-            <input
-              type="password"
+            <PasswordInput
               placeholder={t.password}
               value={form.password}
               onChange={(e) => setForm({ ...form, password: e.target.value })}
               required
               minLength={6}
+              autoComplete={mode === "login" ? "current-password" : "new-password"}
             />
             {error && <p className="login-error">{error}</p>}
             <button type="submit" disabled={loading} className="login-btn">

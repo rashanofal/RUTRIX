@@ -89,13 +89,58 @@ export function AuthProvider({ children }) {
     return data;
   }, []);
 
+  const persistAuth = useCallback((data) => {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    setAuth(data);
+  }, []);
+
   const logout = useCallback(() => {
     localStorage.removeItem(STORAGE_KEY);
     setAuth(null);
   }, []);
 
+  const updateProfile = useCallback(async (full_name) => {
+    const token = loadStored()?.access_token;
+    if (!token) throw new Error("انتهت الجلسة — سجّل الدخول مرة أخرى");
+    const res = await fetch("/api/auth/me", {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ full_name }),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || "فشل تحديث الملف الشخصي");
+    }
+    const data = await res.json();
+    persistAuth(data);
+    return data;
+  }, [persistAuth]);
+
+  const changePassword = useCallback(async (current_password, new_password) => {
+    const token = loadStored()?.access_token;
+    if (!token) throw new Error("انتهت الجلسة — سجّل الدخول مرة أخرى");
+    const res = await fetch("/api/auth/change-password", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ current_password, new_password }),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || "فشل تغيير كلمة المرور");
+    }
+    return res.json();
+  }, []);
+
   return (
-    <AuthContext.Provider value={{ auth, loading, login, register, logout }}>
+    <AuthContext.Provider
+      value={{ auth, loading, login, register, logout, updateProfile, changePassword }}
+    >
       {children}
     </AuthContext.Provider>
   );

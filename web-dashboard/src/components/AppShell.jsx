@@ -11,6 +11,7 @@ const NAV = [
   { id: "supervisor", icon: "supervisor", labelKey: "navSupervisor", adminOnly: true },
   { id: "intel", icon: "intel", labelKey: "navIntel" },
   { id: "mobile", icon: "mobile", labelKey: "navMobile" },
+  { id: "profile", icon: "profile", labelKey: "navProfile" },
 ];
 
 export default function AppShell({
@@ -73,6 +74,24 @@ export default function AppShell({
           </div>
           <div className="topbar-end">
             <LangToggle className="lang-toggle-topbar" />
+            <button
+              type="button"
+              className="topbar-user-chip"
+              onClick={() => onNavigate("profile")}
+              title={t.navProfile}
+            >
+              <span className="topbar-user-avatar" aria-hidden>
+                {(auth?.user?.full_name || "?")
+                  .trim()
+                  .split(/\s+/)
+                  .filter(Boolean)
+                  .slice(0, 2)
+                  .map((p) => p[0])
+                  .join("")
+                  .toUpperCase() || "R"}
+              </span>
+              <span className="topbar-user-name">{auth?.user?.full_name}</span>
+            </button>
             {auth?.organization?.name && (
               <span className="topbar-org-pill">{auth.organization.name}</span>
             )}

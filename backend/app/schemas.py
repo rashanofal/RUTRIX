@@ -87,8 +87,18 @@ class UserResponse(BaseModel):
     email: str
     full_name: str
     role: str | None = None
+    last_login_at: datetime | None = None
 
     model_config = {"from_attributes": True}
+
+
+class UpdateProfileRequest(BaseModel):
+    full_name: str = Field(..., min_length=2, max_length=200)
+
+
+class ChangePasswordRequest(BaseModel):
+    current_password: str = Field(..., min_length=6)
+    new_password: str = Field(..., min_length=6)
 
 
 class AuthResponse(BaseModel):

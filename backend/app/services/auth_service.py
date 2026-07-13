@@ -162,3 +162,19 @@ def invite_user_to_organization(
     db.commit()
     db.refresh(user)
     return user
+
+
+def update_user_profile(db: Session, user: User, full_name: str) -> User:
+    user.full_name = full_name.strip()
+    db.commit()
+    db.refresh(user)
+    return user
+
+
+def change_user_password(db: Session, user: User, current_password: str, new_password: str) -> None:
+    if not verify_password(current_password, user.password_hash):
+        raise ValueError("كلمة المرور الحالية غير صحيحة")
+    if current_password == new_password:
+        raise ValueError("كلمة المرور الجديدة يجب أن تختلف عن الحالية")
+    user.password_hash = hash_password(new_password)
+    db.commit()

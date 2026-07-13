@@ -7,8 +7,22 @@ from sqlalchemy.orm import Session
 from app.database import get_db
 from app.dependencies import get_current_organization, get_current_user
 from app.models import Organization, OrganizationMember, User
-from app.schemas import AuthResponse, LoginRequest, OrganizationResponse, RegisterRequest, UserResponse
-from app.services.auth_service import authenticate, create_access_token, register_user
+from app.schemas import (
+    AuthResponse,
+    ChangePasswordRequest,
+    LoginRequest,
+    OrganizationResponse,
+    RegisterRequest,
+    UpdateProfileRequest,
+    UserResponse,
+)
+from app.services.auth_service import (
+    authenticate,
+    change_user_password,
+    create_access_token,
+    register_user,
+    update_user_profile,
+)
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
 security = HTTPBearer()
@@ -28,6 +42,7 @@ def _user_response(db: Session, user: User, org_id: int) -> UserResponse:
         email=user.email,
         full_name=user.full_name,
         role=membership.role.value if membership else None,
+        last_login_at=user.last_login_at,
     )
 
 
@@ -82,3 +97,32 @@ def me(
         user=_user_response(db, user, org.id),
         organization=OrganizationResponse.model_validate(org),
     )
+
+
+@router.patch("/me", response_model=AuthResponse)
+def update_me(
+    payload: UpdateProfileRequest,
+    credentials: HTTPAuthorizationCredentials = Depends(security),
+    user: User = Depends(get_current_user),
+    org: Organization = Depends(get_current_organization),
+    db: Session = Depends(get_db),
+):
+    user = update_user_profile(db, user, payload.full_name)
+    return AuthResponse(
+        access_token=credentials.credentials,
+        user=_user_response(db, user, org.id),
+        organization=OrganizationResponse.model_validate(org),
+    )
+
+
+@router.post("/change-password")
+def change_password(
+    payload: ChangePasswordRequest,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    try:
+        change_user_password(db, user, payload.current_password, payload.new_password)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e)) from e
+    return {"message": "تم تحديث كلمة المرور"}

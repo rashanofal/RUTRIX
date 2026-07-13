@@ -7,6 +7,7 @@ import FieldPage from "./pages/FieldPage";
 import OperationsPage from "./pages/OperationsPage";
 import IntelligencePage from "./pages/IntelligencePage";
 import MobilePage from "./pages/MobilePage";
+import ProfilePage from "./pages/ProfilePage";
 import SupervisorPage from "./pages/SupervisorPage";
 import { useAuth } from "./context/AuthContext";
 import { useLocale } from "./context/LocaleContext";
@@ -366,6 +367,8 @@ function Dashboard() {
         return <IntelligencePage stats={stats} refreshKey={maintRefresh} detections={detections} />;
       case "mobile":
         return <MobilePage />;
+      case "profile":
+        return <ProfilePage logout={logout} />;
       default:
         return null;
     }
