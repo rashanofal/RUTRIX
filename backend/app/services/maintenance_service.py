@@ -73,15 +73,13 @@ def create_work_order(
 ) -> WorkOrder:
     det = None
     if detection_id:
-        det = (
-            db.query(PotholeDetection)
-            .filter(
-                PotholeDetection.id == detection_id,
-                PotholeDetection.organization_id == organization_id,
-            )
-            .first()
-        )
+        det = db.query(PotholeDetection).filter(PotholeDetection.id == detection_id).first()
         if not det:
+            raise ValueError("Detection not found")
+        if det.organization_id is None:
+            det.organization_id = organization_id
+            db.flush()
+        elif det.organization_id != organization_id:
             raise ValueError("Detection not found")
 
     if not title:

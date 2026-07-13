@@ -78,11 +78,9 @@ function Dashboard() {
       const data = await fetchAllDetections();
       const keepId = selectedIdRef.current;
       if (keepId && !data.some((d) => d.id === keepId)) {
-        const cached = selectedSnapshotRef.current;
-        if (cached?.id === keepId) {
-          setDetections([cached, ...data]);
-          return;
-        }
+        setSelectedId(null);
+        selectedSnapshotRef.current = null;
+        setSelectedSnapshot(null);
       }
       setDetections(data);
     } catch {
@@ -96,6 +94,11 @@ function Dashboard() {
       const [statsData, persisted] = await Promise.all([fetchStats(), fetchAllDetections()]);
       setStats(statsData);
       setDetections(persisted);
+      if (selectedIdRef.current && !persisted.some((d) => d.id === selectedIdRef.current)) {
+        setSelectedId(null);
+        selectedSnapshotRef.current = null;
+        setSelectedSnapshot(null);
+      }
       if (statsData?.total_potholes == null) {
         setStaleServer(true);
       } else {

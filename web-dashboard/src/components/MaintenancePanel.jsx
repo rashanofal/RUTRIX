@@ -168,6 +168,12 @@ export default function MaintenancePanel({
       window.alert(t.selectDetectionFirst);
       return;
     }
+    if (!detections.some((d) => d.id === selected.id)) {
+      window.alert(t.staleDetection);
+      onSelect?.(null);
+      onChanged?.();
+      return;
+    }
     setCreating(true);
     try {
       await createWorkOrder({ detection_id: selected.id });
@@ -176,7 +182,13 @@ export default function MaintenancePanel({
       window.alert(t.workOrderCreated);
     } catch (err) {
       const detail = err?.message && err.message !== "Create work order failed" ? err.message : "";
-      window.alert(detail ? `${t.workOrderFail}\n${detail}` : t.workOrderFail);
+      if (detail.toLowerCase().includes("not found")) {
+        window.alert(t.staleDetection);
+        onSelect?.(null);
+        onChanged?.();
+      } else {
+        window.alert(detail ? `${t.workOrderFail}\n${detail}` : t.workOrderFail);
+      }
     } finally {
       setCreating(false);
     }
