@@ -264,6 +264,21 @@ export async function inviteTeamMember(data) {
   return res.json();
 }
 
+export async function removeTeamMember(userId) {
+  const res = await apiFetch(`/api/team/members/${userId}`, { method: "DELETE" });
+  if (!res.ok) {
+    let detail = "";
+    try {
+      const body = await res.json();
+      detail = body?.detail || "";
+    } catch {
+      /* ignore */
+    }
+    throw new Error(detail || "Remove member failed");
+  }
+  return res.json();
+}
+
 export async function fetchRouteQuality(fromLat, fromLon, toLat, toLon) {
   const params = new URLSearchParams({
     from_lat: fromLat,

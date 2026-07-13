@@ -29,6 +29,11 @@ export default function DetectionDetail({
           {t.multiplePotholes.replace("{n}", String(potholeSiblings.length))}
         </p>
       )}
+      {selected.reporter_name ? (
+        <p className="detail-reporter">
+          {t.uploadedBy}: <strong>{selected.reporter_name}</strong>
+        </p>
+      ) : null}
       <p className="detail-meta">
         {selected.class_name === "photo" ? t.photo : t.pothole} #{selected.id}
         {selected.class_name !== "photo" && (
@@ -49,14 +54,16 @@ export default function DetectionDetail({
         </p>
       )}
       <DetectionStatusPipeline detection={selected} />
-      <button
-        type="button"
-        className="delete-one-btn"
-        disabled={deletingId === selected.id}
-        onClick={() => onDelete(selected.id)}
-      >
-        {deletingId === selected.id ? t.deleting : `🗑️ ${t.delete}`}
-      </button>
+      {onDelete ? (
+        <button
+          type="button"
+          className="delete-one-btn"
+          disabled={deletingId === selected.id}
+          onClick={() => onDelete(selected.id)}
+        >
+          {deletingId === selected.id ? t.deleting : `🗑️ ${t.delete}`}
+        </button>
+      ) : null}
       {selected.class_name !== "photo" && (
         <div className="detail-actions">
           <button type="button" className="confirm-btn" onClick={() => onConfirm(selected.id)}>

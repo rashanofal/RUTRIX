@@ -110,6 +110,11 @@ export default function DetectionList({
                 )}
               </div>
               <div className="meta">
+                {d.reporter_name ? (
+                  <span className="meta-reporter">
+                    {t.uploadedBy}: {d.reporter_name}
+                  </span>
+                ) : null}
                 {d.latitude != null
                   ? `${d.latitude?.toFixed(5)}, ${d.longitude?.toFixed(5)}`
                   : t.noGps}

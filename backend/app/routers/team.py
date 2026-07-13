@@ -31,6 +31,7 @@ def list_members(
             full_name=u.full_name,
             role=m.role.value,
             joined_at=m.created_at,
+            last_login_at=u.last_login_at,
         )
         for m, u in rows
     ]
@@ -80,4 +81,44 @@ def invite_member(
         full_name=user.full_name,
         role=member.role.value if member else payload.role.value,
         joined_at=member.created_at if member else user.created_at,
+        last_login_at=user.last_login_at,
     )
+
+
+@router.delete("/members/{user_id}")
+def remove_member(
+    user_id: int,
+    current: User = Depends(get_current_user),
+    org: Organization = Depends(get_current_organization),
+    db: Session = Depends(get_db),
+):
+    membership = (
+        db.query(OrganizationMember)
+        .filter(
+            OrganizationMember.organization_id == org.id,
+            OrganizationMember.user_id == current.id,
+        )
+        .first()
+    )
+    if not membership or membership.role not in (MemberRole.owner, MemberRole.admin):
+        raise HTTPException(status_code=403, detail="هذا الإجراء متاح للمشرفين فقط")
+
+    if user_id == current.id:
+        raise HTTPException(status_code=400, detail="لا يمكن إزالة حسابك")
+
+    target = (
+        db.query(OrganizationMember)
+        .filter(
+            OrganizationMember.organization_id == org.id,
+            OrganizationMember.user_id == user_id,
+        )
+        .first()
+    )
+    if not target:
+        raise HTTPException(status_code=404, detail="المستخدم غير موجود في المنظمة")
+    if target.role == MemberRole.owner:
+        raise HTTPException(status_code=400, detail="لا يمكن إزالة مالك المنظمة")
+
+    db.delete(target)
+    db.commit()
+    return {"message": "ok", "user_id": user_id}

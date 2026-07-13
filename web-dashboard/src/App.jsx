@@ -20,10 +20,12 @@ import {
   updateDetectionStatus,
   useWebSocket,
 } from "./hooks/useApi";
+import { useIsAdmin } from "./hooks/useIsAdmin";
 
 function Dashboard() {
   const { auth, logout } = useAuth();
   const { t } = useLocale();
+  const isAdmin = useIsAdmin();
   const [page, setPage] = useState("overview");
   const [detections, setDetections] = useState([]);
   const [stats, setStats] = useState(null);
@@ -161,6 +163,10 @@ function Dashboard() {
   );
 
   const handleClearMap = async () => {
+    if (!isAdmin) {
+      window.alert(t.adminOnlyHint);
+      return;
+    }
     if (!window.confirm(t.clearConfirm)) return;
     setClearing(true);
     try {
@@ -177,6 +183,10 @@ function Dashboard() {
   };
 
   const handleDelete = async (id) => {
+    if (!isAdmin) {
+      window.alert(t.adminOnlyHint);
+      return;
+    }
     if (!window.confirm(t.deleteConfirm)) return;
     setDeletingId(id);
     try {
@@ -286,8 +296,9 @@ function Dashboard() {
             selectedId={selectedId}
             onSelect={setSelectedId}
             onBoundsChange={handleBoundsChange}
-            onDelete={handleDelete}
+            onDelete={isAdmin ? handleDelete : undefined}
             deletingId={deletingId}
+            isAdmin={isAdmin}
             onConfirm={handleConfirm}
             onVerify={handleVerify}
             onReject={handleReject}
@@ -303,7 +314,8 @@ function Dashboard() {
             selectedId={selectedId}
             onSelect={setSelectedId}
             deletingId={deletingId}
-            onDelete={handleDelete}
+            onDelete={isAdmin ? handleDelete : undefined}
+            isAdmin={isAdmin}
             onConfirm={handleConfirm}
             onVerify={handleVerify}
             onReject={handleReject}
@@ -324,6 +336,8 @@ function Dashboard() {
             }}
             onClearMap={handleClearMap}
             clearing={clearing}
+            onDelete={handleDelete}
+            deletingId={deletingId}
           />
         );
       case "intel":

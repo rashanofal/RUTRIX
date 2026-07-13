@@ -12,6 +12,7 @@ export default function FieldPage({
   onSelect,
   deletingId,
   onDelete,
+  isAdmin = false,
   onConfirm,
   onVerify,
   onReject,
@@ -48,6 +49,7 @@ export default function FieldPage({
               detections={detections}
               deletingId={deletingId}
               onDelete={onDelete}
+              isAdmin={isAdmin}
               onConfirm={onConfirm}
               onVerify={onVerify}
               onReject={onReject}

@@ -49,6 +49,10 @@ WORK_ORDER_COLUMNS = [
     ("declined_reason", "TEXT"),
 ]
 
+USER_COLUMNS = [
+    ("last_login_at", "TIMESTAMP"),
+]
+
 
 def run_migrations() -> None:
     Base.metadata.create_all(bind=engine)
@@ -59,6 +63,8 @@ def run_migrations() -> None:
             _add_column_if_missing("pothole_detections", col, typ)
         for col, typ in WORK_ORDER_COLUMNS:
             _add_column_if_missing("work_orders", col, typ)
+        for col, typ in USER_COLUMNS:
+            _add_column_if_missing("users", col, typ)
 
 
 def backfill_intelligence() -> None:

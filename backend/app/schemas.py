@@ -130,6 +130,8 @@ class DetectionResponse(BaseModel):
     predicted_days_to_critical: int | None = None
     bicycle_safe: bool = True
     priority_rank: int = 0
+    reporter_user_id: int | None = None
+    reporter_name: str | None = None
 
     model_config = {"from_attributes": True}
 
@@ -355,6 +357,7 @@ class TeamMemberResponse(BaseModel):
     full_name: str
     role: str
     joined_at: datetime
+    last_login_at: datetime | None = None
 
     model_config = {"from_attributes": True}
 

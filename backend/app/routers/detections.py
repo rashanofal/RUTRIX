@@ -61,10 +61,35 @@ def _image_url(image_path: str | None, organization_id: int | None = None) -> st
     return f"/api/uploads/{name}"
 
 
-def _to_response(d, organization_id: int | None = None) -> DetectionResponse:
+def _reporter_names(db: Session, items: list) -> dict[int, str]:
+    ids = {d.reporter_user_id for d in items if getattr(d, "reporter_user_id", None)}
+    if not ids:
+        return {}
+    rows = db.query(User.id, User.full_name).filter(User.id.in_(ids)).all()
+    return {uid: name for uid, name in rows}
+
+
+def _to_response(
+    d,
+    organization_id: int | None = None,
+    reporter_names: dict[int, str] | None = None,
+) -> DetectionResponse:
     data = DetectionResponse.model_validate(d)
     org_id = organization_id or getattr(d, "organization_id", None)
-    return data.model_copy(update={"image_url": _image_url(d.image_path, org_id)})
+    rep_id = getattr(d, "reporter_user_id", None)
+    rep_name = reporter_names.get(rep_id) if reporter_names and rep_id else None
+    return data.model_copy(
+        update={
+            "image_url": _image_url(d.image_path, org_id),
+            "reporter_user_id": rep_id,
+            "reporter_name": rep_name,
+        }
+    )
+
+
+def _to_responses(db: Session, items: list, org_id: int) -> list[DetectionResponse]:
+    names = _reporter_names(db, items)
+    return [_to_response(d, org_id, names) for d in items]
 
 
 @router.get("", response_model=list[DetectionResponse])
@@ -77,7 +102,7 @@ def list_detections(
     db: Session = Depends(get_db),
 ):
     items = get_detections_in_bounds(db, min_lat, min_lon, max_lat, max_lon, org.id)
-    return [_to_response(d, org.id) for d in items]
+    return _to_responses(db, items, org.id)
 
 
 @router.get("/recent", response_model=list[DetectionResponse])
@@ -94,7 +119,8 @@ def recent_detections(
         .limit(limit)
         .all()
     )
-    payload = [_to_response(d, org.id).model_dump(mode="json") for d in items]
+    names = _reporter_names(db, items)
+    payload = [_to_response(d, org.id, names).model_dump(mode="json") for d in items]
     return JSONResponse(
         content=payload,
         headers={"Cache-Control": "no-store, no-cache, must-revalidate"},
@@ -130,7 +156,8 @@ def all_detections(
         .limit(limit)
         .all()
     )
-    payload = [_to_response(d, org.id).model_dump(mode="json") for d in items]
+    names = _reporter_names(db, items)
+    payload = [_to_response(d, org.id, names).model_dump(mode="json") for d in items]
     return JSONResponse(
         content=payload,
         headers={"Cache-Control": "no-store, no-cache, must-revalidate"},
@@ -233,7 +260,7 @@ async def update_detection_status(
         det.cloud_verified = True
     db.commit()
     db.refresh(det)
-    resp = _to_response(det, org.id)
+    resp = _to_response(det, org.id, _reporter_names(db, [det]))
     await manager.broadcast(org.id, {"type": "detection_updated", "data": resp.model_dump()})
     return resp
 
@@ -258,7 +285,7 @@ async def create_detection_endpoint(
         detection_status=status,
         organization_id=org.id,
     )
-    response = _to_response(detection, org.id)
+    response = _to_response(detection, org.id, _reporter_names(db, [detection]))
     await manager.broadcast(org.id, {"type": "new_detection", "data": response.model_dump()})
     return response
 
@@ -417,7 +444,7 @@ async def _upload_and_detect_impl(
             confirmed=cloud_verified or status == DetectionStatus.verified,
             points=points_for_detection(detection),
         )
-        resp = _to_response(detection, org.id)
+        resp = _to_response(detection, org.id, {user.id: user.full_name})
         results.append(resp)
         if has_map_location:
             mapped_count += 1
@@ -444,7 +471,7 @@ async def _upload_and_detect_impl(
             organization_id=org.id,
             reporter_user_id=user.id,
         )
-        resp = _to_response(photo_marker, org.id)
+        resp = _to_response(photo_marker, org.id, {user.id: user.full_name})
         results.append(resp)
         mapped_count = 1
         await manager.broadcast(org.id, {"type": "new_detection", "data": resp.model_dump()})
