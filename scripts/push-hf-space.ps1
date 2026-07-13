@@ -1,5 +1,4 @@
 param(
-    [Parameter(Mandatory = $true)]
     [string]$Token,
     [string]$Space = "Rashanofal8/rutrix"
 )
@@ -9,15 +8,25 @@ $root = Split-Path $PSScriptRoot -Parent
 $tmp = Join-Path $env:TEMP "rutrix-hf-push"
 $spaceUrl = "https://huggingface.co/spaces/$Space"
 
-Write-Host "==> Logging in to Hugging Face" -ForegroundColor Cyan
-$env:HF_TOKEN = $Token
-huggingface-cli login --token $Token --add-to-git-credential | Out-Null
+if ($Token) {
+    Write-Host "==> Logging in to Hugging Face" -ForegroundColor Cyan
+    $env:HF_TOKEN = $Token
+    huggingface-cli login --token $Token --add-to-git-credential | Out-Null
+} else {
+    $who = huggingface-cli whoami 2>&1
+    if ($LASTEXITCODE -ne 0) {
+        throw "Not logged in to Hugging Face. Pass -Token or run: huggingface-cli login"
+    }
+    Write-Host "==> Using existing Hugging Face login ($who)" -ForegroundColor Cyan
+}
 
 if (Test-Path $tmp) { Remove-Item -Recurse -Force $tmp }
 New-Item -ItemType Directory -Path $tmp | Out-Null
 
 Write-Host "==> Cloning Space: $Space" -ForegroundColor Cyan
-git clone "https://huggingface.co/spaces/$Space" $tmp 2>&1 | Out-Null
+git clone "https://huggingface.co/spaces/$Space" $tmp 2>&1 | ForEach-Object {
+    if ($_ -match '^(Cloning|remote:|Receiving|Resolving)') { Write-Host $_ }
+}
 
 Write-Host "==> Copying project files" -ForegroundColor Cyan
 Get-ChildItem $tmp -Force | Where-Object { $_.Name -ne ".git" } | Remove-Item -Recurse -Force
