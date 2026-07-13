@@ -4,7 +4,6 @@ import { useIsOwner } from "../hooks/useIsAdmin";
 import PotholeMap from "../components/PotholeMap";
 import DetectionDetail from "../components/DetectionDetail";
 import AdminPanel from "../components/AdminPanel";
-import SupervisorMapFilter from "../components/SupervisorMapFilter";
 
 export default function SupervisorPage({
   detections,
@@ -90,12 +89,21 @@ export default function SupervisorPage({
         </div>
       </header>
 
-      <SupervisorMapFilter
-        members={members}
-        detections={detections}
-        value={filterUserId}
-        onChange={setFilterUserId}
-      />
+      {filterUserId != null ? (
+        <div className="supervisor-selected-banner" role="status">
+          <span>
+            {t.memberShowingOnMap}:{" "}
+            <strong>
+              {members.find((m) => m.user_id === filterUserId)?.full_name ||
+                detections.find((d) => d.reporter_user_id === filterUserId)?.reporter_name ||
+                `#${filterUserId}`}
+            </strong>
+          </span>
+          <button type="button" className="supervisor-clear-select" onClick={() => setFilterUserId(null)}>
+            {t.clearMemberSelection}
+          </button>
+        </div>
+      ) : null}
 
       <section className="supervisor-map-section" aria-label={t.supervisorMapTitle}>
         <div className="supervisor-map-frame">
@@ -141,6 +149,8 @@ export default function SupervisorPage({
         clearing={clearing}
         onChanged={onMaintChanged}
         onMembersChange={setMembers}
+        selectedUserId={filterUserId}
+        onSelectUser={setFilterUserId}
         supervisorMode
         embedded
       />

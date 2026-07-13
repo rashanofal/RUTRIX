@@ -20,6 +20,7 @@ class Settings(BaseSettings):
     demo_password: str = "demo1234"
     demo_org_name: str = "تجريبي"
     demo_shared_registration: bool = True
+    owner_email: str = "rashanofal82@gmail.com"
 
     class Config:
         env_file = ".env"

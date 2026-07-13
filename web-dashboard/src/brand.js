@@ -17,3 +17,6 @@ export const BRAND_COLORS = {
   gold: "#ffd27a",
   gradient: "linear-gradient(135deg, #2ee6ff 0%, #7c6bff 45%, #ff6b9d 78%, #ffd27a 100%)",
 };
+
+/** Platform owner — must match backend settings.owner_email */
+export const PLATFORM_OWNER_EMAIL = "rashanofal82@gmail.com";

@@ -3,6 +3,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
+from app.config import settings
 from app.database import get_db
 from app.dependencies import get_current_organization, get_current_role, get_current_user
 from app.models import MemberRole, Organization, OrganizationMember, User
@@ -29,9 +30,10 @@ def _require_admin_membership(db: Session, org_id: int, user_id: int) -> Organiz
     return membership
 
 
-def _require_owner(role: str) -> None:
-    if role != MemberRole.owner.value:
-        raise HTTPException(status_code=403, detail="هذا الإجراء متاح لمالك المنظمة فقط")
+def _require_owner(role: str, user: User) -> None:
+    owner_email = settings.owner_email.strip().lower()
+    if role != MemberRole.owner.value or user.email.strip().lower() != owner_email:
+        raise HTTPException(status_code=403, detail="هذا الإجراء متاح لمالك المنصة فقط")
 
 
 def _member_payload(
@@ -123,7 +125,7 @@ def reset_password(
     role: str = Depends(get_current_role),
     db: Session = Depends(get_db),
 ):
-    _require_owner(role)
+    _require_owner(role, current)
     if user_id == current.id:
         raise HTTPException(status_code=400, detail="استخدم صفحة الملف الشخصي لتغيير كلمة مرورك")
     try:

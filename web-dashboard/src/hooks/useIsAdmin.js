@@ -1,4 +1,5 @@
 import { useAuth } from "../context/AuthContext";
+import { PLATFORM_OWNER_EMAIL } from "../brand";
 
 const ADMIN_ROLES = new Set(["owner", "admin"]);
 
@@ -9,7 +10,8 @@ export function useIsAdmin() {
 
 export function useIsOwner() {
   const { auth } = useAuth();
-  return auth?.user?.role === "owner";
+  const email = auth?.user?.email?.trim().toLowerCase();
+  return auth?.user?.role === "owner" && email === PLATFORM_OWNER_EMAIL;
 }
 
 export function isAdminRole(role) {

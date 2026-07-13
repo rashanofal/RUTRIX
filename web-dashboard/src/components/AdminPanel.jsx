@@ -39,6 +39,8 @@ export default function AdminPanel({
   embedded = false,
   supervisorMode = false,
   onMembersChange,
+  selectedUserId = null,
+  onSelectUser,
 }) {
   const { t, locale } = useLocale();
   const isAdmin = useIsAdmin();
@@ -55,7 +57,17 @@ export default function AdminPanel({
   });
 
   const roleLabels = ROLE_LABELS[locale] || ROLE_LABELS.ar;
-  const media = useMemo(() => groupMedia(detections), [detections]);
+  const visibleDetections = useMemo(() => {
+    if (!supervisorMode || selectedUserId == null) return detections;
+    return detections.filter((d) => d.reporter_user_id === selectedUserId);
+  }, [detections, supervisorMode, selectedUserId]);
+  const media = useMemo(() => groupMedia(visibleDetections), [visibleDetections]);
+  const selectedMember = members.find((m) => m.user_id === selectedUserId);
+
+  const toggleMember = (member) => {
+    if (!onSelectUser) return;
+    onSelectUser(selectedUserId === member.user_id ? null : member.user_id);
+  };
 
   const loadMembers = () => {
     fetchTeamMembers()
@@ -147,11 +159,13 @@ export default function AdminPanel({
         {t.adminUsersTitle} ({members.length})
       </h3>
       {supervisorMode ? <p className="intel-sub admin-users-sub">{t.adminUsersSub}</p> : null}
+      {supervisorMode ? <p className="admin-select-hint">{t.memberSelectHint}</p> : null}
 
       <div className="admin-table-wrap">
         <table className={`admin-table${supervisorMode ? " admin-table-supervisor" : ""}`}>
           <thead>
             <tr>
+              {supervisorMode ? <th className="admin-select-col" aria-label={t.memberSelectCol} /> : null}
               <th>{t.fullName}</th>
               <th>{t.email}</th>
               {supervisorMode ? <th>{t.memberPassword}</th> : null}
@@ -169,8 +183,32 @@ export default function AdminPanel({
             </tr>
           </thead>
           <tbody>
-            {members.map((m) => (
-              <tr key={m.user_id}>
+            {members.map((m) => {
+              const isSelected = supervisorMode && selectedUserId === m.user_id;
+              return (
+              <tr
+                key={m.user_id}
+                className={isSelected ? "admin-row-selected" : supervisorMode ? "admin-row-selectable" : undefined}
+                onClick={supervisorMode ? () => toggleMember(m) : undefined}
+                onKeyDown={
+                  supervisorMode
+                    ? (e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.preventDefault();
+                          toggleMember(m);
+                        }
+                      }
+                    : undefined
+                }
+                tabIndex={supervisorMode ? 0 : undefined}
+                role={supervisorMode ? "button" : undefined}
+                aria-pressed={supervisorMode ? isSelected : undefined}
+              >
+                {supervisorMode ? (
+                  <td className="admin-select-col" aria-hidden>
+                    <span className={`admin-select-dot${isSelected ? " on" : ""}`} />
+                  </td>
+                ) : null}
                 <td>{m.full_name}</td>
                 <td dir="ltr" className="admin-email">
                   {m.email}
@@ -202,7 +240,7 @@ export default function AdminPanel({
                   </>
                 ) : null}
                 <td className="admin-when">{formatWhen(m.last_login_at)}</td>
-                <td className="admin-actions">
+                <td className="admin-actions" onClick={(e) => e.stopPropagation()}>
                   {m.role !== "owner" ? (
                     <div className="admin-action-btns">
                       {supervisorMode ? (
@@ -225,10 +263,11 @@ export default function AdminPanel({
                   ) : null}
                 </td>
               </tr>
-            ))}
+            );
+            })}
             {!members.length && (
               <tr>
-                <td colSpan={supervisorMode ? 10 : 5} className="intel-empty">
+                <td colSpan={supervisorMode ? 11 : 5} className="intel-empty">
                   {t.noTeamMembers}
                 </td>
               </tr>
@@ -288,9 +327,13 @@ export default function AdminPanel({
       )}
 
       <h3 className="intel-h3 admin-media-title">
-        {t.adminMediaTitle} ({media.length})
+        {selectedMember
+          ? `${t.adminMediaTitle} — ${selectedMember.full_name} (${media.length})`
+          : `${t.adminMediaTitle} (${media.length})`}
       </h3>
-      <p className="intel-sub">{t.adminMediaSub}</p>
+      <p className="intel-sub">
+        {selectedMember ? t.adminMediaSubSelected : t.adminMediaSub}
+      </p>
       <div className="admin-media-grid">
         {media.map(({ url, items, primary }) => (
           <article key={url} className="admin-media-card">

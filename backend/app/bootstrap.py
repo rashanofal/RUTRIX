@@ -161,12 +161,27 @@ def reconcile_detection_orgs(db: Session) -> None:
         db.commit()
 
 
+def _resolve_platform_owner(db: Session) -> User | None:
+    """Return the configured platform owner user, fixing common email typos."""
+    owner_email = settings.owner_email.strip().lower()
+    user = db.query(User).filter(User.email == owner_email).first()
+    if user:
+        return user
+    typo = owner_email.replace("gmail.com", "gmai.com")
+    if typo != owner_email:
+        wrong = db.query(User).filter(User.email == typo).first()
+        if wrong:
+            wrong.email = owner_email
+            db.commit()
+            db.refresh(wrong)
+            return wrong
+    return None
+
+
 def reconcile_owner_roles(db: Session) -> None:
-    """One owner per org — demo account owns the demo org; others are demoted."""
-    demo_user_id = None
-    demo = db.query(User).filter(User.email == settings.demo_email).first()
-    if demo:
-        demo_user_id = demo.id
+    """One owner per org — platform owner email is the sole owner when present."""
+    owner_user = _resolve_platform_owner(db)
+    owner_user_id = owner_user.id if owner_user else None
 
     changed = False
     for org in db.query(Organization).all():
@@ -180,10 +195,10 @@ def reconcile_owner_roles(db: Session) -> None:
             continue
 
         owner_member = members[0]
-        if demo_user_id:
-            demo_m = next((m for m in members if m.user_id == demo_user_id), None)
-            if demo_m:
-                owner_member = demo_m
+        if owner_user_id:
+            platform_m = next((m for m in members if m.user_id == owner_user_id), None)
+            if platform_m:
+                owner_member = platform_m
 
         for m in members:
             if m.id == owner_member.id:
