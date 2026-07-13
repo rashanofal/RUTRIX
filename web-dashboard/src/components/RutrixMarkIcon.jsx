@@ -1,5 +1,5 @@
-/** Sidebar mark — PNG from brand asset with padded wrapper so the full R stays visible */
-const MARK_V = "12";
+/** Sidebar mark — official motion-line R from brand assets */
+const MARK_V = "13";
 
 export default function RutrixMarkIcon({ className = "" }) {
   return (
