@@ -216,13 +216,35 @@ export async function createWorkOrder(data) {
   return res.json();
 }
 
+async function readApiError(res, fallback) {
+  let detail = "";
+  try {
+    const body = await res.json();
+    if (typeof body?.detail === "string") detail = body.detail;
+    else if (Array.isArray(body?.detail)) {
+      detail = body.detail.map((d) => d.msg || String(d)).join("; ");
+    }
+  } catch {
+    /* ignore */
+  }
+  throw new Error(detail || fallback);
+}
+
 export async function updateWorkOrder(id, data) {
   const res = await apiFetch(`/api/maintenance/work-orders/${id}`, {
     method: "PATCH",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
   });
-  if (!res.ok) throw new Error("Update work order failed");
+  if (!res.ok) await readApiError(res, "Update work order failed");
+  return res.json();
+}
+
+export async function verifyWorkOrder(id) {
+  const res = await apiFetch(`/api/maintenance/work-orders/${id}/verify`, {
+    method: "POST",
+  });
+  if (!res.ok) await readApiError(res, "Verify work order failed");
   return res.json();
 }
 

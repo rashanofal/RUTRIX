@@ -82,6 +82,24 @@ def create_work_order(
         elif det.organization_id != organization_id:
             raise ValueError("Detection not found")
 
+        active = (
+            db.query(WorkOrder)
+            .filter(
+                WorkOrder.organization_id == organization_id,
+                WorkOrder.detection_id == detection_id,
+                WorkOrder.status.notin_(
+                    [
+                        WorkOrderStatus.verified,
+                        WorkOrderStatus.cancelled,
+                        WorkOrderStatus.declined,
+                    ]
+                ),
+            )
+            .first()
+        )
+        if active:
+            raise ValueError("Work order already exists for this detection")
+
     if not title:
         if det:
             title = f"صيانة #{det.id} — {det.anomaly_type or det.class_name}"

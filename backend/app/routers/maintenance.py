@@ -192,15 +192,60 @@ async def patch_work_order(
             detection_id=wo.detection_id,
         )
     if fields.get("status") == WorkOrderStatus.verified and wo.assigned_to_user_id:
-        await notify_user(
-            db,
-            organization_id=org.id,
-            user_id=wo.assigned_to_user_id,
-            type=NotificationType.work_order_verified.value,
-            title="تم اعتماد إنجازك",
-            body=wo.title,
-            work_order_id=wo.id,
+        try:
+            await notify_user(
+                db,
+                organization_id=org.id,
+                user_id=wo.assigned_to_user_id,
+                type=NotificationType.work_order_verified.value,
+                title="تم اعتماد إنجازك",
+                body=wo.title,
+                work_order_id=wo.id,
+            )
+        except Exception:
+            pass
+    return WorkOrderResponse(**work_order_to_dict(db, wo))
+
+
+@router.post("/work-orders/{work_order_id}/verify", response_model=WorkOrderResponse)
+async def verify_work_order(
+    work_order_id: int,
+    user: User = Depends(get_current_user),
+    org: Organization = Depends(get_current_organization),
+    role: str = Depends(get_current_role),
+    db: Session = Depends(get_db),
+):
+    _require_admin(role)
+    existing = get_work_order(db, work_order_id, org.id)
+    if not existing:
+        raise HTTPException(status_code=404, detail="Work order not found")
+    if existing.status != WorkOrderStatus.completed:
+        raise HTTPException(
+            status_code=400,
+            detail="يمكن اعتماد الأمر فقط بعد إتمام الصيانة",
         )
+    wo = update_work_order(
+        db,
+        work_order_id,
+        org.id,
+        actor_user_id=user.id,
+        status=WorkOrderStatus.verified,
+    )
+    if not wo:
+        raise HTTPException(status_code=404, detail="Work order not found")
+    if wo.assigned_to_user_id:
+        try:
+            await notify_user(
+                db,
+                organization_id=org.id,
+                user_id=wo.assigned_to_user_id,
+                type=NotificationType.work_order_verified.value,
+                title="تم اعتماد إنجازك",
+                body=wo.title,
+                work_order_id=wo.id,
+            )
+        except Exception:
+            pass
     return WorkOrderResponse(**work_order_to_dict(db, wo))
 
 

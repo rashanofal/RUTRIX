@@ -5,11 +5,32 @@ import {
   fetchTeamMembers,
   fetchWorkOrders,
   updateWorkOrder,
+  verifyWorkOrder,
 } from "../hooks/useApi";
 import NavIcon from "./NavIcons";
 
+const EARLY_ASSIGN_STATUSES = new Set(["open", "assigned", "declined"]);
+const LOCKED_ASSIGN_STATUSES = new Set([
+  "accepted",
+  "in_progress",
+  "completed",
+  "verified",
+]);
 const STATUS_FLOW = ["open", "assigned", "accepted", "in_progress", "completed", "verified"];
 const CLOSED_STATUSES = new Set(["completed", "verified", "cancelled", "declined"]);
+
+function formatWorkOrderError(err, t) {
+  const detail = err?.message?.trim();
+  if (!detail || detail === "Update work order failed" || detail === "Verify work order failed") {
+    return t.workOrderFail;
+  }
+  if (detail.toLowerCase().includes("not found")) return t.staleWorkOrder;
+  if (detail.includes("المشرفين") || detail.toLowerCase().includes("admin")) {
+    return t.workOrderAdminOnly;
+  }
+  if (detail.toLowerCase().includes("already exists")) return t.workOrderDuplicate;
+  return `${t.workOrderFail}\n${detail}`;
+}
 
 const STATUS_LABELS = {
   ar: {
@@ -186,8 +207,11 @@ export default function MaintenancePanel({
         window.alert(t.staleDetection);
         onSelect?.(null);
         onChanged?.();
+      } else if (detail.toLowerCase().includes("already exists")) {
+        window.alert(t.workOrderDuplicate);
+        await load();
       } else {
-        window.alert(detail ? `${t.workOrderFail}\n${detail}` : t.workOrderFail);
+        window.alert(formatWorkOrderError(err, t));
       }
     } finally {
       setCreating(false);
@@ -195,6 +219,8 @@ export default function MaintenancePanel({
   };
 
   const advanceStatus = async (order) => {
+    if (order.status === "completed") return;
+
     const idx = STATUS_FLOW.indexOf(order.status);
     const next = idx >= 0 && idx < STATUS_FLOW.length - 1 ? STATUS_FLOW[idx + 1] : order.status;
     const payload = { status: next };
@@ -209,28 +235,38 @@ export default function MaintenancePanel({
       if (notes) payload.notes = notes;
     }
 
-    if (order.status === "completed") {
-      if (!window.confirm(`${t.woActionVerify}?`)) return;
-    }
-
     try {
       await updateWorkOrder(order.id, payload);
       await load();
       onChanged?.();
-    } catch {
-      window.alert(t.workOrderFail);
+    } catch (err) {
+      window.alert(formatWorkOrderError(err, t));
+    }
+  };
+
+  const verifyOrder = async (order) => {
+    if (!window.confirm(`${t.woActionVerify}?`)) return;
+    try {
+      await verifyWorkOrder(order.id);
+      await load();
+      onChanged?.();
+      window.alert(t.workOrderVerified);
+    } catch (err) {
+      window.alert(formatWorkOrderError(err, t));
     }
   };
 
   const assignTo = async (order, userId) => {
+    const uid = Number(userId) || null;
+    const payload = { assigned_to_user_id: uid };
+    if (EARLY_ASSIGN_STATUSES.has(order.status)) {
+      payload.status = uid ? "assigned" : "open";
+    }
     try {
-      await updateWorkOrder(order.id, {
-        assigned_to_user_id: Number(userId) || null,
-        status: userId ? "assigned" : "open",
-      });
+      await updateWorkOrder(order.id, payload);
       await load();
-    } catch {
-      window.alert(t.workOrderFail);
+    } catch (err) {
+      window.alert(formatWorkOrderError(err, t));
     }
   };
 
@@ -240,8 +276,8 @@ export default function MaintenancePanel({
       await updateWorkOrder(order.id, { status: "cancelled" });
       await load();
       onChanged?.();
-    } catch {
-      window.alert(t.workOrderFail);
+    } catch (err) {
+      window.alert(formatWorkOrderError(err, t));
     }
   };
 
@@ -392,7 +428,7 @@ export default function MaintenancePanel({
                   className="wo-assign-select"
                   value={wo.assigned_to_user_id || ""}
                   onChange={(e) => assignTo(wo, e.target.value)}
-                  disabled={wo.status === "verified"}
+                  disabled={wo.status === "verified" || LOCKED_ASSIGN_STATUSES.has(wo.status)}
                 >
                   <option value="">{t.unassigned}</option>
                   {team.map((m) => (
@@ -403,13 +439,23 @@ export default function MaintenancePanel({
                 </select>
                 {wo.status !== "verified" && wo.status !== "cancelled" && (
                   <>
-                    <button
-                      type="button"
-                      className="wo-advance-btn"
-                      onClick={() => advanceStatus(wo)}
-                    >
-                      {actionLabel(wo.status, t)}
-                    </button>
+                    {wo.status === "completed" ? (
+                      <button
+                        type="button"
+                        className="wo-advance-btn"
+                        onClick={() => verifyOrder(wo)}
+                      >
+                        {t.woActionVerify}
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        className="wo-advance-btn"
+                        onClick={() => advanceStatus(wo)}
+                      >
+                        {actionLabel(wo.status, t)}
+                      </button>
+                    )}
                     {wo.status === "open" && (
                       <button
                         type="button"
