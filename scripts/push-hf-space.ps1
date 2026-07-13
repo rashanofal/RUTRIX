@@ -22,35 +22,37 @@ git clone "https://huggingface.co/spaces/$Space" $tmp 2>&1 | Out-Null
 Write-Host "==> Copying project files" -ForegroundColor Cyan
 Get-ChildItem $tmp -Force | Where-Object { $_.Name -ne ".git" } | Remove-Item -Recurse -Force
 
-$exclude = @(
-    ".git", "node_modules", ".venv", "venv", "__pycache__",
-    "data\uploads", "data\training", "backend\certs",
-    "backend\pothole.db", ".cursor", "agent-transcripts",
-    "mobile\application-Android.apk", ".expo",
-    "mobile\assets\icon.png", "mobile\assets\adaptive-icon.png",
-    "mobile\assets\splash-icon.png", "mobile\assets\logo.png",
-    "mobile\assets\logo-mark.png",
-    "ml\models\pothole_yolov8n.pt",
+robocopy $root $tmp /E /XD ".git" "node_modules" ".venv" "venv" "__pycache__" "data\uploads" "data\training" "backend\certs" ".cursor" "agent-transcripts" ".expo" "scripts\node_modules" /XF "*.db" "*.apk" /NFL /NDL /NJH /NJS /nc /ns /np | Out-Null
+
+$strip = @(
     "backend\app\assets\fonts",
     "backend\app\static\dashboard",
+    "ml\models\pothole_yolov8n.pt",
+    "mobile\assets\icon.png",
+    "mobile\assets\adaptive-icon.png",
+    "mobile\assets\splash-icon.png",
+    "mobile\assets\logo.png",
+    "mobile\assets\logo-mark.png",
     "backend\app\static\apple-touch-icon.png",
     "backend\app\static\favicon.png",
     "backend\app\static\icon-192.png",
     "backend\app\static\icon-512.png",
     "backend\app\static\logo.png",
     "backend\app\static\logo-mark.png",
-    "web-dashboard\public\brand\hero-ar.png",
-    "web-dashboard\public\brand\hero-en.png",
-    "web-dashboard\public\brand\logo.png",
-    "web-dashboard\public\brand\logo-mark.png",
     "web-dashboard\public\apple-touch-icon.png",
     "web-dashboard\public\favicon.png",
     "web-dashboard\public\icon-192.png",
     "web-dashboard\public\icon-512.png",
+    "web-dashboard\public\brand\hero-ar.png",
+    "web-dashboard\public\brand\hero-en.png",
+    "web-dashboard\public\brand\logo.png",
+    "web-dashboard\public\brand\logo-mark.png",
     "نشر_HuggingFace.txt"
 )
-
-robocopy $root $tmp /E /XD $exclude /XF "*.db" "*.apk" /NFL /NDL /NJH /NJS /nc /ns /np | Out-Null
+foreach ($rel in $strip) {
+    $path = Join-Path $tmp $rel
+    if (Test-Path $path) { Remove-Item $path -Recurse -Force }
+}
 
 Copy-Item (Join-Path $root "HF_README.md") (Join-Path $tmp "README.md") -Force
 
