@@ -521,10 +521,10 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 76px;
-  height: 64px;
-  min-width: 76px;
-  min-height: 64px;
+  width: 44px;
+  height: 38px;
+  min-width: 44px;
+  min-height: 38px;
   padding: 0;
   box-sizing: border-box;
   overflow: visible;
@@ -533,10 +533,10 @@ body {
 
 .nav-rail-brand .rutrix-logo--lockup-stack .rutrix-logo__mark-wrap .rutrix-logo__mark,
 .nav-rail-brand .rutrix-logo--lockup-stack .rutrix-logo__mark-wrap .rutrix-logo__mark-svg {
-  width: 76px;
-  height: 64px;
-  max-width: none;
-  max-height: none;
+  width: 44px;
+  height: 38px;
+  max-width: 44px;
+  max-height: 38px;
   object-fit: contain;
   object-position: center center;
   display: block;
@@ -548,9 +548,9 @@ body {
 
 .nav-rail-brand .rutrix-logo--lockup-stack .rutrix-logo__mark,
 .nav-rail-brand .rutrix-logo--lockup-stack .rutrix-logo__mark-svg {
-  width: 76px;
-  height: 64px;
-  max-width: none;
+  width: 44px;
+  height: 38px;
+  max-width: 44px;
   min-width: 0;
   object-fit: contain;
   object-position: center;
