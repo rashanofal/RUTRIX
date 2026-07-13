@@ -5,13 +5,14 @@ import { fetchTeamMembers } from "../hooks/useApi";
 import PotholeMap from "../components/PotholeMap";
 import DetectionDetail from "../components/DetectionDetail";
 import AdminPanel from "../components/AdminPanel";
-import SupervisorMembersRail, {
+import SupervisorMembersRail from "../components/SupervisorMembersRail";
+import {
   enrichMembersWithReporters,
   filterDetectionsByMember,
+  formatSelectedCount,
   hasMemberSelection,
-  memberFilterKey,
   normalizeMemberFilter,
-} from "../components/SupervisorMembersRail";
+} from "../utils/memberFilter";
 
 export default function SupervisorPage({
   detections,
@@ -49,17 +50,33 @@ export default function SupervisorPage({
     [members, detections]
   );
 
+  const filter = useMemo(() => normalizeMemberFilter(memberFilter), [memberFilter]);
+
   const filteredDetections = useMemo(
     () => filterDetectionsByMember(detections, memberFilter),
     [detections, memberFilter]
   );
+
+  const selectedMembers = useMemo(() => {
+    if (filter.mode !== "users") return [];
+    const ids = new Set(filter.userIds);
+    return displayMembers.filter((m) => ids.has(Number(m.user_id)));
+  }, [filter, displayMembers]);
+
+  const selectedLabel = useMemo(() => {
+    if (filter.mode !== "users" || !selectedMembers.length) return null;
+    if (selectedMembers.length <= 3) {
+      return selectedMembers.map((m) => m.full_name).join(" · ");
+    }
+    return formatSelectedCount(t.supervisorSelectedCount, selectedMembers.length);
+  }, [filter.mode, selectedMembers, t.supervisorSelectedCount]);
 
   useEffect(() => {
     if (!hasMemberSelection(memberFilter)) {
       if (selectedId) onSelect?.(null);
       return;
     }
-    if (selectedId && !filteredDetections.some((d) => d.id === selectedId)) {
+    if (selectedId && !filteredDetections.some((item) => item.id === selectedId)) {
       onSelect?.(null);
     }
   }, [memberFilter, filteredDetections, selectedId, onSelect]);
@@ -78,32 +95,14 @@ export default function SupervisorPage({
     );
   }
 
-  const filter = normalizeMemberFilter(memberFilter);
   const pinned = filteredDetections.filter(
-    (d) => d.latitude != null && d.longitude != null
+    (item) => item.latitude != null && item.longitude != null
   ).length;
   const showSelectPrompt = !hasMemberSelection(memberFilter);
   const showNoPinsHint = hasMemberSelection(memberFilter) && pinned === 0;
   const reporters = new Set(
-    filteredDetections.map((d) => d.reporter_user_id).filter(Boolean)
+    filteredDetections.map((item) => item.reporter_user_id).filter(Boolean)
   ).size;
-
-  const selectedMembers = useMemo(() => {
-    if (filter.mode === "users") {
-      const ids = new Set(filter.userIds);
-      return displayMembers.filter((m) => ids.has(Number(m.user_id)));
-    }
-    return [];
-  }, [filter, displayMembers]);
-
-  const selectedLabel = useMemo(() => {
-    if (filter.mode === "all") return null;
-    if (!selectedMembers.length) return null;
-    if (selectedMembers.length <= 3) {
-      return selectedMembers.map((m) => m.full_name).join(" · ");
-    }
-    return t.supervisorSelectedCount.replace("{count}", String(selectedMembers.length));
-  }, [filter.mode, selectedMembers, t.supervisorSelectedCount]);
 
   return (
     <div className="page-supervisor">
@@ -168,7 +167,6 @@ export default function SupervisorPage({
         <div className="supervisor-map-layout">
           <div className="supervisor-map-frame">
             <PotholeMap
-              key={memberFilterKey(memberFilter)}
               detections={filteredDetections}
               selectedId={selectedId}
               onSelect={onSelect}
@@ -219,7 +217,7 @@ export default function SupervisorPage({
       </section>
 
       <AdminPanel
-        detections={filteredDetections}
+        detections={detections}
         onDelete={onDelete}
         deletingId={deletingId}
         onClearMap={onClearMap}

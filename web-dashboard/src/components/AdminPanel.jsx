@@ -7,7 +7,14 @@ import {
   resetTeamMemberPassword,
 } from "../hooks/useApi";
 import { useIsAdmin, useIsOwner } from "../hooks/useIsAdmin";
-import { filterDetectionsByMember, hasMemberSelection, isMemberSelected, normalizeMemberFilter, toggleMemberInFilter } from "./SupervisorMembersRail";
+import {
+  filterDetectionsByMember,
+  formatSelectedCount,
+  hasMemberSelection,
+  isMemberSelected,
+  normalizeMemberFilter,
+  toggleMemberInFilter,
+} from "../utils/memberFilter";
 
 const ROLES = ["field", "admin", "viewer"];
 
@@ -357,7 +364,7 @@ export default function AdminPanel({
             if (one) return `${t.adminMediaTitle} — ${one.full_name} (${media.length})`;
           }
           if (f.mode === "users" && f.userIds.length > 1) {
-            return `${t.adminMediaTitle} — ${t.supervisorSelectedCount.replace("{count}", String(f.userIds.length))} (${media.length})`;
+            return `${t.adminMediaTitle} — ${formatSelectedCount(t.supervisorSelectedCount, f.userIds.length)} (${media.length})`;
           }
           return `${t.adminMediaTitle} (${media.length})`;
         })()}

@@ -131,13 +131,14 @@ function FitAllMarkers({ detections, positions, refitOnChange = false }) {
 
   useEffect(() => {
     const pts = detections
-      .filter((d) => positions[d.id])
-      .map((d) => positions[d.id]);
+      .filter((item) => positions[item.id])
+      .map((item) => positions[item.id]);
     if (!pts.length) return;
 
     const nextKey = detections
-      .filter((d) => positions[d.id])
-      .map((d) => d.id)
+      .filter((item) => positions[item.id])
+      .map((item) => item.id)
+      .sort((a, b) => a - b)
       .join(",");
     const keyChanged = nextKey !== pinKey.current;
     if (!refitOnChange && didFit.current) return;
