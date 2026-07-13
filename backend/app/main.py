@@ -163,14 +163,67 @@ def brand_logo_mark():
     return _brand_file("logo-mark.png")
 
 
-@app.get("/static/logo.png")
-def brand_logo_static():
-    return _brand_file("logo.png")
+def _static_asset(name: str, media_type: str | None = None) -> FileResponse:
+    path = STATIC_DIR / name
+    if not path.is_file():
+        raise HTTPException(status_code=404, detail="Not found")
+    resp = FileResponse(path, media_type=media_type)
+    resp.headers["Cache-Control"] = "public, max-age=86400"
+    return resp
 
 
-@app.get("/static/logo-mark.png")
-def brand_logo_mark_static():
-    return _brand_file("logo-mark.png")
+@app.get("/manifest.webmanifest")
+def root_web_manifest():
+    dash_manifest = DASHBOARD_DIR / "manifest.webmanifest"
+    if dash_manifest.is_file():
+        resp = FileResponse(dash_manifest, media_type="application/manifest+json")
+        resp.headers["Cache-Control"] = "public, max-age=86400"
+        return resp
+    return _static_asset("manifest.webmanifest", "application/manifest+json")
+
+
+@app.get("/icon-192.png")
+@app.get("/icon-512.png")
+def root_pwa_icons(request: Request):
+    name = Path(request.url.path).name
+    dash_icon = DASHBOARD_DIR / name
+    if dash_icon.is_file():
+        resp = FileResponse(dash_icon, media_type="image/png")
+        resp.headers["Cache-Control"] = "public, max-age=86400"
+        return resp
+    return _static_asset(name, "image/png")
+
+
+@app.get("/apple-touch-icon.png")
+@app.get("/apple-touch-icon-precomposed.png")
+def apple_touch_icon():
+    return _static_asset("apple-touch-icon.png", "image/png")
+
+
+@app.get("/favicon.png")
+def favicon_png():
+    return _static_asset("favicon.png", "image/png")
+
+
+@app.get("/static/manifest.webmanifest")
+def mobile_web_manifest():
+    return _static_asset("manifest.webmanifest", "application/manifest+json")
+
+
+@app.get("/static/{asset_name}")
+def static_brand_assets(asset_name: str):
+    allowed = {
+        "logo.png",
+        "logo-mark.png",
+        "apple-touch-icon.png",
+        "icon-192.png",
+        "icon-512.png",
+        "favicon.png",
+    }
+    if asset_name not in allowed:
+        raise HTTPException(status_code=404, detail="Not found")
+    media = "application/manifest+json" if asset_name.endswith(".webmanifest") else None
+    return _static_asset(asset_name, media)
 
 
 def _is_mobile_client(request: Request) -> bool:

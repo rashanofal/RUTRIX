@@ -8,6 +8,7 @@ const NAV = [
   { id: "map", icon: "map", labelKey: "navMap" },
   { id: "field", icon: "field", labelKey: "navField" },
   { id: "ops", icon: "ops", labelKey: "navOps" },
+  { id: "supervisor", icon: "supervisor", labelKey: "navSupervisor", adminOnly: true },
   { id: "intel", icon: "intel", labelKey: "navIntel" },
   { id: "mobile", icon: "mobile", labelKey: "navMobile" },
 ];
@@ -18,9 +19,11 @@ export default function AppShell({
   auth,
   logout,
   wsConnected,
+  isAdmin,
   children,
 }) {
   const { t } = useLocale();
+  const navItems = NAV.filter((item) => !item.adminOnly || isAdmin);
 
   return (
     <div className="app-shell">
@@ -36,7 +39,7 @@ export default function AppShell({
           <span className="nav-rail-brand-name">{t.brand}</span>
         </button>
         <div className="nav-rail-items">
-          {NAV.map((item) => (
+          {navItems.map((item) => (
             <button
               key={item.id}
               type="button"
@@ -56,7 +59,7 @@ export default function AppShell({
       </nav>
 
       <div className="app-main">
-        <header className={`app-topbar${page === "map" ? " app-topbar-map-compact" : ""}`}>
+        <header className={`app-topbar${page === "map" || page === "supervisor" ? " app-topbar-map-compact" : ""}`}>
           <div className="topbar-brand">
             {page === "overview" ? (
               <div className="topbar-brand-stack">
@@ -89,8 +92,8 @@ export default function AppShell({
           </div>
         </header>
 
-        <main className={`app-page${page === "map" ? " app-page-map" : ""}`}>{children}</main>
-        {page !== "map" ? (
+        <main className={`app-page${page === "map" || page === "supervisor" ? " app-page-map" : ""}`}>{children}</main>
+        {page !== "map" && page !== "supervisor" ? (
           <footer className="app-footer">
             <p className="app-footer-credit">{t.creator}</p>
           </footer>

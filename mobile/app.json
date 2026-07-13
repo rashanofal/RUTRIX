@@ -15,7 +15,7 @@
     "ios": {
       "bundleIdentifier": "com.rutrix.app",
       "supportsTablet": true,
-      "buildNumber": "2",
+      "buildNumber": "3",
       "infoPlist": {
         "NSCameraUsageDescription": "RUTRIX needs the camera to photograph road surface defects and potholes.",
         "NSPhotoLibraryUsageDescription": "RUTRIX lets you pick road photos from your gallery for AI detection.",
@@ -29,7 +29,7 @@
     },
     "android": {
       "package": "com.rutrix.app",
-      "versionCode": 2,
+      "versionCode": 3,
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#04060d"

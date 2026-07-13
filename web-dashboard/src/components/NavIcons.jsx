@@ -26,6 +26,13 @@ const ICONS = {
       <path d="m9 12 2 2 4-4" />
     </svg>
   ),
+  supervisor: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden>
+      <path d="M12 2 4 6v6c0 4.5 2.8 7.8 6.5 9.2" />
+      <path d="M12 2l8 4v6c0 4.5-2.8 7.8-6.5 9.2" />
+      <path d="M9.5 12.5 11.5 14.5 15 11" />
+    </svg>
+  ),
   intel: (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden>
       <path d="M12 2a7 7 0 0 0-4 12.7V18a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1v-3.3A7 7 0 0 0 12 2Z" />

@@ -35,6 +35,7 @@ export default function AdminPanel({
   onClearMap,
   clearing,
   onChanged,
+  embedded = false,
 }) {
   const { t, locale } = useLocale();
   const isAdmin = useIsAdmin();
@@ -62,6 +63,7 @@ export default function AdminPanel({
   }, [isAdmin]);
 
   if (!isAdmin) {
+    if (embedded) return null;
     return (
       <section className="admin-panel section-card admin-panel-locked">
         <p className="intel-sub">{t.adminOnlyHint}</p>
@@ -106,12 +108,16 @@ export default function AdminPanel({
   };
 
   return (
-    <section className="admin-panel section-card">
-      <div className="section-label">
-        <span className="section-label-icon">🛡️</span>
-        <span>{t.adminPanelTitle}</span>
-      </div>
-      <p className="intel-sub">{t.adminPanelSub}</p>
+    <section className={`admin-panel section-card${embedded ? " admin-panel-embedded" : ""}`}>
+      {!embedded ? (
+        <>
+          <div className="section-label">
+            <span className="section-label-icon">🛡️</span>
+            <span>{t.adminPanelTitle}</span>
+          </div>
+          <p className="intel-sub">{t.adminPanelSub}</p>
+        </>
+      ) : null}
 
       <h3 className="intel-h3">{t.adminUsersTitle} ({members.length})</h3>
       <div className="admin-table-wrap">
@@ -207,7 +213,6 @@ export default function AdminPanel({
       <h3 className="intel-h3 admin-media-title">
         {t.adminMediaTitle} ({media.length})
       </h3>
-      <p className="intel-sub">{t.adminMediaSub}</p>
       <div className="admin-media-grid">
         {media.map(({ url, items, primary }) => (
           <article key={url} className="admin-media-card">

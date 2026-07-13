@@ -1689,6 +1689,190 @@ body {
   border-top: 1px solid rgba(255, 107, 138, 0.2);
 }
 
+.admin-panel-embedded {
+  margin-top: 1.25rem;
+  border-top: 1px solid var(--border);
+  padding-top: 0.25rem;
+}
+
+.page-supervisor {
+  max-width: 1280px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.page-supervisor-locked {
+  min-height: 50vh;
+  display: grid;
+  place-items: center;
+}
+
+.supervisor-locked-card {
+  text-align: center;
+  max-width: 420px;
+  padding: 2rem 1.5rem;
+  border-radius: var(--radius-xl, 20px);
+  border: 1px dashed var(--border);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.supervisor-locked-icon {
+  font-size: 2rem;
+  display: block;
+  margin-bottom: 0.75rem;
+}
+
+.supervisor-hero {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem 1.5rem;
+  padding: 1.25rem 1.35rem;
+  border-radius: var(--radius-xl, 20px);
+  border: 1px solid var(--border);
+  background:
+    radial-gradient(ellipse 80% 120% at 0% 0%, rgba(46, 230, 255, 0.08), transparent 55%),
+    linear-gradient(145deg, rgba(18, 26, 47, 0.95), rgba(8, 12, 24, 0.98));
+  box-shadow: var(--shadow-soft, 0 12px 40px rgba(0, 0, 0, 0.35));
+}
+
+.supervisor-kicker {
+  margin: 0;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--primary);
+}
+
+.supervisor-title {
+  margin: 0.25rem 0 0;
+  font-size: 1.45rem;
+  font-weight: 800;
+}
+
+.supervisor-sub {
+  margin: 0.35rem 0 0;
+  color: var(--text-muted);
+  font-size: 0.88rem;
+  max-width: 52ch;
+}
+
+.supervisor-kpis {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.supervisor-kpi {
+  min-width: 88px;
+  padding: 0.65rem 0.85rem;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.03);
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.supervisor-kpi-value {
+  font-size: 1.35rem;
+  font-weight: 800;
+  font-family: var(--font-numeric, inherit);
+  color: var(--text);
+}
+
+.supervisor-kpi-label {
+  font-size: 0.68rem;
+  color: var(--text-dim);
+}
+
+.supervisor-live {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.45rem 0.75rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  border: 1px solid var(--border);
+}
+
+.supervisor-live.on {
+  color: #86efac;
+  border-color: rgba(61, 255, 168, 0.35);
+  background: rgba(61, 255, 168, 0.08);
+}
+
+.supervisor-live.off {
+  color: var(--text-dim);
+}
+
+.supervisor-live-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.supervisor-map-section {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.supervisor-map-head h3 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 800;
+}
+
+.supervisor-map-head p {
+  margin: 0.2rem 0 0;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}
+
+.supervisor-map-frame {
+  height: min(58vh, 620px);
+  min-height: 320px;
+  border-radius: var(--radius-xl, 20px);
+  overflow: hidden;
+  border: 1px solid var(--border);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.03);
+}
+
+.supervisor-map-frame .map-wrap,
+.supervisor-map-frame .leaflet-container {
+  height: 100% !important;
+}
+
+.supervisor-map-drawer {
+  position: absolute;
+  top: 3.5rem;
+  inset-inline-end: 0.75rem;
+  width: min(360px, calc(100% - 1.5rem));
+  max-height: calc(100% - 4.5rem);
+  overflow: auto;
+  z-index: 500;
+  border-radius: 16px;
+  border: 1px solid var(--border);
+  background: rgba(8, 12, 24, 0.94);
+  backdrop-filter: blur(12px);
+  padding: 0.75rem;
+}
+
+.popup-reporter {
+  margin: 0.15rem 0;
+  font-size: 0.82rem;
+  color: var(--primary);
+}
+
 .detail-reporter,
 .meta-reporter {
   color: var(--text-muted);

@@ -124,22 +124,37 @@ function markerIcon(d) {
   return verifiedIcon;
 }
 
-function FitAllMarkers({ detections, positions }) {
+function FitAllMarkers({ detections, positions, refitOnChange = false }) {
   const map = useMap();
   const didFit = useRef(false);
+  const pinKey = useRef("");
 
   useEffect(() => {
     const pts = detections
       .filter((d) => positions[d.id])
       .map((d) => positions[d.id]);
-    if (!pts.length || didFit.current) return;
+    if (!pts.length) return;
+
+    const nextKey = detections
+      .filter((d) => positions[d.id])
+      .map((d) => d.id)
+      .join(",");
+    const keyChanged = nextKey !== pinKey.current;
+    if (!refitOnChange && didFit.current) return;
+    if (refitOnChange && !keyChanged && didFit.current) return;
+
+    pinKey.current = nextKey;
     didFit.current = true;
     if (pts.length === 1) {
-      map.setView(pts[0], 16, { animate: false });
+      map.setView(pts[0], 16, { animate: refitOnChange });
     } else {
-      map.fitBounds(L.latLngBounds(pts), { padding: [50, 50], maxZoom: 16, animate: false });
+      map.fitBounds(L.latLngBounds(pts), {
+        padding: [50, 50],
+        maxZoom: 16,
+        animate: refitOnChange,
+      });
     }
-  }, [detections.length, map, positions]);
+  }, [detections, map, positions, refitOnChange]);
 
   return null;
 }
@@ -240,6 +255,8 @@ export default function PotholeMap({
   deletingId,
   center = [30.0444, 31.2357],
   zoom = 12,
+  refitOnChange = false,
+  showReporter = false,
 }) {
   const { t, locale } = useLocale();
   const [mapReady, setMapReady] = useState(false);
@@ -523,7 +540,7 @@ const SAFE_SURVEY_RUT = 8;
           {...(layer.subdomains ? { subdomains: layer.subdomains } : {})}
         />
         <BoundsWatcher onBoundsChange={onBoundsChange} />
-        <FitAllMarkers detections={visible} positions={positions} />
+        <FitAllMarkers detections={visible} positions={positions} refitOnChange={refitOnChange} />
         <FlyToSelected selectedId={selectedId} positions={positions} />
 
         {layers.rutHeatmap &&
@@ -685,6 +702,11 @@ const SAFE_SURVEY_RUT = 8;
                   <p>
                     {t.source}: {deviceLabel(t, d.device_type)}
                   </p>
+                  {showReporter && d.reporter_name ? (
+                    <p className="popup-reporter">
+                      {t.reportedBy}: <strong>{d.reporter_name}</strong>
+                    </p>
+                  ) : null}
                   <p className="popup-coords">
                     {d.latitude?.toFixed(6)}, {d.longitude?.toFixed(6)}
                   </p>

@@ -7,6 +7,7 @@ import FieldPage from "./pages/FieldPage";
 import OperationsPage from "./pages/OperationsPage";
 import IntelligencePage from "./pages/IntelligencePage";
 import MobilePage from "./pages/MobilePage";
+import SupervisorPage from "./pages/SupervisorPage";
 import { useAuth } from "./context/AuthContext";
 import { useLocale } from "./context/LocaleContext";
 import { useCriticalAlerts } from "./hooks/useCriticalAlerts";
@@ -248,13 +249,17 @@ function Dashboard() {
 
   const handleNavigate = useCallback(
     (target) => {
+      if (target === "supervisor" && !isAdmin) {
+        window.alert(t.adminOnlyHint);
+        return;
+      }
       setPage(target);
-      if (target !== "map") {
+      if (target !== "map" && target !== "supervisor") {
         setBounds(null);
         void loadDetections();
       }
     },
-    [loadDetections]
+    [loadDetections, isAdmin, t.adminOnlyHint]
   );
 
   const handleBoundsChange = useCallback((b) => {
@@ -334,10 +339,27 @@ function Dashboard() {
               setMaintRefresh((r) => r + 1);
               loadStats();
             }}
-            onClearMap={handleClearMap}
-            clearing={clearing}
+          />
+        );
+      case "supervisor":
+        return (
+          <SupervisorPage
+            detections={detections}
+            selected={selected}
+            selectedId={selectedId}
+            onSelect={setSelectedId}
             onDelete={handleDelete}
             deletingId={deletingId}
+            onClearMap={handleClearMap}
+            clearing={clearing}
+            onMaintChanged={() => {
+              setMaintRefresh((r) => r + 1);
+              loadStats();
+            }}
+            onConfirm={handleConfirm}
+            onVerify={handleVerify}
+            onReject={handleReject}
+            wsConnected={wsConnected}
           />
         );
       case "intel":
@@ -367,6 +389,7 @@ function Dashboard() {
         auth={auth}
         logout={logout}
         wsConnected={wsConnected}
+        isAdmin={isAdmin}
       >
         {renderPage()}
       </AppShell>
