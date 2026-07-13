@@ -279,25 +279,43 @@
     }
     html[dir="rtl"] .header-top { flex-direction: row-reverse; }
     html[dir="rtl"] .header-brand { flex-direction: row-reverse; }
-    .brand-logo {
+    .brand-lockup {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.35rem;
+      text-align: center;
+    }
+    .brand-lockup.inline {
+      flex-direction: row;
+      align-items: center;
+      gap: 0.55rem;
+      text-align: start;
+    }
+    html[dir="rtl"] .brand-lockup.inline { flex-direction: row-reverse; text-align: end; }
+    .brand-mark {
       display: block;
+      width: 58px;
       height: 58px;
-      width: auto;
-      max-width: min(86vw, 320px);
       object-fit: contain;
       background: transparent;
-      border-radius: 0;
-      margin-bottom: 0.75rem;
-      margin-inline: auto;
       filter: drop-shadow(0 8px 18px rgba(46, 230, 255, 0.22));
     }
-    .brand-logo.sm {
-      width: auto;
-      height: 34px;
-      max-width: min(55vw, 180px);
-      margin-bottom: 0;
-      margin-inline: 0;
+    .brand-lockup.inline .brand-mark {
+      width: 40px;
+      height: 40px;
       filter: drop-shadow(0 4px 12px rgba(46, 230, 255, 0.28));
+    }
+    .brand-word {
+      font-size: 1.45rem;
+      font-weight: 900;
+      letter-spacing: 0.08em;
+      color: #f8fbff;
+      line-height: 1.1;
+    }
+    .brand-lockup.inline .brand-word {
+      font-size: 1.05rem;
+      letter-spacing: 0.06em;
     }
     .scientific { font-size: 0.74rem; color: #c4b5fd; line-height: 1.55; margin-top: 0.4rem; max-width: 18rem; margin-inline: auto; }
     .creator-credit {
@@ -501,7 +519,10 @@
 
   <div id="loginView">
     <div class="hero">
-      <img class="brand-logo" src="/static/logo.png?v=9" alt="RUTRIX" width="280" height="75" />
+      <div class="brand-lockup">
+        <img class="brand-mark" src="/static/logo-mark.png?v=2" alt="" width="58" height="58" />
+        <span class="brand-word" id="brandTitleVisible">RUTRIX</span>
+      </div>
       <h1 id="brandTitle" class="sr-only">RUTRIX</h1>
       <p class="scientific" id="brandSub">Road Infrastructure Intelligence & Asset Management Platform</p>
       <p class="sub" id="loginSub">Field App — RUTRIX</p>
@@ -528,7 +549,10 @@
     <div class="header">
       <div class="header-top">
         <div class="header-brand">
-          <img class="brand-logo sm" src="/static/logo.png?v=9" alt="RUTRIX" width="160" height="42" />
+          <div class="brand-lockup inline">
+            <img class="brand-mark" src="/static/logo-mark.png?v=2" alt="" width="40" height="40" />
+            <span class="brand-word" id="appBrandVisible">RUTRIX</span>
+          </div>
           <div>
             <h1 id="appBrand" class="sr-only">RUTRIX</h1>
             <p class="sub" id="orgName">—</p>
@@ -795,15 +819,11 @@
         var btn = document.getElementById(id);
         if (btn) btn.textContent = tr.lang;
       });
-      ["brandTitle", "appBrand"].forEach((id) => {
+      ["brandTitle", "appBrand", "brandTitleVisible", "appBrandVisible"].forEach((id) => {
         const el = document.getElementById(id);
         if (el) el.textContent = tr.brand;
       });
       document.title = locale === "ar" ? "روتريكس | تطبيق الميدان" : "RUTRIX | Field App";
-      document.querySelectorAll(".brand-logo").forEach((img) => {
-        img.alt = tr.brand;
-        img.title = tr.brand;
-      });
       const sub = document.getElementById("brandSub");
       if (sub) sub.textContent = tr.scientific;
       const credit = document.getElementById("creatorCredit");

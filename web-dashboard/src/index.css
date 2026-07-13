@@ -29,6 +29,7 @@
   --map-width: minmax(360px, 46vw);
   --font: "Cairo", "Segoe UI", sans-serif;
   --font-display: "Syne", "Cairo", sans-serif;
+  --font-numeric: "Cairo", system-ui, -apple-system, "Segoe UI", sans-serif;
   --gradient-brand: linear-gradient(135deg, #2ee6ff 0%, #7c6bff 42%, #ff6b9d 74%, #ffd27a 100%);
   --gradient-card: linear-gradient(165deg, rgba(12, 18, 34, 0.97), rgba(7, 11, 22, 0.99));
   --gradient-mesh:
@@ -1811,7 +1812,7 @@ body {
   padding: 0.65rem 0.5rem;
   text-align: center;
 }
-.intel-metric-val { display: block; font-size: 1.15rem; font-weight: 800; color: var(--accent); }
+.intel-metric-val { display: block; font-size: 1.15rem; font-weight: 800; font-family: var(--font-numeric); font-variant-numeric: tabular-nums; color: #f1f5f9; }
 .intel-metric-lbl { font-size: 0.68rem; color: var(--text-dim); font-weight: 600; }
 .report-btns { display: flex; gap: 0.5rem; margin-bottom: 0.85rem; }
 .report-btn {
@@ -2123,7 +2124,7 @@ body {
 .exec-card.warn { border-color: rgba(251, 191, 36, 0.35); }
 .exec-card.primary { border-color: rgba(34, 211, 238, 0.35); }
 .exec-icon { font-size: 1.1rem; }
-.exec-val { font-size: 1.25rem; font-weight: 800; font-family: var(--font-display); }
+.exec-val { font-size: 1.25rem; font-weight: 800; font-family: var(--font-numeric); font-variant-numeric: tabular-nums; color: #f1f5f9; }
 .exec-lbl { font-size: 0.7rem; color: var(--text-dim); line-height: 1.35; }
 
 .create-wo-btn {
@@ -2458,11 +2459,11 @@ body {
 }
 
 .nav-rail-brand-name {
-  font-family: var(--font-display);
+  font-family: var(--font);
   font-size: 0.7rem;
   font-weight: 800;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  text-transform: none;
   text-align: center;
   line-height: 1.15;
   color: #f8fbff;

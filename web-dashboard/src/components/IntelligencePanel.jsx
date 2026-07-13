@@ -49,15 +49,15 @@ export default function IntelligencePanel({ stats, refreshKey = 0, detections = 
 
       <div className="intel-metrics">
         <div className="intel-metric">
-          <span className="intel-metric-val">{stats?.avg_rut_score ?? 0}</span>
+          <span className="intel-metric-val" dir="ltr" lang="en">{stats?.avg_rut_score ?? 0}</span>
           <span className="intel-metric-lbl">RUT</span>
         </div>
         <div className="intel-metric">
-          <span className="intel-metric-val">{stats?.critical_count ?? 0}</span>
+          <span className="intel-metric-val" dir="ltr" lang="en">{stats?.critical_count ?? 0}</span>
           <span className="intel-metric-lbl">{t.sevCritical}</span>
         </div>
         <div className="intel-metric">
-          <span className="intel-metric-val">
+          <span className="intel-metric-val" dir="ltr" lang="en">
             ${Math.round(stats?.total_repair_min ?? 0).toLocaleString()}
           </span>
           <span className="intel-metric-lbl">{t.repairEst}</span>

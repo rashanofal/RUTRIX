@@ -30,7 +30,9 @@ export default function StatsGrid({ stats, variant = "default" }) {
           <div className="stat-icon">
             <NavIcon name={s.icon} />
           </div>
-          <div className="value">{getStatValue(stats, s.field)}</div>
+          <div className="value" dir="ltr" lang="en">
+            {getStatValue(stats, s.field)}
+          </div>
           <div className="label">{t[s.labelKey]}</div>
         </div>
       ))}

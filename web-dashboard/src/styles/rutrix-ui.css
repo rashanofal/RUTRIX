@@ -229,14 +229,13 @@ body {
 }
 
 .stat-card .value {
-  font-family: var(--font-display);
+  font-family: var(--font-numeric);
   font-size: 1.85rem;
   font-weight: 800;
-  line-height: 1.1;
-  background: linear-gradient(135deg, #f8fafc, #94a3b8);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
+  line-height: 1.15;
+  font-variant-numeric: tabular-nums;
+  color: #f1f5f9;
+  letter-spacing: 0;
 }
 
 .stat-card .label {
@@ -469,11 +468,11 @@ body {
 }
 
 .nav-rail-brand-name {
-  font-family: var(--font-display);
+  font-family: var(--font);
   font-size: 0.7rem;
   font-weight: 800;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  text-transform: none;
   text-align: center;
   line-height: 1.15;
   color: #f8fbff;
@@ -487,6 +486,29 @@ body {
   margin-inline: auto;
   object-fit: contain;
   filter: drop-shadow(0 6px 16px rgba(46, 230, 255, 0.35));
+}
+
+.rutrix-logo--lockup {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.rutrix-logo__mark {
+  width: 52px;
+  height: 52px;
+  object-fit: contain;
+}
+
+.rutrix-logo__word {
+  font-family: var(--font);
+  font-size: 1.05rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  color: #f8fbff;
+  line-height: 1.1;
+  text-transform: none;
 }
 
 /* ─── Intelligence / ops panels ─── */
