@@ -146,9 +146,12 @@ def remove_member(
     user_id: int,
     current: User = Depends(get_current_user),
     org: Organization = Depends(get_current_organization),
+    role: str = Depends(get_current_role),
     db: Session = Depends(get_db),
 ):
-    _require_admin_membership(db, org.id, current.id)
+    """Platform owner (supervisor) only — remove a field user from the org."""
+    _require_owner(role, current)
+    org_id = effective_organization_id(db, org.id, current, role)
 
     if user_id == current.id:
         raise HTTPException(status_code=400, detail="لا يمكن إزالة حسابك")
@@ -156,7 +159,7 @@ def remove_member(
     target = (
         db.query(OrganizationMember)
         .filter(
-            OrganizationMember.organization_id == org.id,
+            OrganizationMember.organization_id == org_id,
             OrganizationMember.user_id == user_id,
         )
         .first()

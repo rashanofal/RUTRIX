@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useLocale } from "../context/LocaleContext";
 import { useIsOwner } from "../hooks/useIsAdmin";
-import { fetchTeamMembers } from "../hooks/useApi";
+import { fetchTeamMembers, removeTeamMember } from "../hooks/useApi";
 import PotholeMap from "../components/PotholeMap";
 import DetectionDetail from "../components/DetectionDetail";
 import AdminPanel from "../components/AdminPanel";
@@ -10,6 +10,8 @@ import {
   enrichMembersWithReporters,
   filterDetectionsByMember,
   hasMemberSelection,
+  isMemberSelected,
+  normalizeMemberFilter,
 } from "../utils/memberFilter";
 
 export default function SupervisorPage({
@@ -62,6 +64,29 @@ export default function SupervisorPage({
       onSelect?.(null);
     }
   }, [memberFilter, filteredDetections, selectedId, onSelect]);
+
+  const handleRemoveMember = useCallback(
+    async (member) => {
+      try {
+        await removeTeamMember(member.user_id);
+        setMembers((prev) => prev.filter((m) => Number(m.user_id) !== Number(member.user_id)));
+        if (isMemberSelected(memberFilter, member.user_id)) {
+          const f = normalizeMemberFilter(memberFilter);
+          if (f.mode === "all") {
+            /* keep all — remaining users still show */
+          } else if (f.mode === "users") {
+            const next = f.userIds.filter((id) => id !== Number(member.user_id));
+            setMemberFilter(next.length ? { mode: "users", userIds: next } : { mode: "none" });
+          }
+        }
+        onMaintChanged?.();
+      } catch (err) {
+        window.alert(err?.message || t.removeMemberFail);
+        throw err;
+      }
+    },
+    [memberFilter, onMaintChanged, t.removeMemberFail]
+  );
 
   if (!isOwner) {
     return (
@@ -133,6 +158,7 @@ export default function SupervisorPage({
             detections={detections}
             memberFilter={memberFilter}
             onMemberFilterChange={setMemberFilter}
+            onRemoveMember={handleRemoveMember}
           />
         </div>
         {selectedId && selected ? (

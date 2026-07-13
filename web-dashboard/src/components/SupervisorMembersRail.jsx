@@ -1,7 +1,6 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useLocale } from "../context/LocaleContext";
 import {
-  enrichMembersWithReporters,
   isMemberSelected,
   normalizeMemberFilter,
   toggleAllMembersFilter,
@@ -9,6 +8,7 @@ import {
 } from "../utils/memberFilter";
 
 export {
+  dedupeMembersByEmail,
   enrichMembersWithReporters,
   filterDetectionsByMember,
   hasMemberSelection,
@@ -23,8 +23,10 @@ export default function SupervisorMembersRail({
   detections = [],
   memberFilter,
   onMemberFilterChange,
+  onRemoveMember,
 }) {
   const { t } = useLocale();
+  const [removingId, setRemovingId] = useState(null);
   const filter = useMemo(() => normalizeMemberFilter(memberFilter), [memberFilter]);
   const allUserIds = useMemo(() => members.map((m) => Number(m.user_id)), [members]);
 
@@ -45,12 +47,29 @@ export default function SupervisorMembersRail({
 
   const toggleAll = () => {
     if (typeof onMemberFilterChange !== "function") return;
-    onMemberFilterChange(toggleAllMembersFilter(filter));
+    onMemberFilterChange(toggleAllMembersFilter(memberFilter));
   };
 
   const toggleUser = (userId) => {
     if (typeof onMemberFilterChange !== "function") return;
-    onMemberFilterChange(toggleMemberInFilter(filter, userId, allUserIds));
+    onMemberFilterChange(toggleMemberInFilter(memberFilter, userId, allUserIds));
+  };
+
+  const handleRemove = async (member, e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (typeof onRemoveMember !== "function") return;
+    if (member.role === "owner") return;
+    const ok = window.confirm(
+      (t.removeMemberConfirm || "Delete {name}?").replace("{name}", member.full_name || member.email)
+    );
+    if (!ok) return;
+    setRemovingId(member.user_id);
+    try {
+      await onRemoveMember(member);
+    } finally {
+      setRemovingId(null);
+    }
   };
 
   return (
@@ -83,27 +102,45 @@ export default function SupervisorMembersRail({
           const id = Number(m.user_id);
           const pins = pinCounts.get(id) ?? m.map_pins ?? 0;
           const active = isMemberSelected(filter, id);
+          const canDelete = m.role !== "owner" && typeof onRemoveMember === "function";
+          const busy = removingId === m.user_id;
           return (
-            <button
+            <div
               key={m.user_id}
-              type="button"
-              className={`supervisor-member-chip${active ? " active" : ""}`}
-              onClick={() => toggleUser(id)}
-              aria-pressed={active}
+              className={`supervisor-member-row${active ? " active" : ""}`}
             >
-              <span className={`supervisor-member-dot${active ? " on" : ""}`} aria-hidden />
-              <span className="supervisor-member-text">
-                <span className="supervisor-member-name">{m.full_name}</span>
-                {m.email ? (
-                  <span className="supervisor-member-email" dir="ltr">
-                    {m.email}
-                  </span>
-                ) : null}
-              </span>
-              <span className="supervisor-member-pins" dir="ltr" title={t.memberMapPins}>
-                {pins}
-              </span>
-            </button>
+              <button
+                type="button"
+                className={`supervisor-member-chip${active ? " active" : ""}`}
+                onClick={() => toggleUser(id)}
+                aria-pressed={active}
+              >
+                <span className={`supervisor-member-dot${active ? " on" : ""}`} aria-hidden />
+                <span className="supervisor-member-text">
+                  <span className="supervisor-member-name">{m.full_name}</span>
+                  {m.email ? (
+                    <span className="supervisor-member-email" dir="ltr">
+                      {m.email}
+                    </span>
+                  ) : null}
+                </span>
+                <span className="supervisor-member-pins" dir="ltr" title={t.memberMapPins}>
+                  {pins}
+                </span>
+              </button>
+              {canDelete ? (
+                <button
+                  type="button"
+                  className="supervisor-member-delete"
+                  title={t.removeMemberTitle || t.removeMember}
+                  aria-label={`${t.removeMember} ${m.full_name}`}
+                  disabled={busy}
+                  onClick={(e) => handleRemove(m, e)}
+                >
+                  {busy ? "…" : "🗑️"}
+                </button>
+              ) : null}
+            </div>
           );
         })}
         {!members.length ? (

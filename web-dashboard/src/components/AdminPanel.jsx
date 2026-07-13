@@ -264,17 +264,15 @@ export default function AdminPanel({
                 ) : null}
                 <td className="admin-when">{formatWhen(m.last_login_at)}</td>
                 <td className="admin-actions" onClick={(e) => e.stopPropagation()}>
-                  {m.role !== "owner" ? (
+                  {supervisorMode && m.role !== "owner" ? (
                     <div className="admin-action-btns">
-                      {supervisorMode ? (
-                        <button
-                          type="button"
-                          className="admin-reset-btn"
-                          onClick={() => handleResetPassword(m)}
-                        >
-                          {t.resetPassword}
-                        </button>
-                      ) : null}
+                      <button
+                        type="button"
+                        className="admin-reset-btn"
+                        onClick={() => handleResetPassword(m)}
+                      >
+                        {t.resetPassword}
+                      </button>
                       <button
                         type="button"
                         className="admin-remove-btn"

@@ -2298,11 +2298,24 @@ body {
   background-clip: padding-box;
 }
 
+.supervisor-member-row {
+  display: flex;
+  align-items: stretch;
+  gap: 0.35rem;
+}
+
+.supervisor-member-row.active .supervisor-member-chip {
+  border-color: var(--primary);
+  background: rgba(46, 230, 255, 0.12);
+  box-shadow: inset 3px 0 0 var(--primary);
+}
+
 .supervisor-member-chip {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  width: 100%;
+  flex: 1;
+  min-width: 0;
   padding: 0.55rem 0.65rem;
   border-radius: 12px;
   border: 1px solid var(--border);
@@ -2311,6 +2324,28 @@ body {
   text-align: start;
   cursor: pointer;
   transition: background 0.15s, border-color 0.15s;
+}
+
+.supervisor-member-delete {
+  flex-shrink: 0;
+  width: 2.25rem;
+  border-radius: 12px;
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  background: rgba(239, 68, 68, 0.1);
+  color: #fca5a5;
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.supervisor-member-delete:hover:not(:disabled) {
+  border-color: rgba(239, 68, 68, 0.7);
+  background: rgba(239, 68, 68, 0.22);
+}
+
+.supervisor-member-delete:disabled {
+  opacity: 0.5;
+  cursor: wait;
 }
 
 .supervisor-member-chip:hover {
