@@ -1,4 +1,5 @@
 import { useLocale } from "../context/LocaleContext";
+import { useIsOwner } from "../hooks/useIsAdmin";
 import PotholeMap from "../components/PotholeMap";
 import DetectionDetail from "../components/DetectionDetail";
 
@@ -16,11 +17,15 @@ export default function MapPage({
   wsConnected,
 }) {
   const { t } = useLocale();
+  const isOwner = useIsOwner();
   const pinned = detections.filter((d) => d.latitude != null).length;
 
   return (
     <div className="page-map">
       <div className="map-toolbar">
+        {!isOwner ? (
+          <span className="map-status-pill map-status-pill-scope">{t.myDataOnlyHint}</span>
+        ) : null}
         <span className="map-status-pill map-status-pill-pins">
           {pinned} {pinned === 1 ? t.mapPins : t.mapPinsPlural}
         </span>

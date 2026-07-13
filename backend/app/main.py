@@ -11,7 +11,11 @@ from app.persistence import storage_status
 from app.config import settings
 from app.routers import auth, detections, intelligence, maintenance, notifications, team
 from app.services.inference import get_model_info
-from app.websocket import manager, org_id_from_ws_token
+from app.models import User
+from app.services.access_control import is_platform_owner
+from app.services.auth_service import get_user_org_membership
+from app.database import SessionLocal
+from app.websocket import manager, org_id_from_ws_token, user_id_from_ws_token
 
 STATIC_DIR = Path(__file__).resolve().parent / "static"
 DASHBOARD_DIR = STATIC_DIR / "dashboard"
@@ -310,11 +314,29 @@ async def websocket_detections(
     token: str | None = Query(None),
 ):
     org_id = org_id_from_ws_token(token)
-    if not org_id:
+    user_id = user_id_from_ws_token(token)
+    if not org_id or not user_id:
         await websocket.close(code=4401)
         return
 
-    await manager.connect(websocket, org_id)
+    db = SessionLocal()
+    try:
+        user = db.query(User).filter(User.id == user_id, User.is_active.is_(True)).first()
+        if not user:
+            await websocket.close(code=4401)
+            return
+        membership = get_user_org_membership(db, user_id, org_id)
+        role = membership.role if membership else None
+        owner = is_platform_owner(user, role)
+    finally:
+        db.close()
+
+    await manager.connect(
+        websocket,
+        org_id,
+        user_id=user_id,
+        is_platform_owner=owner,
+    )
     try:
         while True:
             await websocket.receive_text()

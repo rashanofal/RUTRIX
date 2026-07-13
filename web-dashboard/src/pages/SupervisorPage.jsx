@@ -4,7 +4,7 @@ import { useIsOwner } from "../hooks/useIsAdmin";
 import PotholeMap from "../components/PotholeMap";
 import DetectionDetail from "../components/DetectionDetail";
 import AdminPanel from "../components/AdminPanel";
-import SupervisorMembersRail from "../components/SupervisorMembersRail";
+import SupervisorMembersRail, { filterDetectionsByMember } from "../components/SupervisorMembersRail";
 
 export default function SupervisorPage({
   detections,
@@ -24,19 +24,22 @@ export default function SupervisorPage({
   const { t } = useLocale();
   const isOwner = useIsOwner();
   const [members, setMembers] = useState([]);
-  const [filterUserId, setFilterUserId] = useState(null);
+  const [memberFilter, setMemberFilter] = useState({ mode: "none" });
 
-  const filteredDetections = useMemo(() => {
-    if (filterUserId == null) return detections;
-    return detections.filter((d) => d.reporter_user_id === filterUserId);
-  }, [detections, filterUserId]);
+  const filteredDetections = useMemo(
+    () => filterDetectionsByMember(detections, memberFilter),
+    [detections, memberFilter]
+  );
 
   useEffect(() => {
-    if (filterUserId == null) return;
+    if (memberFilter.mode === "none") {
+      if (selectedId) onSelect?.(null);
+      return;
+    }
     if (selectedId && !filteredDetections.some((d) => d.id === selectedId)) {
       onSelect?.(null);
     }
-  }, [filterUserId, filteredDetections, selectedId, onSelect]);
+  }, [memberFilter, filteredDetections, selectedId, onSelect]);
 
   if (!isOwner) {
     return (
@@ -55,10 +58,17 @@ export default function SupervisorPage({
   const pinned = filteredDetections.filter(
     (d) => d.latitude != null && d.longitude != null
   ).length;
-  const showNoPinsHint = filterUserId != null && pinned === 0;
+  const showSelectPrompt = memberFilter.mode === "none";
+  const showNoPinsHint =
+    memberFilter.mode === "user" && pinned === 0;
   const reporters = new Set(
     filteredDetections.map((d) => d.reporter_user_id).filter(Boolean)
   ).size;
+
+  const selectedMember =
+    memberFilter.mode === "user"
+      ? members.find((m) => Number(m.user_id) === Number(memberFilter.userId))
+      : null;
 
   return (
     <div className="page-supervisor">
@@ -91,17 +101,29 @@ export default function SupervisorPage({
         </div>
       </header>
 
-      {filterUserId != null ? (
+      {memberFilter.mode === "user" && selectedMember ? (
         <div className="supervisor-selected-banner" role="status">
           <span>
-            {t.memberShowingOnMap}:{" "}
-            <strong>
-              {members.find((m) => m.user_id === filterUserId)?.full_name ||
-                detections.find((d) => d.reporter_user_id === filterUserId)?.reporter_name ||
-                `#${filterUserId}`}
-            </strong>
+            {t.memberShowingOnMap}: <strong>{selectedMember.full_name}</strong>
           </span>
-          <button type="button" className="supervisor-clear-select" onClick={() => setFilterUserId(null)}>
+          <button
+            type="button"
+            className="supervisor-clear-select"
+            onClick={() => setMemberFilter({ mode: "none" })}
+          >
+            {t.clearMemberSelection}
+          </button>
+        </div>
+      ) : null}
+
+      {memberFilter.mode === "all" ? (
+        <div className="supervisor-selected-banner supervisor-selected-banner-all" role="status">
+          <span>{t.supervisorShowingAll}</span>
+          <button
+            type="button"
+            className="supervisor-clear-select"
+            onClick={() => setMemberFilter({ mode: "none" })}
+          >
             {t.clearMemberSelection}
           </button>
         </div>
@@ -111,7 +133,7 @@ export default function SupervisorPage({
         <div className="supervisor-map-layout">
           <div className="supervisor-map-frame">
             <PotholeMap
-              key={filterUserId ?? "all"}
+              key={`${memberFilter.mode}-${memberFilter.userId ?? "all"}`}
               detections={filteredDetections}
               selectedId={selectedId}
               onSelect={onSelect}
@@ -120,6 +142,11 @@ export default function SupervisorPage({
               refitOnChange
               showReporter
             />
+            {showSelectPrompt ? (
+              <div className="supervisor-map-empty" role="status">
+                <p>{t.supervisorSelectMemberPrompt}</p>
+              </div>
+            ) : null}
             {showNoPinsHint ? (
               <div className="supervisor-map-empty" role="status">
                 <p>{t.supervisorNoPinsForUser}</p>
@@ -129,8 +156,8 @@ export default function SupervisorPage({
           <SupervisorMembersRail
             members={members}
             detections={detections}
-            selectedUserId={filterUserId}
-            onSelectUser={setFilterUserId}
+            memberFilter={memberFilter}
+            onMemberFilterChange={setMemberFilter}
           />
         </div>
         {selectedId && selected ? (
@@ -157,15 +184,15 @@ export default function SupervisorPage({
       </section>
 
       <AdminPanel
-        detections={detections}
+        detections={filteredDetections}
         onDelete={onDelete}
         deletingId={deletingId}
         onClearMap={onClearMap}
         clearing={clearing}
         onChanged={onMaintChanged}
         onMembersChange={setMembers}
-        selectedUserId={filterUserId}
-        onSelectUser={setFilterUserId}
+        memberFilter={memberFilter}
+        onMemberFilterChange={setMemberFilter}
         hideMemberTable
         supervisorMode
         embedded

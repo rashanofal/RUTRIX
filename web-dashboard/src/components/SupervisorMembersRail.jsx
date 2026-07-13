@@ -1,19 +1,30 @@
 import { useMemo } from "react";
 import { useLocale } from "../context/LocaleContext";
 
+/** @typedef {'none' | 'all' | 'user'} MemberFilterMode */
+
+export function filterDetectionsByMember(detections, memberFilter) {
+  if (!Array.isArray(detections) || !memberFilter) return [];
+  if (memberFilter.mode === "none") return [];
+  if (memberFilter.mode === "all") return detections;
+  const userId = Number(memberFilter.userId);
+  return detections.filter((d) => Number(d.reporter_user_id) === userId);
+}
+
 export default function SupervisorMembersRail({
   members = [],
   detections = [],
-  selectedUserId,
-  onSelectUser,
+  memberFilter,
+  onMemberFilterChange,
 }) {
   const { t } = useLocale();
 
   const pinCounts = useMemo(() => {
     const counts = new Map();
     for (const d of detections) {
-      if (d.latitude == null || d.longitude == null || !d.reporter_user_id) continue;
-      counts.set(d.reporter_user_id, (counts.get(d.reporter_user_id) || 0) + 1);
+      if (d.latitude == null || d.longitude == null || d.reporter_user_id == null) continue;
+      const id = Number(d.reporter_user_id);
+      counts.set(id, (counts.get(id) || 0) + 1);
     }
     return counts;
   }, [detections]);
@@ -23,8 +34,14 @@ export default function SupervisorMembersRail({
     [detections]
   );
 
-  const toggle = (userId) => {
-    onSelectUser?.(selectedUserId === userId ? null : userId);
+  const setAll = () => onMemberFilterChange?.({ mode: "all" });
+  const setUser = (userId) => {
+    const id = Number(userId);
+    if (memberFilter?.mode === "user" && Number(memberFilter.userId) === id) {
+      onMemberFilterChange?.({ mode: "none" });
+      return;
+    }
+    onMemberFilterChange?.({ mode: "user", userId: id });
   };
 
   return (
@@ -36,8 +53,8 @@ export default function SupervisorMembersRail({
       <div className="supervisor-members-rail-list">
         <button
           type="button"
-          className={`supervisor-member-chip${selectedUserId == null ? " active" : ""}`}
-          onClick={() => onSelectUser?.(null)}
+          className={`supervisor-member-chip${memberFilter?.mode === "all" ? " active" : ""}`}
+          onClick={setAll}
         >
           <span className="supervisor-member-name">{t.supervisorFilterAll}</span>
           <span className="supervisor-member-pins" dir="ltr">
@@ -45,14 +62,15 @@ export default function SupervisorMembersRail({
           </span>
         </button>
         {members.map((m) => {
-          const pins = pinCounts.get(m.user_id) ?? m.map_pins ?? 0;
-          const active = selectedUserId === m.user_id;
+          const id = Number(m.user_id);
+          const pins = pinCounts.get(id) ?? m.map_pins ?? 0;
+          const active = memberFilter?.mode === "user" && Number(memberFilter.userId) === id;
           return (
             <button
               key={m.user_id}
               type="button"
               className={`supervisor-member-chip${active ? " active" : ""}`}
-              onClick={() => toggle(m.user_id)}
+              onClick={() => setUser(id)}
               aria-pressed={active}
             >
               <span className="supervisor-member-dot" aria-hidden />

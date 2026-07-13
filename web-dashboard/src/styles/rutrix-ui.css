@@ -1880,6 +1880,21 @@ body {
   color: var(--primary);
 }
 
+.supervisor-selected-banner-all {
+  border-color: rgba(124, 107, 255, 0.35);
+  background: rgba(124, 107, 255, 0.08);
+}
+
+.map-status-pill-scope {
+  max-width: min(420px, 100%);
+  line-height: 1.35;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #c4d4ff;
+  border-color: rgba(124, 107, 255, 0.35);
+  background: rgba(124, 107, 255, 0.1);
+}
+
 .admin-panel-supervisor .admin-table-wrap {
   margin-top: 0.35rem;
 }

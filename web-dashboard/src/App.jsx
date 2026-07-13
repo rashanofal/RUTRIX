@@ -153,21 +153,26 @@ function Dashboard() {
         return;
       }
       if (msg.type === "new_detection") {
+        const data = msg.data;
+        const mine =
+          isOwner ||
+          Number(data?.reporter_user_id) === Number(auth?.user?.id);
+        if (!mine) return;
         setDetections((prev) => {
-          if (prev.some((d) => d.id === msg.data.id)) return prev;
-          return [msg.data, ...prev].slice(0, 200);
+          if (prev.some((d) => d.id === data.id)) return prev;
+          return [data, ...prev].slice(0, 200);
         });
-        if (msg.data.latitude != null) setSelectedId(msg.data.id);
+        if (data.latitude != null) setSelectedId(data.id);
         loadStats();
-        void notifyDetection(msg.data);
+        void notifyDetection(data);
       }
     },
-    [refreshAll, loadStats, notifyDetection, auth?.user?.id]
+    [refreshAll, loadStats, notifyDetection, auth?.user?.id, isOwner]
   );
 
   const handleClearMap = async () => {
-    if (!isAdmin) {
-      window.alert(t.adminOnlyHint);
+    if (!isOwner) {
+      window.alert(t.ownerOnlyHint);
       return;
     }
     if (!window.confirm(t.clearConfirm)) return;

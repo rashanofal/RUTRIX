@@ -7,8 +7,9 @@ from fastapi.responses import HTMLResponse, Response
 from sqlalchemy.orm import Session
 
 from app.database import get_db
-from app.dependencies import get_current_organization, get_current_user
+from app.dependencies import get_current_organization, get_current_role, get_current_user
 from app.models import DetectionConfirmation, Organization, PotholeDetection, User
+from app.services.access_control import is_platform_owner, scoped_detections_query
 from app.schemas import (
     LeaderboardEntry,
     PriorityItem,
@@ -32,15 +33,15 @@ router = APIRouter(prefix="/api/intelligence", tags=["intelligence"])
 def maintenance_priorities(
     limit: int = 50,
     org: Organization = Depends(get_current_organization),
+    user: User = Depends(get_current_user),
+    role: str = Depends(get_current_role),
     db: Session = Depends(get_db),
 ):
     from app.models import DetectionStatus
 
     items = (
-        db.query(PotholeDetection)
-        .filter(PotholeDetection.organization_id == org.id)
+        scoped_detections_query(db, org.id, user, role)
         .filter(PotholeDetection.class_name != "photo")
-        .filter(PotholeDetection.detection_status != DetectionStatus.rejected)
         .order_by(PotholeDetection.priority_rank.desc(), PotholeDetection.rut_score.desc())
         .all()
     )
@@ -79,8 +80,12 @@ def maintenance_priorities(
 @router.get("/road-quality", response_model=list[RoadQualityCluster])
 def road_quality_map(
     org: Organization = Depends(get_current_organization),
+    user: User = Depends(get_current_user),
+    role: str = Depends(get_current_role),
     db: Session = Depends(get_db),
 ):
+    if not is_platform_owner(user, role):
+        return []
     clusters = get_cluster_stats(db, org.id)
     clusters.extend(get_survey_zones(db, org.id))
     out: list[RoadQualityCluster] = []

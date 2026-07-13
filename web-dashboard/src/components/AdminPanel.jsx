@@ -7,6 +7,7 @@ import {
   resetTeamMemberPassword,
 } from "../hooks/useApi";
 import { useIsAdmin, useIsOwner } from "../hooks/useIsAdmin";
+import { filterDetectionsByMember } from "./SupervisorMembersRail";
 
 const ROLES = ["field", "admin", "viewer"];
 
@@ -39,8 +40,8 @@ export default function AdminPanel({
   embedded = false,
   supervisorMode = false,
   onMembersChange,
-  selectedUserId = null,
-  onSelectUser,
+  memberFilter = { mode: "none" },
+  onMemberFilterChange,
   hideMemberTable = false,
 }) {
   const { t, locale } = useLocale();
@@ -60,15 +61,19 @@ export default function AdminPanel({
 
   const roleLabels = ROLE_LABELS[locale] || ROLE_LABELS.ar;
   const visibleDetections = useMemo(() => {
-    if (!supervisorMode || selectedUserId == null) return detections;
-    return detections.filter((d) => d.reporter_user_id === selectedUserId);
-  }, [detections, supervisorMode, selectedUserId]);
+    if (!supervisorMode) return detections;
+    return filterDetectionsByMember(detections, memberFilter);
+  }, [detections, supervisorMode, memberFilter]);
   const media = useMemo(() => groupMedia(visibleDetections), [visibleDetections]);
-  const selectedMember = members.find((m) => m.user_id === selectedUserId);
 
   const toggleMember = (member) => {
-    if (!onSelectUser) return;
-    onSelectUser(selectedUserId === member.user_id ? null : member.user_id);
+    if (!onMemberFilterChange) return;
+    const id = Number(member.user_id);
+    if (memberFilter?.mode === "user" && Number(memberFilter.userId) === id) {
+      onMemberFilterChange({ mode: "none" });
+      return;
+    }
+    onMemberFilterChange({ mode: "user", userId: id });
   };
 
   const loadMembers = () => {
@@ -201,7 +206,10 @@ export default function AdminPanel({
           </thead>
           <tbody>
             {members.map((m) => {
-              const isSelected = supervisorMode && selectedUserId === m.user_id;
+              const isSelected =
+                supervisorMode &&
+                memberFilter?.mode === "user" &&
+                Number(memberFilter.userId) === Number(m.user_id);
               return (
               <tr
                 key={m.user_id}
@@ -295,7 +303,7 @@ export default function AdminPanel({
       ) : null}
 
       {supervisorMode && hideMemberTable && !showFullTable ? (
-        <p className="intel-sub admin-users-rail-hint">{t.supervisorRailHint}</p>
+        <p className="intel-sub admin-users-rail-hint">{t.supervisorSelectMemberPrompt}</p>
       ) : null}
 
       {supervisorMode ? (
@@ -349,12 +357,18 @@ export default function AdminPanel({
       )}
 
       <h3 className="intel-h3 admin-media-title">
-        {selectedMember
-          ? `${t.adminMediaTitle} — ${selectedMember.full_name} (${media.length})`
-          : `${t.adminMediaTitle} (${media.length})`}
+        {memberFilter?.mode === "user" && members.find((m) => Number(m.user_id) === Number(memberFilter.userId))
+          ? `${t.adminMediaTitle} — ${members.find((m) => Number(m.user_id) === Number(memberFilter.userId))?.full_name} (${media.length})`
+          : memberFilter?.mode === "all"
+            ? `${t.adminMediaTitle} (${media.length})`
+            : `${t.adminMediaTitle} (${media.length})`}
       </h3>
       <p className="intel-sub">
-        {selectedMember ? t.adminMediaSubSelected : t.adminMediaSub}
+        {memberFilter?.mode === "none"
+          ? t.supervisorSelectMemberPrompt
+          : memberFilter?.mode === "user"
+            ? t.adminMediaSubSelected
+            : t.adminMediaSub}
       </p>
       <div className="admin-media-grid">
         {media.map(({ url, items, primary }) => (

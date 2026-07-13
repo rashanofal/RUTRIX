@@ -6,7 +6,7 @@ from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 
 from app.database import get_db
-from app.dependencies import get_current_organization, get_current_user
+from app.dependencies import get_current_organization, get_current_role, get_current_user
 from app.models import (
     DetectionStatus,
     DeviceType,
@@ -27,6 +27,7 @@ from app.schemas import (
     StatsResponse,
     UploadResponse,
 )
+from app.services.access_control import is_platform_owner, scoped_detections_query
 from app.services.exif_geo import extract_gps_from_bytes, normalize_image_for_processing
 from app.services.geo_service import (
     clear_all_map_data,
@@ -99,9 +100,20 @@ def list_detections(
     max_lat: float = Query(...),
     max_lon: float = Query(...),
     org: Organization = Depends(get_current_organization),
+    user: User = Depends(get_current_user),
+    role: str = Depends(get_current_role),
     db: Session = Depends(get_db),
 ):
-    items = get_detections_in_bounds(db, min_lat, min_lon, max_lat, max_lon, org.id)
+    items = (
+        scoped_detections_query(db, org.id, user, role)
+        .filter(PotholeDetection.latitude >= min_lat)
+        .filter(PotholeDetection.latitude <= max_lat)
+        .filter(PotholeDetection.longitude >= min_lon)
+        .filter(PotholeDetection.longitude <= max_lon)
+        .order_by(PotholeDetection.created_at.desc())
+        .limit(500)
+        .all()
+    )
     return _to_responses(db, items, org.id)
 
 
@@ -109,12 +121,12 @@ def list_detections(
 def recent_detections(
     limit: int = 50,
     org: Organization = Depends(get_current_organization),
+    user: User = Depends(get_current_user),
+    role: str = Depends(get_current_role),
     db: Session = Depends(get_db),
 ):
     items = (
-        db.query(PotholeDetection)
-        .filter(PotholeDetection.organization_id == org.id)
-        .filter(PotholeDetection.detection_status != DetectionStatus.rejected)
+        scoped_detections_query(db, org.id, user, role)
         .order_by(PotholeDetection.created_at.desc())
         .limit(limit)
         .all()
@@ -130,9 +142,12 @@ def recent_detections(
 @router.get("/stats", response_model=StatsResponse)
 def detection_stats(
     org: Organization = Depends(get_current_organization),
+    user: User = Depends(get_current_user),
+    role: str = Depends(get_current_role),
     db: Session = Depends(get_db),
 ):
-    data = StatsResponse(**get_stats(db, org.id))
+    reporter_user_id = None if is_platform_owner(user, role) else user.id
+    data = StatsResponse(**get_stats(db, org.id, reporter_user_id=reporter_user_id))
     return JSONResponse(
         content=data.model_dump(mode="json"),
         headers={"Cache-Control": "no-store, no-cache, must-revalidate"},
@@ -144,13 +159,13 @@ def all_detections(
     limit: int = Query(1000, ge=1, le=2000),
     offset: int = Query(0, ge=0),
     org: Organization = Depends(get_current_organization),
+    user: User = Depends(get_current_user),
+    role: str = Depends(get_current_role),
     db: Session = Depends(get_db),
 ):
-    """Return every active map point owned by the current organization."""
+    """Org-wide for platform owner; own uploads only for field users."""
     items = (
-        db.query(PotholeDetection)
-        .filter(PotholeDetection.organization_id == org.id)
-        .filter(PotholeDetection.detection_status != DetectionStatus.rejected)
+        scoped_detections_query(db, org.id, user, role)
         .order_by(PotholeDetection.created_at.desc())
         .offset(offset)
         .limit(limit)
@@ -182,8 +197,8 @@ async def clear_map(
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    if _member_role(db, org.id, user.id) not in (MemberRole.owner, MemberRole.admin):
-        raise HTTPException(status_code=403, detail="مسح جميع النقاط متاح للمالك أو المشرف فقط")
+    if not is_platform_owner(user, _member_role(db, org.id, user.id)):
+        raise HTTPException(status_code=403, detail="مسح جميع النقاط متاح لمالك المنصة فقط")
     result = clear_all_map_data(db, org.id, delete_files=True)
     await manager.broadcast(org.id, {"type": "map_cleared"})
     return ClearMapResponse(
@@ -209,9 +224,9 @@ async def remove_detection(
     )
     if not detection:
         raise HTTPException(status_code=404, detail="Detection not found")
-    is_admin = _member_role(db, org.id, user.id) in (MemberRole.owner, MemberRole.admin)
-    if detection.reporter_user_id != user.id and not is_admin:
-        raise HTTPException(status_code=403, detail="لا يمكن حذف نقطة أضافها مستخدم آخر")
+    if not is_platform_owner(user, _member_role(db, org.id, user.id)):
+        if detection.reporter_user_id != user.id:
+            raise HTTPException(status_code=403, detail="لا يمكن حذف نقطة أضافها مستخدم آخر")
 
     result = delete_detection(db, detection_id, org.id, delete_file=True)
     if not result:
@@ -243,14 +258,13 @@ async def update_detection_status(
     detection_id: int,
     payload: DetectionStatusUpdate,
     org: Organization = Depends(get_current_organization),
+    user: User = Depends(get_current_user),
+    role: str = Depends(get_current_role),
     db: Session = Depends(get_db),
 ):
     det = (
-        db.query(PotholeDetection)
-        .filter(
-            PotholeDetection.id == detection_id,
-            PotholeDetection.organization_id == org.id,
-        )
+        scoped_detections_query(db, org.id, user, role)
+        .filter(PotholeDetection.id == detection_id)
         .first()
     )
     if not det:

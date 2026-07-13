@@ -378,14 +378,18 @@ def clear_all_map_data(
     }
 
 
-def _group_inspections(db: Session, organization_id: int) -> dict[str, list[PotholeDetection]]:
+def _group_inspections(
+    db: Session, organization_id: int, reporter_user_id: int | None = None
+) -> dict[str, list[PotholeDetection]]:
     """One uploaded image = one inspection (may contain multiple pothole rows)."""
-    rows = (
+    q = (
         db.query(PotholeDetection)
         .filter(PotholeDetection.organization_id == organization_id)
         .filter(PotholeDetection.detection_status != DetectionStatus.rejected)
-        .all()
     )
+    if reporter_user_id is not None:
+        q = q.filter(PotholeDetection.reporter_user_id == reporter_user_id)
+    rows = q.all()
     groups: dict[str, list[PotholeDetection]] = {}
     for row in rows:
         key = row.image_path or f"id:{row.id}"
@@ -400,8 +404,8 @@ def _primary_detection(items: list[PotholeDetection]) -> PotholeDetection:
     return items[0]
 
 
-def get_stats(db: Session, organization_id: int) -> dict:
-    groups = _group_inspections(db, organization_id)
+def get_stats(db: Session, organization_id: int, reporter_user_id: int | None = None) -> dict:
+    groups = _group_inspections(db, organization_id, reporter_user_id)
     total = len(groups)
     verified = 0
     by_device = {device.value: 0 for device in DeviceType}
@@ -425,14 +429,17 @@ def get_stats(db: Session, organization_id: int) -> dict:
         )
     )
 
-    total_potholes = (
+    total_potholes_q = (
         db.query(PotholeDetection)
         .filter(PotholeDetection.organization_id == organization_id)
         .filter(PotholeDetection.class_name != "photo")
         .filter(PotholeDetection.detection_status != DetectionStatus.rejected)
-        .count()
-        or 0
     )
+    if reporter_user_id is not None:
+        total_potholes_q = total_potholes_q.filter(
+            PotholeDetection.reporter_user_id == reporter_user_id
+        )
+    total_potholes = total_potholes_q.count() or 0
 
     return {
         "total_detections": total,
@@ -440,48 +447,57 @@ def get_stats(db: Session, organization_id: int) -> dict:
         "verified_detections": verified,
         "by_device": by_device,
         "by_status": by_status,
-        "by_severity": _count_field(db, organization_id, "severity"),
-        "avg_rut_score": _avg_rut(db, organization_id),
-        "total_repair_min": _sum_field(db, organization_id, "repair_cost_min"),
-        "total_repair_max": _sum_field(db, organization_id, "repair_cost_max"),
+        "by_severity": _count_field(db, organization_id, "severity", reporter_user_id),
+        "avg_rut_score": _avg_rut(db, organization_id, reporter_user_id),
+        "total_repair_min": _sum_field(db, organization_id, "repair_cost_min", reporter_user_id),
+        "total_repair_max": _sum_field(db, organization_id, "repair_cost_max", reporter_user_id),
         "critical_count": critical_count,
-        "growing_clusters": _count_evolution(db, organization_id, "growing"),
+        "growing_clusters": _count_evolution(db, organization_id, "growing", reporter_user_id),
     }
 
 
-def _count_field(db: Session, organization_id: int, field: str) -> dict:
+def _count_field(
+    db: Session, organization_id: int, field: str, reporter_user_id: int | None = None
+) -> dict:
     from sqlalchemy import func
 
-    rows = (
+    q = (
         db.query(getattr(PotholeDetection, field), func.count(PotholeDetection.id))
         .filter(PotholeDetection.organization_id == organization_id)
-        .group_by(getattr(PotholeDetection, field))
-        .all()
     )
+    if reporter_user_id is not None:
+        q = q.filter(PotholeDetection.reporter_user_id == reporter_user_id)
+    rows = q.group_by(getattr(PotholeDetection, field)).all()
     return {str(k or "unknown"): v for k, v in rows}
 
 
-def _avg_rut(db: Session, organization_id: int) -> float:
+def _avg_rut(db: Session, organization_id: int, reporter_user_id: int | None = None) -> float:
     from sqlalchemy import func
 
-    val = (
+    q = (
         db.query(func.avg(PotholeDetection.rut_score))
         .filter(PotholeDetection.organization_id == organization_id)
         .filter(PotholeDetection.class_name != "photo")
-        .scalar()
     )
+    if reporter_user_id is not None:
+        q = q.filter(PotholeDetection.reporter_user_id == reporter_user_id)
+    val = q.scalar()
     return round(float(val or 0), 1)
 
 
-def _sum_field(db: Session, organization_id: int, field: str) -> float:
+def _sum_field(
+    db: Session, organization_id: int, field: str, reporter_user_id: int | None = None
+) -> float:
     from sqlalchemy import func
 
-    val = (
+    q = (
         db.query(func.sum(getattr(PotholeDetection, field)))
         .filter(PotholeDetection.organization_id == organization_id)
         .filter(PotholeDetection.class_name != "photo")
-        .scalar()
     )
+    if reporter_user_id is not None:
+        q = q.filter(PotholeDetection.reporter_user_id == reporter_user_id)
+    val = q.scalar()
     return round(float(val or 0), 0)
 
 
@@ -496,11 +512,14 @@ def _count_severity(db: Session, organization_id: int, severity: str) -> int:
     )
 
 
-def _count_evolution(db: Session, organization_id: int, stage: str) -> int:
-    return (
+def _count_evolution(
+    db: Session, organization_id: int, stage: str, reporter_user_id: int | None = None
+) -> int:
+    q = (
         db.query(PotholeDetection)
         .filter(PotholeDetection.organization_id == organization_id)
         .filter(PotholeDetection.evolution_stage == stage)
-        .count()
-        or 0
     )
+    if reporter_user_id is not None:
+        q = q.filter(PotholeDetection.reporter_user_id == reporter_user_id)
+    return q.count() or 0
