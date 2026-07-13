@@ -15,7 +15,7 @@ export default function OverviewPage({ detections, onNavigate }) {
   const { t, locale } = useLocale();
   const [heroOk, setHeroOk] = useState(true);
   const pinned = detections.filter((d) => d.latitude != null).length;
-  const heroSrc = locale === "en" ? "/brand/hero-en.png?v=5" : "/brand/hero-ar.png?v=5";
+  const heroSrc = locale === "en" ? "/brand/hero-en.png?v=7" : "/brand/hero-ar.png?v=7";
 
   return (
     <div className="page-overview page-overview-home">

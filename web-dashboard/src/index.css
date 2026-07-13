@@ -2480,7 +2480,7 @@ body {
 
 .nav-rail-brand {
   margin-bottom: 1.25rem;
-  padding: 0.25rem 0.1rem;
+  padding: 0.45rem 0.15rem 0.55rem;
   border: none;
   background: none;
   cursor: pointer;
@@ -2528,8 +2528,10 @@ body {
 }
 
 .rutrix-logo--mark.rutrix-logo--sm .rutrix-logo__img {
-  width: 46px;
-  height: 46px;
+  width: 44px;
+  height: auto;
+  object-fit: contain;
+  object-position: center;
   filter: drop-shadow(0 6px 16px rgba(46, 230, 255, 0.35));
 }
 

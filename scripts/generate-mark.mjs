@@ -20,10 +20,12 @@ const MARK_SVG = Buffer.from(`<svg width="512" height="512" viewBox="0 0 512 512
       <stop offset="100%" stop-color="#1fa868"/>
     </linearGradient>
   </defs>
+  <g transform="translate(48, 40) scale(0.82)">
   <g fill="url(#rg)">
     <path d="M118 96 L248 96 L318 168 L318 228 L268 228 L268 196 L168 196 L168 416 L118 416 Z"/>
     <path d="M268 228 L318 228 L398 416 L342 416 L278 284 L268 284 Z"/>
     <path fill="url(#rg2)" opacity="0.85" d="M118 96 L168 96 L168 196 L118 196 Z"/>
+  </g>
   </g>
 </svg>`);
 
