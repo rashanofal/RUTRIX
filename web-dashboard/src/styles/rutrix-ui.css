@@ -2332,9 +2332,17 @@ body {
   flex-shrink: 0;
 }
 
-.supervisor-member-chip.active .supervisor-member-dot {
+.supervisor-member-chip.active .supervisor-member-dot,
+.supervisor-member-dot.on {
   border-color: var(--primary);
   background: var(--primary);
+}
+
+.supervisor-members-selected-count {
+  margin: 0.35rem 0 0;
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: var(--primary);
 }
 
 .supervisor-member-name {

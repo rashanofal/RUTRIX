@@ -8,6 +8,9 @@ import AdminPanel from "../components/AdminPanel";
 import SupervisorMembersRail, {
   enrichMembersWithReporters,
   filterDetectionsByMember,
+  hasMemberSelection,
+  memberFilterKey,
+  normalizeMemberFilter,
 } from "../components/SupervisorMembersRail";
 
 export default function SupervisorPage({
@@ -52,7 +55,7 @@ export default function SupervisorPage({
   );
 
   useEffect(() => {
-    if (memberFilter.mode === "none") {
+    if (!hasMemberSelection(memberFilter)) {
       if (selectedId) onSelect?.(null);
       return;
     }
@@ -75,20 +78,32 @@ export default function SupervisorPage({
     );
   }
 
+  const filter = normalizeMemberFilter(memberFilter);
   const pinned = filteredDetections.filter(
     (d) => d.latitude != null && d.longitude != null
   ).length;
-  const showSelectPrompt = memberFilter.mode === "none";
-  const showNoPinsHint =
-    memberFilter.mode === "user" && pinned === 0;
+  const showSelectPrompt = !hasMemberSelection(memberFilter);
+  const showNoPinsHint = hasMemberSelection(memberFilter) && pinned === 0;
   const reporters = new Set(
     filteredDetections.map((d) => d.reporter_user_id).filter(Boolean)
   ).size;
 
-  const selectedMember =
-    memberFilter.mode === "user"
-      ? displayMembers.find((m) => Number(m.user_id) === Number(memberFilter.userId))
-      : null;
+  const selectedMembers = useMemo(() => {
+    if (filter.mode === "users") {
+      const ids = new Set(filter.userIds);
+      return displayMembers.filter((m) => ids.has(Number(m.user_id)));
+    }
+    return [];
+  }, [filter, displayMembers]);
+
+  const selectedLabel = useMemo(() => {
+    if (filter.mode === "all") return null;
+    if (!selectedMembers.length) return null;
+    if (selectedMembers.length <= 3) {
+      return selectedMembers.map((m) => m.full_name).join(" · ");
+    }
+    return t.supervisorSelectedCount.replace("{count}", String(selectedMembers.length));
+  }, [filter.mode, selectedMembers, t.supervisorSelectedCount]);
 
   return (
     <div className="page-supervisor">
@@ -121,10 +136,10 @@ export default function SupervisorPage({
         </div>
       </header>
 
-      {memberFilter.mode === "user" && selectedMember ? (
+      {filter.mode === "users" && selectedLabel ? (
         <div className="supervisor-selected-banner" role="status">
           <span>
-            {t.memberShowingOnMap}: <strong>{selectedMember.full_name}</strong>
+            {t.memberShowingOnMap}: <strong>{selectedLabel}</strong>
           </span>
           <button
             type="button"
@@ -136,7 +151,7 @@ export default function SupervisorPage({
         </div>
       ) : null}
 
-      {memberFilter.mode === "all" ? (
+      {filter.mode === "all" ? (
         <div className="supervisor-selected-banner supervisor-selected-banner-all" role="status">
           <span>{t.supervisorShowingAll}</span>
           <button
@@ -153,7 +168,7 @@ export default function SupervisorPage({
         <div className="supervisor-map-layout">
           <div className="supervisor-map-frame">
             <PotholeMap
-              key={`${memberFilter.mode}-${memberFilter.userId ?? "all"}`}
+              key={memberFilterKey(memberFilter)}
               detections={filteredDetections}
               selectedId={selectedId}
               onSelect={onSelect}

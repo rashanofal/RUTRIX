@@ -7,7 +7,7 @@ import {
   resetTeamMemberPassword,
 } from "../hooks/useApi";
 import { useIsAdmin, useIsOwner } from "../hooks/useIsAdmin";
-import { filterDetectionsByMember } from "./SupervisorMembersRail";
+import { filterDetectionsByMember, hasMemberSelection, isMemberSelected, normalizeMemberFilter, toggleMemberInFilter } from "./SupervisorMembersRail";
 
 const ROLES = ["field", "admin", "viewer"];
 
@@ -68,12 +68,8 @@ export default function AdminPanel({
 
   const toggleMember = (member) => {
     if (!onMemberFilterChange) return;
-    const id = Number(member.user_id);
-    if (memberFilter?.mode === "user" && Number(memberFilter.userId) === id) {
-      onMemberFilterChange({ mode: "none" });
-      return;
-    }
-    onMemberFilterChange({ mode: "user", userId: id });
+    const allUserIds = members.map((m) => Number(m.user_id));
+    onMemberFilterChange(toggleMemberInFilter(memberFilter, member.user_id, allUserIds));
   };
 
   const loadMembers = () => {
@@ -206,10 +202,7 @@ export default function AdminPanel({
           </thead>
           <tbody>
             {members.map((m) => {
-              const isSelected =
-                supervisorMode &&
-                memberFilter?.mode === "user" &&
-                Number(memberFilter.userId) === Number(m.user_id);
+              const isSelected = supervisorMode && isMemberSelected(memberFilter, m.user_id);
               return (
               <tr
                 key={m.user_id}
@@ -357,16 +350,22 @@ export default function AdminPanel({
       )}
 
       <h3 className="intel-h3 admin-media-title">
-        {memberFilter?.mode === "user" && members.find((m) => Number(m.user_id) === Number(memberFilter.userId))
-          ? `${t.adminMediaTitle} — ${members.find((m) => Number(m.user_id) === Number(memberFilter.userId))?.full_name} (${media.length})`
-          : memberFilter?.mode === "all"
-            ? `${t.adminMediaTitle} (${media.length})`
-            : `${t.adminMediaTitle} (${media.length})`}
+        {(() => {
+          const f = normalizeMemberFilter(memberFilter);
+          if (f.mode === "users" && f.userIds.length === 1) {
+            const one = members.find((m) => Number(m.user_id) === f.userIds[0]);
+            if (one) return `${t.adminMediaTitle} — ${one.full_name} (${media.length})`;
+          }
+          if (f.mode === "users" && f.userIds.length > 1) {
+            return `${t.adminMediaTitle} — ${t.supervisorSelectedCount.replace("{count}", String(f.userIds.length))} (${media.length})`;
+          }
+          return `${t.adminMediaTitle} (${media.length})`;
+        })()}
       </h3>
       <p className="intel-sub">
-        {memberFilter?.mode === "none"
+        {!hasMemberSelection(memberFilter)
           ? t.supervisorSelectMemberPrompt
-          : memberFilter?.mode === "user"
+          : normalizeMemberFilter(memberFilter).mode === "users"
             ? t.adminMediaSubSelected
             : t.adminMediaSub}
       </p>

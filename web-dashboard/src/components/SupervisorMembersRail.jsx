@@ -1,14 +1,93 @@
 import { useMemo } from "react";
 import { useLocale } from "../context/LocaleContext";
 
-/** @typedef {'none' | 'all' | 'user'} MemberFilterMode */
+/** @typedef {'none' | 'all' | 'users'} MemberFilterMode */
+
+export function normalizeMemberFilter(memberFilter) {
+  if (!memberFilter) return { mode: "none" };
+  if (memberFilter.mode === "user" && memberFilter.userId != null) {
+    return { mode: "users", userIds: [Number(memberFilter.userId)] };
+  }
+  if (memberFilter.mode === "users" && Array.isArray(memberFilter.userIds)) {
+    const userIds = [...new Set(memberFilter.userIds.map(Number))].filter(Boolean);
+    if (!userIds.length) return { mode: "none" };
+    return { mode: "users", userIds };
+  }
+  if (memberFilter.mode === "all" || memberFilter.mode === "none") {
+    return { mode: memberFilter.mode };
+  }
+  return { mode: "none" };
+}
+
+export function hasMemberSelection(memberFilter) {
+  const f = normalizeMemberFilter(memberFilter);
+  return f.mode === "all" || (f.mode === "users" && f.userIds.length > 0);
+}
+
+export function isMemberSelected(memberFilter, userId) {
+  const f = normalizeMemberFilter(memberFilter);
+  const id = Number(userId);
+  if (f.mode === "all") return true;
+  if (f.mode === "users") return f.userIds.includes(id);
+  return false;
+}
+
+export function toggleMemberInFilter(memberFilter, userId, allUserIds = []) {
+  const f = normalizeMemberFilter(memberFilter);
+  const id = Number(userId);
+  const all = allUserIds.map(Number).filter(Boolean);
+
+  if (f.mode === "all") {
+    const remaining = all.filter((uid) => uid !== id);
+    if (!remaining.length) return { mode: "none" };
+    return { mode: "users", userIds: remaining };
+  }
+
+  if (f.mode === "none") {
+    return { mode: "users", userIds: [id] };
+  }
+
+  if (f.mode === "users") {
+    const ids = new Set(f.userIds);
+    if (ids.has(id)) {
+      ids.delete(id);
+      if (!ids.size) return { mode: "none" };
+      return { mode: "users", userIds: Array.from(ids) };
+    }
+    ids.add(id);
+    if (all.length && ids.size >= all.length) return { mode: "all" };
+    return { mode: "users", userIds: Array.from(ids) };
+  }
+
+  return { mode: "users", userIds: [id] };
+}
+
+export function toggleAllMembersFilter(memberFilter) {
+  const f = normalizeMemberFilter(memberFilter);
+  if (f.mode === "all") return { mode: "none" };
+  return { mode: "all" };
+}
+
+export function memberFilterKey(memberFilter) {
+  const f = normalizeMemberFilter(memberFilter);
+  if (f.mode === "none") return "none";
+  if (f.mode === "all") return "all";
+  return `users-${[...f.userIds].sort((a, b) => a - b).join(",")}`;
+}
+
+export function getSelectedUserIds(memberFilter) {
+  const f = normalizeMemberFilter(memberFilter);
+  if (f.mode === "users") return f.userIds;
+  return [];
+}
 
 export function filterDetectionsByMember(detections, memberFilter) {
   if (!Array.isArray(detections) || !memberFilter) return [];
-  if (memberFilter.mode === "none") return [];
-  if (memberFilter.mode === "all") return detections;
-  const userId = Number(memberFilter.userId);
-  return detections.filter((d) => Number(d.reporter_user_id) === userId);
+  const f = normalizeMemberFilter(memberFilter);
+  if (f.mode === "none") return [];
+  if (f.mode === "all") return detections;
+  const ids = new Set(f.userIds);
+  return detections.filter((d) => ids.has(Number(d.reporter_user_id)));
 }
 
 /** Include reporters visible on the map even if team API missed them (org merge lag). */
@@ -43,6 +122,8 @@ export default function SupervisorMembersRail({
   onMemberFilterChange,
 }) {
   const { t } = useLocale();
+  const filter = normalizeMemberFilter(memberFilter);
+  const allUserIds = useMemo(() => members.map((m) => Number(m.user_id)), [members]);
 
   const pinCounts = useMemo(() => {
     const counts = new Map();
@@ -59,15 +140,12 @@ export default function SupervisorMembersRail({
     [detections]
   );
 
-  const setAll = () => onMemberFilterChange?.({ mode: "all" });
-  const setUser = (userId) => {
-    const id = Number(userId);
-    if (memberFilter?.mode === "user" && Number(memberFilter.userId) === id) {
-      onMemberFilterChange?.({ mode: "none" });
-      return;
-    }
-    onMemberFilterChange?.({ mode: "user", userId: id });
-  };
+  const selectedCount =
+    filter.mode === "all" ? members.length : filter.mode === "users" ? filter.userIds.length : 0;
+
+  const toggleAll = () => onMemberFilterChange?.(toggleAllMembersFilter(filter));
+  const toggleUser = (userId) =>
+    onMemberFilterChange?.(toggleMemberInFilter(filter, userId, allUserIds));
 
   return (
     <aside className="supervisor-members-rail" aria-label={t.supervisorMembersRail}>
@@ -79,12 +157,22 @@ export default function SupervisorMembersRail({
           </span>
         </div>
         <p>{t.memberSelectHint}</p>
+        {selectedCount > 0 && filter.mode !== "all" ? (
+          <p className="supervisor-members-selected-count" dir="ltr">
+            {t.supervisorSelectedCount.replace("{count}", String(selectedCount))}
+          </p>
+        ) : null}
       </div>
-      <div className="supervisor-members-rail-list" role="listbox" aria-label={t.supervisorMembersRail}>
+      <div
+        className="supervisor-members-rail-list"
+        role="group"
+        aria-label={t.supervisorMembersRail}
+      >
         <button
           type="button"
-          className={`supervisor-member-chip${memberFilter?.mode === "all" ? " active" : ""}`}
-          onClick={setAll}
+          className={`supervisor-member-chip${filter.mode === "all" ? " active" : ""}`}
+          onClick={toggleAll}
+          aria-pressed={filter.mode === "all"}
         >
           <span className="supervisor-member-name">{t.supervisorFilterAll}</span>
           <span className="supervisor-member-pins" dir="ltr">
@@ -94,16 +182,16 @@ export default function SupervisorMembersRail({
         {members.map((m) => {
           const id = Number(m.user_id);
           const pins = pinCounts.get(id) ?? m.map_pins ?? 0;
-          const active = memberFilter?.mode === "user" && Number(memberFilter.userId) === id;
+          const active = isMemberSelected(filter, id);
           return (
             <button
               key={m.user_id}
               type="button"
               className={`supervisor-member-chip${active ? " active" : ""}`}
-              onClick={() => setUser(id)}
+              onClick={() => toggleUser(id)}
               aria-pressed={active}
             >
-              <span className="supervisor-member-dot" aria-hidden />
+              <span className={`supervisor-member-dot${active ? " on" : ""}`} aria-hidden />
               <span className="supervisor-member-text">
                 <span className="supervisor-member-name">{m.full_name}</span>
                 {m.email ? (
