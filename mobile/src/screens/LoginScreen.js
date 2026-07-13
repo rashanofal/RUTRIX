@@ -20,15 +20,15 @@ import { colors, radius, spacing } from "../theme";
 
 export default function LoginScreen({ apiUrl, onLoggedIn }) {
   const { t, toggleLocale } = useLocale();
-  const [mode, setMode] = useState("login");
+  const [mode, setMode] = useState("register");
   const [loading, setLoading] = useState(false);
   const [testing, setTesting] = useState(false);
   const [serverOk, setServerOk] = useState(null);
   const [error, setError] = useState("");
   const [serverUrl, setServerUrl] = useState(apiUrl);
   const [form, setForm] = useState({
-    email: "demo@pothole.app",
-    password: "demo1234",
+    email: "",
+    password: "",
     full_name: "",
     organization_name: "",
   });

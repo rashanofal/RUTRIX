@@ -1,4 +1,5 @@
 import { useLocale } from "../context/LocaleContext";
+import ReportExportPanel from "../components/ReportExportPanel";
 import ExecutiveDashboard from "../components/ExecutiveDashboard";
 import MaintenancePanel from "../components/MaintenancePanel";
 import TeamPanel from "../components/TeamPanel";
@@ -30,6 +31,10 @@ export default function OperationsPage({
             onRefresh={maintRefresh}
             onChanged={onMaintChanged}
           />
+        </section>
+
+        <section className="ops-block">
+          <ReportExportPanel />
         </section>
 
         <section className="ops-block">

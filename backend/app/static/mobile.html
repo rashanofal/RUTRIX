@@ -365,9 +365,14 @@
     </div>
     <div class="card">
       <p class="sub" style="margin-bottom:0.75rem" id="loginCardTitle">Sign in</p>
-      <div class="field"><input type="email" id="email" value="demo@pothole.app" placeholder="Email" /></div>
-      <div class="field"><input type="password" id="password" value="demo1234" placeholder="Password" /></div>
+      <div id="registerFields" class="hidden">
+        <div class="field"><input type="text" id="fullName" autocomplete="name" placeholder="Full name" /></div>
+        <div class="field"><input type="text" id="orgNameInput" autocomplete="organization" placeholder="Organization" /></div>
+      </div>
+      <div class="field"><input type="email" id="email" value="demo@pothole.app" autocomplete="email" placeholder="Email" /></div>
+      <div class="field"><input type="password" id="password" value="demo1234" autocomplete="current-password" placeholder="Password" minlength="6" /></div>
       <button class="btn btn-primary" id="loginBtn">Sign In</button>
+      <button type="button" class="btn btn-album" id="authToggleBtn" style="margin-top:0.55rem">Create account</button>
       <p id="loginMsg" class="err" style="margin-top:0.75rem;text-align:center"></p>
     </div>
     <div class="install-hint" id="installHint">
@@ -457,6 +462,10 @@
         scientific: "منصة ذكاء البنية التحتية للطرق وإدارة الأصول",
         creator: "RUTRIX © 2026 • بواسطة د. رشا نوفل",
         loginSub: "تطبيق ميداني — RUTRIX", login: "دخول", loginCard: "سجّل الدخول",
+        register: "إنشاء حساب", registerCard: "حساب جديد",
+        registerBtn: "إنشاء حساب", registerFail: "فشل إنشاء الحساب",
+        toggleRegister: "إنشاء حساب جديد ←", toggleLogin: "لدي حساب — دخول ←",
+        fullNamePh: "الاسم الكامل", orgNamePh: "اسم المنظمة / البلدية",
         photo: "صورة", pothole: "حفرة",
         connected: "متصل بالسيرفر", offline: "غير متصل",
         tabCamera: "تصوير", tabMap: "الخريطة", delete: "حذف الصورة",
@@ -497,6 +506,10 @@
         scientific: "Road Infrastructure Intelligence & Asset Management Platform",
         creator: "RUTRIX © 2026 • by Dr. Rasha Nofal",
         loginSub: "Field App — RUTRIX", login: "Sign In", loginCard: "Sign in",
+        register: "Create Account", registerCard: "New account",
+        registerBtn: "Create Account", registerFail: "Registration failed",
+        toggleRegister: "Create account ←", toggleLogin: "Already have an account — Sign in ←",
+        fullNamePh: "Full name", orgNamePh: "Organization / municipality",
         photo: "Photo", pothole: "Pothole",
         connected: "Connected", offline: "Offline",
         tabCamera: "Capture", tabMap: "Map", delete: "Delete image",
@@ -531,8 +544,46 @@
         passPh: "Password",
       },
     };
-    let locale = localStorage.getItem(LOCALE_KEY) || "en";
+    let locale = (function () {
+      try {
+        const params = new URLSearchParams(window.location.search);
+        const lang = params.get("lang");
+        if (lang === "en" || lang === "ar") return lang;
+      } catch { /* ignore */ }
+      return localStorage.getItem(LOCALE_KEY) || "en";
+    })();
+    function initialAuthMode() {
+      try {
+        const params = new URLSearchParams(window.location.search);
+        const mode = params.get("mode");
+        if (mode === "login" || mode === "register") return mode;
+        if (params.has("login")) return "login";
+        if (params.has("register")) return "register";
+      } catch { /* ignore */ }
+      return "register";
+    }
+    let authMode = initialAuthMode();
     function t() { return I18N[locale] || I18N.en; }
+    function setAuthMode(mode) {
+      authMode = mode;
+      const tr = t();
+      const regFields = document.getElementById("registerFields");
+      const cardTitle = document.getElementById("loginCardTitle");
+      const submitBtn = document.getElementById("loginBtn");
+      const toggleBtn = document.getElementById("authToggleBtn");
+      const email = document.getElementById("email");
+      const password = document.getElementById("password");
+      if (regFields) regFields.classList.toggle("hidden", mode !== "register");
+      if (cardTitle) cardTitle.textContent = mode === "register" ? tr.registerCard : tr.loginCard;
+      if (submitBtn) submitBtn.textContent = mode === "register" ? tr.registerBtn : tr.login;
+      if (toggleBtn) toggleBtn.textContent = mode === "register" ? tr.toggleLogin : tr.toggleRegister;
+      if (email && mode === "register" && email.value === "demo@pothole.app") email.value = "";
+      if (password && mode === "register" && password.value === "demo1234") password.value = "";
+      if (email && mode === "login" && !email.value) email.value = "demo@pothole.app";
+      if (password && mode === "login" && !password.value) password.value = "demo1234";
+      if (email) email.autocomplete = mode === "register" ? "email" : "username";
+      if (password) password.autocomplete = mode === "register" ? "new-password" : "current-password";
+    }
     function applyLocale() {
       const tr = t();
       document.documentElement.lang = locale;
@@ -559,14 +610,20 @@
       const ls = document.getElementById("loginSub");
       if (ls) ls.textContent = tr.loginSub;
       const lct = document.getElementById("loginCardTitle");
-      if (lct) lct.textContent = tr.loginCard;
+      if (lct) lct.textContent = authMode === "register" ? tr.registerCard : tr.loginCard;
       const ih = document.getElementById("installHint");
       if (ih) ih.textContent = tr.installHint;
       const email = document.getElementById("email");
       if (email) email.placeholder = tr.emailPh;
       const pass = document.getElementById("password");
       if (pass) pass.placeholder = tr.passPh;
-      document.getElementById("loginBtn").textContent = tr.login;
+      const fullName = document.getElementById("fullName");
+      if (fullName) fullName.placeholder = tr.fullNamePh;
+      const orgInput = document.getElementById("orgNameInput");
+      if (orgInput) orgInput.placeholder = tr.orgNamePh;
+      document.getElementById("loginBtn").textContent = authMode === "register" ? tr.registerBtn : tr.login;
+      const authToggle = document.getElementById("authToggleBtn");
+      if (authToggle) authToggle.textContent = authMode === "register" ? tr.toggleLogin : tr.toggleRegister;
       document.getElementById("logoutBtn").textContent = tr.logout;
       const tabCam = document.getElementById("tabCameraLabel");
       const tabMap = document.getElementById("tabMapLabel");
@@ -588,6 +645,7 @@
       if (section) section.textContent = tr.captureSection;
       const tip = document.getElementById("gpsTip");
       if (tip) tip.textContent = window.isSecureContext ? tr.gpsTip : tr.insecureTip;
+      setAuthMode(authMode);
       updateGpsChip();
     }
     function bindLangToggle(id) {
@@ -1055,19 +1113,39 @@
       };
     });
 
+    document.getElementById("authToggleBtn").onclick = function () {
+      loginMsg.textContent = "";
+      setAuthMode(authMode === "login" ? "register" : "login");
+    };
+
     document.getElementById("loginBtn").onclick = async () => {
       loginMsg.textContent = "";
       const email = document.getElementById("email").value.trim();
       const password = document.getElementById("password").value;
+      const tr = t();
       try {
-        const res = await fetch("/api/auth/login", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email, password }),
-        });
+        let res;
+        if (authMode === "register") {
+          const full_name = document.getElementById("fullName").value.trim();
+          const organization_name = document.getElementById("orgNameInput").value.trim();
+          if (!full_name || !organization_name) {
+            throw new Error(tr.registerFail);
+          }
+          res = await fetch("/api/auth/register", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email, password, full_name, organization_name }),
+          });
+        } else {
+          res = await fetch("/api/auth/login", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email, password }),
+          });
+        }
         if (!res.ok) {
           const err = await res.json().catch(() => ({}));
-          throw new Error(err.detail || t().loginFail);
+          throw new Error(err.detail || (authMode === "register" ? tr.registerFail : tr.loginFail));
         }
         const data = await res.json();
         setAuth(data);

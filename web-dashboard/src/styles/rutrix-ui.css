@@ -1369,3 +1369,103 @@ body {
   border-color: rgba(61, 213, 255, 0.45);
   outline: none;
 }
+
+/* ─── Detection workflow + municipal reports ─── */
+.report-export-panel {
+  padding: 1.15rem 1.25rem;
+}
+
+.report-export-title {
+  font-size: 1rem;
+  font-weight: 800;
+  margin-bottom: 0.35rem;
+}
+
+.report-export-sub {
+  color: var(--muted);
+  font-size: 0.85rem;
+  line-height: 1.55;
+  margin-bottom: 0.85rem;
+}
+
+.detection-workflow {
+  margin: 0.75rem 0 0.85rem;
+  padding: 0.75rem 0.85rem;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border);
+}
+
+.detection-workflow-title {
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 0.55rem;
+}
+
+.detection-workflow-steps {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  flex-wrap: wrap;
+}
+
+.detection-workflow-step {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.55rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border);
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.detection-workflow-step.done {
+  color: #bbf7d0;
+  border-color: rgba(52, 211, 153, 0.35);
+  background: rgba(6, 78, 59, 0.25);
+}
+
+.detection-workflow-step.active {
+  color: var(--primary);
+  border-color: rgba(61, 213, 255, 0.45);
+  background: rgba(61, 213, 255, 0.1);
+}
+
+.detection-workflow-dot {
+  width: 1.15rem;
+  height: 1.15rem;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.65rem;
+  font-weight: 800;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.detection-workflow-badge.rejected {
+  display: inline-block;
+  padding: 0.35rem 0.65rem;
+  border-radius: 999px;
+  background: rgba(127, 29, 29, 0.35);
+  border: 1px solid rgba(248, 113, 113, 0.35);
+  color: #fecaca;
+  font-size: 0.8rem;
+  font-weight: 800;
+}
+
+.detection-workflow-note {
+  margin-top: 0.45rem;
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+
+.detection-workflow--rejected {
+  border-color: rgba(248, 113, 113, 0.25);
+}

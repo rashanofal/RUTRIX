@@ -1,4 +1,5 @@
 import { useLocale } from "../context/LocaleContext";
+import DetectionStatusPipeline from "./DetectionStatusPipeline";
 
 export default function DetectionDetail({
   selected,
@@ -38,6 +39,7 @@ export default function DetectionDetail({
           </>
         )}
       </p>
+      <DetectionStatusPipeline detection={selected} />
       <button
         type="button"
         className="delete-one-btn"
