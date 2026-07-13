@@ -81,6 +81,8 @@ def invite_member(
     db: Session = Depends(get_db),
 ):
     _require_admin_membership(db, org.id, current.id)
+    if payload.role == MemberRole.owner.value:
+        raise HTTPException(status_code=400, detail="لا يمكن تعيين دور مالك — مالك واحد فقط لكل منظمة")
     try:
         user = invite_user_to_organization(
             db,

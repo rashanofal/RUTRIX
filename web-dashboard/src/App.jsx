@@ -286,6 +286,12 @@ function Dashboard() {
 
   const wsConnected = useWebSocket(handleWsMessage);
 
+  useEffect(() => {
+    if (page === "supervisor" && !isOwner) {
+      setPage("overview");
+    }
+  }, [page, isOwner]);
+
   const renderPage = () => {
     switch (page) {
       case "overview":

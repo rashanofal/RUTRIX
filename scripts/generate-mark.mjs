@@ -66,7 +66,7 @@ async function findGreenIconBounds() {
 
 async function centerOnCanvas(inputBuf, size = TARGET) {
   const meta = await sharp(inputBuf).metadata();
-  const scale = Math.min((size * 0.54) / meta.width, (size * 0.54) / meta.height);
+  const scale = Math.min((size * 0.46) / meta.width, (size * 0.56) / meta.height);
   const w = Math.max(1, Math.round(meta.width * scale));
   const h = Math.max(1, Math.round(meta.height * scale));
   const resized = await sharp(inputBuf).resize(w, h, { fit: "fill" }).png().toBuffer();
@@ -105,10 +105,10 @@ async function fromLogoCrop() {
       height: iconH,
     })
     .extend({
-      top: 48,
-      bottom: 44,
-      left: 76,
-      right: 40,
+      top: 40,
+      bottom: 40,
+      left: 160,
+      right: 28,
       background: { r: 0, g: 0, b: 0, alpha: 0 },
     })
     .png()

@@ -161,6 +161,43 @@ def reconcile_detection_orgs(db: Session) -> None:
         db.commit()
 
 
+def reconcile_owner_roles(db: Session) -> None:
+    """One owner per org — demo account owns the demo org; others are demoted."""
+    demo_user_id = None
+    demo = db.query(User).filter(User.email == settings.demo_email).first()
+    if demo:
+        demo_user_id = demo.id
+
+    changed = False
+    for org in db.query(Organization).all():
+        members = (
+            db.query(OrganizationMember)
+            .filter(OrganizationMember.organization_id == org.id)
+            .order_by(OrganizationMember.id.asc())
+            .all()
+        )
+        if not members:
+            continue
+
+        owner_member = members[0]
+        if demo_user_id:
+            demo_m = next((m for m in members if m.user_id == demo_user_id), None)
+            if demo_m:
+                owner_member = demo_m
+
+        for m in members:
+            if m.id == owner_member.id:
+                if m.role != MemberRole.owner:
+                    m.role = MemberRole.owner
+                    changed = True
+            elif m.role == MemberRole.owner:
+                m.role = MemberRole.field
+                changed = True
+
+    if changed:
+        db.commit()
+
+
 def seed_demo_account() -> None:
     if not settings.seed_demo_account:
         return
@@ -203,6 +240,7 @@ def bootstrap() -> None:
     db = SessionLocal()
     try:
         reconcile_detection_orgs(db)
+        reconcile_owner_roles(db)
     finally:
         db.close()
     backfill_intelligence()
