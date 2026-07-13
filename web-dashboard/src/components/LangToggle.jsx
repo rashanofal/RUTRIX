@@ -13,7 +13,7 @@ export default function LangToggle({ className = "" }) {
 export function BrandLogo({ size = "md", variant = "full", showName = true }) {
   const { t } = useLocale();
   const isMark = variant === "mark";
-  const src = "/brand/logo-mark.png?v=3";
+  const src = "/brand/logo-mark.png?v=4";
   if (isMark || !showName) {
     return (
       <div

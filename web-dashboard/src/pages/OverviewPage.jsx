@@ -1,4 +1,6 @@
+import { useState } from "react";
 import { useLocale } from "../context/LocaleContext";
+import { BrandLogo } from "../components/LangToggle";
 import NavIcon from "../components/NavIcons";
 
 const QUICK_LINKS = [
@@ -11,18 +13,25 @@ const QUICK_LINKS = [
 
 export default function OverviewPage({ detections, onNavigate }) {
   const { t, locale } = useLocale();
+  const [heroOk, setHeroOk] = useState(true);
   const pinned = detections.filter((d) => d.latitude != null).length;
-  const heroSrc = locale === "en" ? "/brand/hero-en.png" : "/brand/hero-ar.png";
+  const heroSrc = locale === "en" ? "/brand/hero-en.png?v=4" : "/brand/hero-ar.png?v=4";
 
   return (
     <div className="page-overview page-overview-home">
       <section className="overview-banner overview-banner-full">
-        <img
-          src={heroSrc}
-          alt={t.brand}
-          className="overview-banner-image"
-          key={heroSrc}
-        />
+        {heroOk ? (
+          <img
+            src={heroSrc}
+            alt={t.brand}
+            className="overview-banner-image"
+            onError={() => setHeroOk(false)}
+          />
+        ) : (
+          <div className="overview-banner-fallback">
+            <BrandLogo size="lg" variant="full" />
+          </div>
+        )}
       </section>
 
       <div className="page-hero page-hero-compact">

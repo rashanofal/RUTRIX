@@ -62,7 +62,6 @@ def health():
         "features": {
             "unique_inspection_stats": True,
             "reports_v2": True,
-            "persistent_storage_recommended": store["ephemeral_warning"],
         },
         "model": model.get("classes", {}),
         "confidence_threshold": model.get("confidence_threshold"),
@@ -264,6 +263,22 @@ def root(request: Request):
         "mobile": "/mobile",
         "auth": "/api/auth/login",
     }
+
+
+@app.get("/brand/{filename}")
+def dashboard_brand_asset(filename: str):
+    allowed = {"logo.png", "logo-mark.png", "hero-ar.png", "hero-en.png"}
+    if filename not in allowed:
+        raise HTTPException(status_code=404, detail="Not found")
+    for base in (DASHBOARD_DIR / "brand", STATIC_DIR):
+        path = base / filename
+        if path.is_file():
+            resp = FileResponse(path, media_type="image/png")
+            resp.headers["Cache-Control"] = "public, max-age=86400"
+            return resp
+    if filename in ("logo.png", "logo-mark.png"):
+        return _brand_file(filename)
+    raise HTTPException(status_code=404, detail="Not found")
 
 
 @app.get("/{spa_path:path}")

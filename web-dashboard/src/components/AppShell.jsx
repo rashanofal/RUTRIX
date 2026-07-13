@@ -63,6 +63,7 @@ export default function AppShell({
           <div className="topbar-brand">
             {page === "overview" ? (
               <div className="topbar-brand-stack">
+                <BrandLogo size="md" variant="full" />
                 <p className="topbar-scientific">{t.brandSub}</p>
                 {t.tagline ? <p className="topbar-tagline">{t.tagline}</p> : null}
               </div>

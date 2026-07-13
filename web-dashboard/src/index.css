@@ -2846,6 +2846,19 @@ body {
   background: #02040a;
 }
 
+.overview-banner-fallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 140px;
+  padding: 2rem 1rem;
+  background: #02040a;
+}
+
+.topbar-brand-stack .rutrix-logo--lockup {
+  margin-bottom: 0.15rem;
+}
+
 .page-hero-compact {
   margin-bottom: 1rem;
 }
