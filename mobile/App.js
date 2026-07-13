@@ -6,11 +6,13 @@ import { StatusBar } from "expo-status-bar";
 
 import * as SplashScreen from "expo-splash-screen";
 
-import { checkHealth } from "./src/api";
+import { checkHealth, fetchUnreadCount } from "./src/api";
 
 import { getStoredAuth, clearAuth } from "./src/auth";
 
 import { useGps } from "./src/hooks/useGps";
+
+import { usePushNotifications } from "./src/hooks/usePushNotifications";
 
 import { detectApiUrl, getSavedApiUrl, saveApiUrl } from "./src/storage";
 
@@ -29,6 +31,12 @@ import MapScreen from "./src/screens/MapScreen";
 import ActivityScreen from "./src/screens/ActivityScreen";
 
 import ProfileScreen from "./src/screens/ProfileScreen";
+
+import WorkOrderInboxScreen from "./src/screens/WorkOrderInboxScreen";
+
+import WorkOrderDetailScreen from "./src/screens/WorkOrderDetailScreen";
+
+import NotificationsScreen from "./src/screens/NotificationsScreen";
 
 import GpsPermissionScreen from "./src/screens/GpsPermissionScreen";
 
@@ -60,7 +68,27 @@ function AppInner() {
 
   const [refreshKey, setRefreshKey] = useState(0);
 
+  const [detailWoId, setDetailWoId] = useState(null);
+
+  const [showNotifs, setShowNotifs] = useState(false);
+
+  const [unread, setUnread] = useState(0);
+
+  const [taskKey, setTaskKey] = useState(0);
+
   const coordsRef = useRef(null);
+
+  const openWorkOrder = (id) => {
+    setShowNotifs(false);
+    setDetailWoId(id);
+  };
+
+  const refreshUnread = async () => {
+    if (!auth) return;
+    setUnread(await fetchUnreadCount(apiUrl));
+  };
+
+  usePushNotifications({ apiUrl, enabled: !!auth, onOpenWorkOrder: openWorkOrder });
 
 
 
@@ -115,6 +143,30 @@ function AppInner() {
     const t = setInterval(ping, 15000);
 
     return () => clearInterval(t);
+
+  }, [auth, apiUrl]);
+
+
+
+  useEffect(() => {
+
+    if (!auth) return;
+
+    let active = true;
+
+    const poll = async () => {
+      const c = await fetchUnreadCount(apiUrl);
+      if (active) setUnread(c);
+    };
+
+    poll();
+
+    const t = setInterval(poll, 20000);
+
+    return () => {
+      active = false;
+      clearInterval(t);
+    };
 
   }, [auth, apiUrl]);
 
@@ -236,11 +288,53 @@ function AppInner() {
 
         )}
 
-        {tab === "map" && <MapScreen apiUrl={apiUrl} refreshKey={refreshKey} />}
+        {tab === "map" && (
+
+          <MapScreen
+
+            apiUrl={apiUrl}
+
+            refreshKey={refreshKey}
+
+            onBell={() => setShowNotifs(true)}
+
+            unreadCount={unread}
+
+          />
+
+        )}
+
+        {tab === "tasks" && (
+
+          <WorkOrderInboxScreen
+
+            apiUrl={apiUrl}
+
+            refreshKey={taskKey}
+
+            onOpenDetail={openWorkOrder}
+
+            onBell={() => setShowNotifs(true)}
+
+            unreadCount={unread}
+
+          />
+
+        )}
 
         {tab === "activity" && (
 
-          <ActivityScreen apiUrl={apiUrl} refreshKey={refreshKey} />
+          <ActivityScreen
+
+            apiUrl={apiUrl}
+
+            refreshKey={refreshKey}
+
+            onBell={() => setShowNotifs(true)}
+
+            unreadCount={unread}
+
+          />
 
         )}
 
@@ -256,6 +350,10 @@ function AppInner() {
 
             onLogout={handleLogout}
 
+            onBell={() => setShowNotifs(true)}
+
+            unreadCount={unread}
+
           />
 
         )}
@@ -263,6 +361,37 @@ function AppInner() {
       </View>
 
       <TabBar active={tab} onChange={setTab} />
+
+      <NotificationsScreen
+
+        apiUrl={apiUrl}
+
+        visible={showNotifs}
+
+        onClose={() => setShowNotifs(false)}
+
+        onOpenWorkOrder={openWorkOrder}
+
+        onChanged={refreshUnread}
+
+      />
+
+      <WorkOrderDetailScreen
+
+        apiUrl={apiUrl}
+
+        workOrderId={detailWoId}
+
+        visible={detailWoId != null}
+
+        onClose={() => setDetailWoId(null)}
+
+        onChanged={() => {
+          setTaskKey((k) => k + 1);
+          refreshUnread();
+        }}
+
+      />
 
     </View>
 

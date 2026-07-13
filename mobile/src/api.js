@@ -130,6 +130,124 @@ export async function fetchWorkOrders(apiBase) {
   return apiGet("/api/maintenance/work-orders", apiBase);
 }
 
+export async function fetchMyWorkOrders(apiBase) {
+  return apiGet("/api/maintenance/work-orders?assigned_to_me=true", apiBase);
+}
+
+export async function fetchWorkOrder(apiBase, id) {
+  return apiGet(`/api/maintenance/work-orders/${id}`, apiBase);
+}
+
+async function workOrderAction(apiBase, id, action, body) {
+  const headers = await authHeaders(apiBase, {
+    Accept: "application/json",
+    "Content-Type": "application/json",
+  });
+  const res = await fetchWithTimeout(
+    `${getApiBase(apiBase)}/api/maintenance/work-orders/${id}/${action}`,
+    { method: "POST", headers, body: body ? JSON.stringify(body) : undefined },
+    20000
+  );
+  if (res.status === 401) throw new Error("انتهت الجلسة");
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(text || "فشل تنفيذ الإجراء");
+  }
+  return res.json();
+}
+
+export async function acceptWorkOrder(apiBase, id) {
+  return workOrderAction(apiBase, id, "accept");
+}
+
+export async function declineWorkOrder(apiBase, id, reason) {
+  return workOrderAction(apiBase, id, "decline", { reason });
+}
+
+export async function startWorkOrder(apiBase, id) {
+  return workOrderAction(apiBase, id, "start");
+}
+
+export async function completeWorkOrder(apiBase, id, { notes, proofUri } = {}) {
+  const formData = new FormData();
+  if (notes) formData.append("notes", notes);
+  if (proofUri) {
+    formData.append("proof", {
+      uri: proofUri,
+      name: "proof.jpg",
+      type: "image/jpeg",
+    });
+  }
+  const headers = await authHeaders(apiBase, { Accept: "application/json" });
+  const res = await fetchWithTimeout(
+    `${getApiBase(apiBase)}/api/maintenance/work-orders/${id}/complete`,
+    { method: "POST", body: formData, headers },
+    90000
+  );
+  if (res.status === 401) throw new Error("انتهت الجلسة");
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(text || "فشل الإنهاء");
+  }
+  return res.json();
+}
+
+export async function fetchNotifications(apiBase, unreadOnly = false) {
+  return apiGet(
+    `/api/notifications${unreadOnly ? "?unread_only=true" : ""}`,
+    apiBase
+  );
+}
+
+export async function fetchUnreadCount(apiBase) {
+  try {
+    const data = await apiGet("/api/notifications/unread-count", apiBase);
+    return data.unread || 0;
+  } catch {
+    return 0;
+  }
+}
+
+export async function markNotificationRead(apiBase, id) {
+  const headers = await authHeaders(apiBase, { Accept: "application/json" });
+  const res = await fetchWithTimeout(
+    `${getApiBase(apiBase)}/api/notifications/${id}/read`,
+    { method: "POST", headers },
+    15000
+  );
+  if (!res.ok) throw new Error("Mark read failed");
+  return res.json();
+}
+
+export async function markAllNotificationsRead(apiBase) {
+  const headers = await authHeaders(apiBase, { Accept: "application/json" });
+  const res = await fetchWithTimeout(
+    `${getApiBase(apiBase)}/api/notifications/read-all`,
+    { method: "POST", headers },
+    15000
+  );
+  if (!res.ok) throw new Error("Mark all read failed");
+  return res.json();
+}
+
+export async function registerPushToken(apiBase, expoToken, platform) {
+  const headers = await authHeaders(apiBase, {
+    Accept: "application/json",
+    "Content-Type": "application/json",
+  });
+  const res = await fetchWithTimeout(
+    `${getApiBase(apiBase)}/api/push/register`,
+    { method: "POST", headers, body: JSON.stringify({ expo_token: expoToken, platform }) },
+    15000
+  );
+  if (!res.ok) throw new Error("Push register failed");
+  return res.json();
+}
+
+export async function fetchTeamMembers(apiBase) {
+  return apiGet("/api/team/members", apiBase);
+}
+
 export async function updateWorkOrder(apiBase, id, data) {
   const headers = await authHeaders(apiBase, {
     Accept: "application/json",

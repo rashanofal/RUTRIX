@@ -4,12 +4,29 @@ from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.dependencies import get_current_organization, get_current_user
-from app.models import Organization, User
+from app.models import Organization, OrganizationMember, User
 from app.schemas import AuthResponse, LoginRequest, OrganizationResponse, RegisterRequest, UserResponse
 from app.services.auth_service import authenticate, create_access_token, register_user
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
 security = HTTPBearer()
+
+
+def _user_response(db: Session, user: User, org_id: int) -> UserResponse:
+    membership = (
+        db.query(OrganizationMember)
+        .filter(
+            OrganizationMember.user_id == user.id,
+            OrganizationMember.organization_id == org_id,
+        )
+        .first()
+    )
+    return UserResponse(
+        id=user.id,
+        email=user.email,
+        full_name=user.full_name,
+        role=membership.role.value if membership else None,
+    )
 
 
 @router.post("/register", response_model=AuthResponse)
@@ -28,7 +45,7 @@ def register(payload: RegisterRequest, db: Session = Depends(get_db)):
     token = create_access_token(user.id, org.id, user.email)
     return AuthResponse(
         access_token=token,
-        user=UserResponse.model_validate(user),
+        user=_user_response(db, user, org.id),
         organization=OrganizationResponse.model_validate(org),
     )
 
@@ -43,7 +60,7 @@ def login(payload: LoginRequest, db: Session = Depends(get_db)):
     token = create_access_token(user.id, org.id, user.email)
     return AuthResponse(
         access_token=token,
-        user=UserResponse.model_validate(user),
+        user=_user_response(db, user, org.id),
         organization=OrganizationResponse.model_validate(org),
     )
 
@@ -53,9 +70,10 @@ def me(
     credentials: HTTPAuthorizationCredentials = Depends(security),
     user: User = Depends(get_current_user),
     org: Organization = Depends(get_current_organization),
+    db: Session = Depends(get_db),
 ):
     return AuthResponse(
         access_token=credentials.credentials,
-        user=UserResponse.model_validate(user),
+        user=_user_response(db, user, org.id),
         organization=OrganizationResponse.model_validate(org),
     )

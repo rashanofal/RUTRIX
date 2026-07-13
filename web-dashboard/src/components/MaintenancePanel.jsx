@@ -8,25 +8,29 @@ import {
 } from "../hooks/useApi";
 import NavIcon from "./NavIcons";
 
-const STATUS_FLOW = ["open", "assigned", "in_progress", "completed", "verified"];
-const CLOSED_STATUSES = new Set(["completed", "verified", "cancelled"]);
+const STATUS_FLOW = ["open", "assigned", "accepted", "in_progress", "completed", "verified"];
+const CLOSED_STATUSES = new Set(["completed", "verified", "cancelled", "declined"]);
 
 const STATUS_LABELS = {
   ar: {
     open: "مفتوح",
     assigned: "مُسند",
+    accepted: "مقبول",
     in_progress: "قيد التنفيذ",
-    completed: "مكتمل",
-    verified: "مُتحقق",
+    completed: "بانتظار الاعتماد",
+    verified: "مُعتمد",
     cancelled: "ملغى",
+    declined: "مرفوض",
   },
   en: {
     open: "Open",
     assigned: "Assigned",
+    accepted: "Accepted",
     in_progress: "In progress",
-    completed: "Completed",
+    completed: "Awaiting verification",
     verified: "Verified",
     cancelled: "Cancelled",
+    declined: "Declined",
   },
 };
 
@@ -52,6 +56,7 @@ function actionLabel(status, t) {
     case "open":
       return t.woActionAssign;
     case "assigned":
+    case "accepted":
       return t.woActionStart;
     case "in_progress":
       return t.woActionComplete;
@@ -66,6 +71,7 @@ function WorkOrderPipeline({ status, t }) {
   const steps = [
     { key: "open", label: t.woStepOpen },
     { key: "assigned", label: t.woStepAssigned },
+    { key: "accepted", label: t.woStepAccepted },
     { key: "in_progress", label: t.woStepProgress },
     { key: "completed", label: t.woStepCompleted },
     { key: "verified", label: t.woStepVerified },
@@ -348,6 +354,19 @@ export default function MaintenancePanel({
 
               {wo.notes && wo.status !== "in_progress" && (
                 <p className="wo-notes-display">📝 {wo.notes}</p>
+              )}
+
+              {wo.proof_image_url && (
+                <div className="wo-proof-block">
+                  <span className="wo-proof-label">📷 {t.woProofLabel}</span>
+                  <a href={wo.proof_image_url} target="_blank" rel="noreferrer">
+                    <img className="wo-proof-img" src={wo.proof_image_url} alt={t.woProofLabel} />
+                  </a>
+                </div>
+              )}
+
+              {wo.declined_reason && wo.status === "declined" && (
+                <p className="wo-declined-reason">⛔ {wo.declined_reason}</p>
               )}
 
               {wo.completed_at && (

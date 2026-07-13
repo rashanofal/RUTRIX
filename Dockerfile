@@ -26,6 +26,7 @@ WORKDIR /app
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libgl1 libglib2.0-0 libgomp1 curl fonts-dejavu-core \
+    libpango-1.0-0 libpangoft2-1.0-0 \
     && rm -rf /var/lib/apt/lists/*
 
 COPY backend/requirements.txt .
@@ -47,16 +48,16 @@ RUN mkdir -p ml/models app/static \
     && test -s app/static/logo.png
 COPY --from=dashboard /dash/dist ./app/static/dashboard
 
-RUN mkdir -p /app/data/uploads /app/data/training /tmp/uploads /tmp/training /tmp/hf_cache
+RUN mkdir -p /app/data/uploads /app/data/training /data/uploads /data/training /tmp/hf_cache
 
 ENV PYTHONPATH=/app
 ENV PORT=7860
 ENV HF_HOME=/tmp/hf_cache
 ENV TORCH_HOME=/tmp/hf_cache/torch
-ENV DATABASE_URL=sqlite:////tmp/pothole.db
+ENV DATABASE_URL=sqlite:////data/pothole.db
 ENV MODEL_PATH=/app/ml/models/pothole_yolov8n.pt
-ENV UPLOAD_DIR=/tmp/uploads
-ENV TRAINING_DIR=/tmp/training
+ENV UPLOAD_DIR=/data/uploads
+ENV TRAINING_DIR=/data/training
 ENV CORS_ORIGINS=*
 ENV SEED_DEMO_ACCOUNT=true
 

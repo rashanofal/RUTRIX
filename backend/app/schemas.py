@@ -86,6 +86,7 @@ class UserResponse(BaseModel):
     id: int
     email: str
     full_name: str
+    role: str | None = None
 
     model_config = {"from_attributes": True}
 
@@ -249,6 +250,18 @@ class WorkOrderDetectionRef(BaseModel):
     anomaly_type: str
 
 
+class WorkOrderEventResponse(BaseModel):
+    id: int
+    event_type: str
+    from_status: str | None = None
+    to_status: str | None = None
+    actor_user_id: int | None = None
+    actor_name: str | None = None
+    created_at: datetime
+
+    model_config = {"from_attributes": True}
+
+
 class WorkOrderResponse(BaseModel):
     id: int
     detection_id: int | None
@@ -258,14 +271,23 @@ class WorkOrderResponse(BaseModel):
     priority: str
     assigned_to_user_id: int | None
     assignee_name: str | None = None
+    verified_by_user_id: int | None = None
+    verified_by_name: str | None = None
     scheduled_date: datetime | None
+    accepted_at: datetime | None = None
+    started_at: datetime | None = None
     completed_at: datetime | None
+    verified_at: datetime | None = None
     repair_cost_estimate: float | None
     repair_cost_actual: float | None
     notes: str | None
+    proof_image_path: str | None = None
+    proof_image_url: str | None = None
+    declined_reason: str | None = None
     created_at: datetime
     updated_at: datetime
     detection: WorkOrderDetectionRef | None = None
+    events: list[WorkOrderEventResponse] = []
 
     model_config = {"from_attributes": True}
 
@@ -287,6 +309,33 @@ class WorkOrderUpdate(BaseModel):
     repair_cost_actual: float | None = None
     notes: str | None = None
     title: str | None = None
+
+
+class WorkOrderActionRequest(BaseModel):
+    notes: str | None = None
+    reason: str | None = None
+
+
+class NotificationResponse(BaseModel):
+    id: int
+    type: str
+    title: str
+    body: str | None = None
+    work_order_id: int | None = None
+    detection_id: int | None = None
+    is_read: bool
+    created_at: datetime
+
+    model_config = {"from_attributes": True}
+
+
+class PushTokenRegister(BaseModel):
+    expo_token: str = Field(..., min_length=8)
+    platform: str | None = None
+
+
+class PushTokenUnregister(BaseModel):
+    expo_token: str = Field(..., min_length=8)
 
 
 class MaintenanceDashboardResponse(BaseModel):

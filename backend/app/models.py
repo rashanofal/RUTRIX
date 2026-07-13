@@ -75,10 +75,23 @@ class MemberRole(str, enum.Enum):
 class WorkOrderStatus(str, enum.Enum):
     open = "open"
     assigned = "assigned"
+    accepted = "accepted"
     in_progress = "in_progress"
     completed = "completed"
     verified = "verified"
     cancelled = "cancelled"
+    declined = "declined"
+
+
+class NotificationType(str, enum.Enum):
+    work_order_assigned = "work_order_assigned"
+    work_order_accepted = "work_order_accepted"
+    work_order_declined = "work_order_declined"
+    work_order_started = "work_order_started"
+    work_order_completed = "work_order_completed"
+    work_order_verified = "work_order_verified"
+    work_order_cancelled = "work_order_cancelled"
+    critical_detection = "critical_detection"
 
 
 class WorkOrderPriority(str, enum.Enum):
@@ -270,15 +283,29 @@ class WorkOrder(Base):
     created_by_user_id: Mapped[int | None] = mapped_column(
         ForeignKey("users.id"), nullable=True, index=True
     )
+    verified_by_user_id: Mapped[int | None] = mapped_column(
+        ForeignKey("users.id"), nullable=True, index=True
+    )
     scheduled_date: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+    accepted_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+    started_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True
     )
     completed_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True
     )
+    verified_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
     repair_cost_estimate: Mapped[float | None] = mapped_column(Float, nullable=True)
     repair_cost_actual: Mapped[float | None] = mapped_column(Float, nullable=True)
     notes: Mapped[str | None] = mapped_column(Text, nullable=True)
+    proof_image_path: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    declined_reason: Mapped[str | None] = mapped_column(Text, nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()
     )
@@ -304,4 +331,72 @@ class UploadRecord(Base):
     used_for_training: Mapped[bool] = mapped_column(Boolean, default=False)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()
+    )
+
+
+class WorkOrderEvent(Base):
+    """Audit trail: one row per action taken on a work order."""
+
+    __tablename__ = "work_order_events"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    work_order_id: Mapped[int] = mapped_column(
+        ForeignKey("work_orders.id"), nullable=False, index=True
+    )
+    organization_id: Mapped[int] = mapped_column(
+        ForeignKey("organizations.id"), nullable=False, index=True
+    )
+    actor_user_id: Mapped[int | None] = mapped_column(
+        ForeignKey("users.id"), nullable=True, index=True
+    )
+    event_type: Mapped[str] = mapped_column(String(40), nullable=False)
+    from_status: Mapped[str | None] = mapped_column(String(20), nullable=True)
+    to_status: Mapped[str | None] = mapped_column(String(20), nullable=True)
+    payload_json: Mapped[str | None] = mapped_column(Text, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
+
+
+class Notification(Base):
+    """Persistent per-user notification inbox entry."""
+
+    __tablename__ = "notifications"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    organization_id: Mapped[int] = mapped_column(
+        ForeignKey("organizations.id"), nullable=False, index=True
+    )
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False, index=True)
+    type: Mapped[str] = mapped_column(String(40), nullable=False)
+    title: Mapped[str] = mapped_column(String(200), nullable=False)
+    body: Mapped[str | None] = mapped_column(Text, nullable=True)
+    work_order_id: Mapped[int | None] = mapped_column(
+        ForeignKey("work_orders.id"), nullable=True, index=True
+    )
+    detection_id: Mapped[int | None] = mapped_column(
+        ForeignKey("pothole_detections.id"), nullable=True, index=True
+    )
+    is_read: Mapped[bool] = mapped_column(Boolean, default=False, index=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
+
+
+class PushToken(Base):
+    """Expo push token registered per user device."""
+
+    __tablename__ = "push_tokens"
+    __table_args__ = (UniqueConstraint("expo_token", name="uq_push_expo_token"),)
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False, index=True)
+    organization_id: Mapped[int] = mapped_column(
+        ForeignKey("organizations.id"), nullable=False, index=True
+    )
+    expo_token: Mapped[str] = mapped_column(String(255), nullable=False)
+    platform: Mapped[str | None] = mapped_column(String(20), nullable=True)
+    enabled: Mapped[bool] = mapped_column(Boolean, default=True)
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
     )

@@ -8,7 +8,7 @@ from fastapi.staticfiles import StaticFiles
 
 from app.bootstrap import bootstrap
 from app.config import settings
-from app.routers import auth, detections, intelligence, maintenance, team
+from app.routers import auth, detections, intelligence, maintenance, notifications, team
 from app.services.inference import get_model_info
 from app.websocket import manager, org_id_from_ws_token
 
@@ -43,6 +43,8 @@ app.include_router(auth.router)
 app.include_router(detections.router)
 app.include_router(intelligence.router)
 app.include_router(maintenance.router)
+app.include_router(notifications.router)
+app.include_router(notifications.push_router)
 app.include_router(team.router)
 
 

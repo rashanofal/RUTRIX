@@ -14,8 +14,7 @@ import {
   clearMap,
   confirmDetection,
   deleteDetection,
-  fetchInBounds,
-  fetchRecent,
+  fetchAllDetections,
   fetchStats,
   fetchApiHealth,
   updateDetectionStatus,
@@ -74,11 +73,11 @@ function Dashboard() {
     }
   }, []);
 
-  const loadDetections = useCallback(async (b) => {
+  const loadDetections = useCallback(async () => {
     try {
-      const data = b ? await fetchInBounds(b) : await fetchRecent(100);
+      const data = await fetchAllDetections();
       const keepId = selectedIdRef.current;
-      if (b && keepId && !data.some((d) => d.id === keepId)) {
+      if (keepId && !data.some((d) => d.id === keepId)) {
         const cached = selectedSnapshotRef.current;
         if (cached?.id === keepId) {
           setDetections([cached, ...data]);
@@ -94,9 +93,9 @@ function Dashboard() {
   const refreshAll = useCallback(async () => {
     setMaintRefresh((r) => r + 1);
     try {
-      const [statsData, recent] = await Promise.all([fetchStats(), fetchRecent(100)]);
+      const [statsData, persisted] = await Promise.all([fetchStats(), fetchAllDetections()]);
       setStats(statsData);
-      setDetections(recent);
+      setDetections(persisted);
       if (statsData?.total_potholes == null) {
         setStaleServer(true);
       } else {
@@ -104,12 +103,20 @@ function Dashboard() {
       }
     } catch {
       await loadStats();
-      await loadDetections(null);
+      await loadDetections();
     }
   }, [loadStats, loadDetections]);
 
   const handleWsMessage = useCallback(
     (msg) => {
+      if (msg.type === "notification") {
+        if (!msg.user_id || msg.user_id === auth?.user?.id) {
+          const n = msg.data || {};
+          showToast(`🔔 ${n.title || ""}${n.body ? " — " + n.body : ""}`, "info");
+          setMaintRefresh((r) => r + 1);
+        }
+        return;
+      }
       if (msg.type === "map_cleared") {
         setDetections([]);
         setSelectedId(null);
@@ -147,7 +154,7 @@ function Dashboard() {
         void notifyDetection(msg.data);
       }
     },
-    [refreshAll, loadStats, notifyDetection]
+    [refreshAll, loadStats, notifyDetection, auth?.user?.id]
   );
 
   const handleClearMap = async () => {
@@ -191,7 +198,7 @@ function Dashboard() {
   const handleConfirm = async (id) => {
     try {
       await confirmDetection(id);
-      await loadDetections(bounds);
+      await loadDetections();
       await loadStats();
       showToast(t.confirmSuccess, "success");
     } catch {
@@ -202,7 +209,7 @@ function Dashboard() {
   const handleVerify = async (id) => {
     try {
       await updateDetectionStatus(id, "verified");
-      await loadDetections(bounds);
+      await loadDetections();
       await loadStats();
       showToast(t.verifySuccess, "success");
     } catch {
@@ -231,7 +238,7 @@ function Dashboard() {
       setPage(target);
       if (target !== "map") {
         setBounds(null);
-        void loadDetections(null);
+        void loadDetections();
       }
     },
     [loadDetections]
@@ -256,11 +263,6 @@ function Dashboard() {
       window.removeEventListener("focus", onFocus);
     };
   }, [refreshAll, loadStats]);
-
-  useEffect(() => {
-    if (page !== "map" || !bounds) return;
-    loadDetections(bounds);
-  }, [page, bounds, loadDetections]);
 
   const wsConnected = useWebSocket(handleWsMessage);
 

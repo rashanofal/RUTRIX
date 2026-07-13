@@ -51,3 +51,12 @@ def get_current_organization(
     if not org or not org.is_active:
         raise HTTPException(status_code=403, detail="المنظمة غير نشطة")
     return org
+
+
+def get_current_role(
+    user: User = Depends(get_current_user),
+    org: Organization = Depends(get_current_organization),
+    db: Session = Depends(get_db),
+) -> str:
+    membership = get_user_org_membership(db, user.id, org.id)
+    return membership.role.value if membership else "viewer"

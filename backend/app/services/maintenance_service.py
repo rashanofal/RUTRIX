@@ -1,17 +1,54 @@
 """Work orders and municipal maintenance operations."""
 
 from datetime import datetime, timedelta, timezone
+from pathlib import Path
 
 from sqlalchemy import and_, exists, func
 from sqlalchemy.orm import Session
 
 from app.models import (
+    DetectionStatus,
     PotholeDetection,
     User,
     WorkOrder,
+    WorkOrderEvent,
     WorkOrderPriority,
     WorkOrderStatus,
 )
+
+
+def _proof_url(image_path: str | None, organization_id: int | None = None) -> str | None:
+    if not image_path:
+        return None
+    p = Path(image_path)
+    name = p.name
+    if organization_id is not None and str(organization_id) in p.parts:
+        return f"/api/uploads/{organization_id}/{name}"
+    return f"/api/uploads/{name}"
+
+
+def log_event(
+    db: Session,
+    wo: WorkOrder,
+    *,
+    actor_user_id: int | None,
+    event_type: str,
+    from_status: str | None = None,
+    to_status: str | None = None,
+    commit: bool = True,
+) -> WorkOrderEvent:
+    ev = WorkOrderEvent(
+        work_order_id=wo.id,
+        organization_id=wo.organization_id,
+        actor_user_id=actor_user_id,
+        event_type=event_type,
+        from_status=from_status,
+        to_status=to_status,
+    )
+    db.add(ev)
+    if commit:
+        db.commit()
+    return ev
 
 
 def _severity_to_priority(severity: str) -> WorkOrderPriority:
@@ -71,6 +108,13 @@ def create_work_order(
         det.evolution_stage = "stable"
     db.commit()
     db.refresh(wo)
+    log_event(
+        db,
+        wo,
+        actor_user_id=created_by_user_id,
+        event_type="assigned" if assigned_to_user_id else "created",
+        to_status=wo.status.value,
+    )
     return wo
 
 
@@ -79,19 +123,32 @@ def list_work_orders(
     organization_id: int,
     *,
     status: WorkOrderStatus | None = None,
+    assigned_to_user_id: int | None = None,
     limit: int = 100,
 ) -> list[WorkOrder]:
     purge_orphan_work_orders(db, organization_id)
     q = db.query(WorkOrder).filter(WorkOrder.organization_id == organization_id)
     if status:
         q = q.filter(WorkOrder.status == status)
+    if assigned_to_user_id is not None:
+        q = q.filter(WorkOrder.assigned_to_user_id == assigned_to_user_id)
     return q.order_by(WorkOrder.updated_at.desc()).limit(limit).all()
+
+
+def get_work_order(db: Session, work_order_id: int, organization_id: int) -> WorkOrder | None:
+    return (
+        db.query(WorkOrder)
+        .filter(WorkOrder.id == work_order_id, WorkOrder.organization_id == organization_id)
+        .first()
+    )
 
 
 def update_work_order(
     db: Session,
     work_order_id: int,
     organization_id: int,
+    *,
+    actor_user_id: int | None = None,
     **fields,
 ) -> WorkOrder | None:
     wo = (
@@ -102,25 +159,101 @@ def update_work_order(
     if not wo:
         return None
 
+    prev_status = wo.status
+    prev_assignee = wo.assigned_to_user_id
+
     for key, value in fields.items():
         if value is not None and hasattr(wo, key):
             setattr(wo, key, value)
 
-    if fields.get("status") == WorkOrderStatus.completed and not wo.completed_at:
+    new_status = fields.get("status")
+
+    if new_status == WorkOrderStatus.completed and not wo.completed_at:
         wo.completed_at = datetime.now(timezone.utc)
         if wo.detection_id:
             det = db.query(PotholeDetection).filter(PotholeDetection.id == wo.detection_id).first()
             if det:
                 det.evolution_stage = "resolved"
 
-    if fields.get("status") == WorkOrderStatus.verified and wo.detection_id:
-        det = db.query(PotholeDetection).filter(PotholeDetection.id == wo.detection_id).first()
-        if det:
-            from app.models import DetectionStatus
+    if new_status == WorkOrderStatus.verified:
+        wo.verified_at = datetime.now(timezone.utc)
+        if actor_user_id:
+            wo.verified_by_user_id = actor_user_id
+        if wo.detection_id:
+            det = db.query(PotholeDetection).filter(PotholeDetection.id == wo.detection_id).first()
+            if det:
+                det.detection_status = DetectionStatus.verified
+                det.evolution_stage = "resolved"
 
-            det.detection_status = DetectionStatus.verified
-            det.evolution_stage = "resolved"
+    if new_status and new_status != prev_status:
+        log_event(
+            db,
+            wo,
+            actor_user_id=actor_user_id,
+            event_type="status_change",
+            from_status=prev_status.value,
+            to_status=new_status.value,
+            commit=False,
+        )
+    if "assigned_to_user_id" in fields and fields["assigned_to_user_id"] != prev_assignee:
+        if wo.status == WorkOrderStatus.open:
+            wo.status = WorkOrderStatus.assigned
+        log_event(
+            db,
+            wo,
+            actor_user_id=actor_user_id,
+            event_type="assigned",
+            to_status=wo.status.value,
+            commit=False,
+        )
 
+    db.commit()
+    db.refresh(wo)
+    return wo
+
+
+def transition_work_order(
+    db: Session,
+    wo: WorkOrder,
+    *,
+    to_status: WorkOrderStatus,
+    actor_user_id: int,
+    notes: str | None = None,
+    reason: str | None = None,
+    proof_image_path: str | None = None,
+) -> WorkOrder:
+    """Apply a field-lifecycle transition and log it."""
+    prev = wo.status
+    now = datetime.now(timezone.utc)
+
+    wo.status = to_status
+    if to_status == WorkOrderStatus.accepted:
+        wo.accepted_at = now
+    elif to_status == WorkOrderStatus.in_progress:
+        wo.started_at = now
+    elif to_status == WorkOrderStatus.completed:
+        wo.completed_at = now
+        if proof_image_path:
+            wo.proof_image_path = proof_image_path
+        if notes:
+            wo.notes = notes
+        if wo.detection_id:
+            det = db.query(PotholeDetection).filter(PotholeDetection.id == wo.detection_id).first()
+            if det:
+                det.evolution_stage = "resolved"
+    elif to_status == WorkOrderStatus.declined:
+        wo.declined_reason = reason
+        wo.assigned_to_user_id = None
+
+    log_event(
+        db,
+        wo,
+        actor_user_id=actor_user_id,
+        event_type=to_status.value,
+        from_status=prev.value,
+        to_status=to_status.value,
+        commit=False,
+    )
     db.commit()
     db.refresh(wo)
     return wo
@@ -131,6 +264,10 @@ def work_order_to_dict(db: Session, wo: WorkOrder) -> dict:
     if wo.assigned_to_user_id:
         u = db.query(User).filter(User.id == wo.assigned_to_user_id).first()
         assignee = u.full_name if u else None
+    verified_by_name = None
+    if wo.verified_by_user_id:
+        vu = db.query(User).filter(User.id == wo.verified_by_user_id).first()
+        verified_by_name = vu.full_name if vu else None
     det = None
     if wo.detection_id:
         d = db.query(PotholeDetection).filter(PotholeDetection.id == wo.detection_id).first()
@@ -143,6 +280,29 @@ def work_order_to_dict(db: Session, wo: WorkOrder) -> dict:
                 "rut_score": d.rut_score,
                 "anomaly_type": d.anomaly_type,
             }
+    events = (
+        db.query(WorkOrderEvent)
+        .filter(WorkOrderEvent.work_order_id == wo.id)
+        .order_by(WorkOrderEvent.created_at.asc())
+        .all()
+    )
+    actor_names: dict[int, str] = {}
+    actor_ids = {e.actor_user_id for e in events if e.actor_user_id}
+    if actor_ids:
+        for u in db.query(User).filter(User.id.in_(actor_ids)).all():
+            actor_names[u.id] = u.full_name
+    event_dicts = [
+        {
+            "id": e.id,
+            "event_type": e.event_type,
+            "from_status": e.from_status,
+            "to_status": e.to_status,
+            "actor_user_id": e.actor_user_id,
+            "actor_name": actor_names.get(e.actor_user_id),
+            "created_at": e.created_at,
+        }
+        for e in events
+    ]
     return {
         "id": wo.id,
         "detection_id": wo.detection_id,
@@ -152,14 +312,23 @@ def work_order_to_dict(db: Session, wo: WorkOrder) -> dict:
         "priority": wo.priority.value,
         "assigned_to_user_id": wo.assigned_to_user_id,
         "assignee_name": assignee,
+        "verified_by_user_id": wo.verified_by_user_id,
+        "verified_by_name": verified_by_name,
         "scheduled_date": wo.scheduled_date,
+        "accepted_at": wo.accepted_at,
+        "started_at": wo.started_at,
         "completed_at": wo.completed_at,
+        "verified_at": wo.verified_at,
         "repair_cost_estimate": wo.repair_cost_estimate,
         "repair_cost_actual": wo.repair_cost_actual,
         "notes": wo.notes,
+        "proof_image_path": wo.proof_image_path,
+        "proof_image_url": _proof_url(wo.proof_image_path, wo.organization_id),
+        "declined_reason": wo.declined_reason,
         "created_at": wo.created_at,
         "updated_at": wo.updated_at,
         "detection": det,
+        "events": event_dicts,
     }
 
 

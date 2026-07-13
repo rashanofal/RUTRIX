@@ -56,7 +56,7 @@ function pinColor(item) {
   return colors.success;
 }
 
-export default function MapScreen({ apiUrl, refreshKey }) {
+export default function MapScreen({ apiUrl, refreshKey, onBell, unreadCount }) {
   const { t, locale } = useLocale();
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -124,7 +124,13 @@ export default function MapScreen({ apiUrl, refreshKey }) {
 
   return (
     <View style={styles.container}>
-      <ScreenHeader title={t.mapTitle} subtitle={t.captureHint} onAction={load} />
+      <ScreenHeader
+        title={t.mapTitle}
+        subtitle={t.captureHint}
+        onAction={load}
+        onBell={onBell}
+        unreadCount={unreadCount}
+      />
 
       {loading ? (
         <View style={styles.center}>

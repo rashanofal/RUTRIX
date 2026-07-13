@@ -111,6 +111,20 @@ export async function fetchRecent(limit = 50) {
   return res.json();
 }
 
+export async function fetchAllDetections() {
+  const pageSize = 1000;
+  const all = [];
+  for (let offset = 0; ; offset += pageSize) {
+    const res = await apiFetch(
+      `/api/detections/all?limit=${pageSize}&offset=${offset}&_=${Date.now()}`
+    );
+    if (!res.ok) throw new Error("Failed to fetch all detections");
+    const page = await res.json();
+    all.push(...page);
+    if (page.length < pageSize) return all;
+  }
+}
+
 export async function fetchInBounds(bounds) {
   const { south, west, north, east } = bounds;
   const params = new URLSearchParams({

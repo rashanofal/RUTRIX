@@ -40,6 +40,16 @@ def _add_column_if_missing(table: str, column: str, col_type: str) -> None:
         conn.execute(text(f"ALTER TABLE {table} ADD COLUMN {column} {col_type}"))
 
 
+WORK_ORDER_COLUMNS = [
+    ("verified_by_user_id", "INTEGER"),
+    ("accepted_at", "TIMESTAMP"),
+    ("started_at", "TIMESTAMP"),
+    ("verified_at", "TIMESTAMP"),
+    ("proof_image_path", "VARCHAR(500)"),
+    ("declined_reason", "TEXT"),
+]
+
+
 def run_migrations() -> None:
     Base.metadata.create_all(bind=engine)
     if settings.database_url.startswith("sqlite"):
@@ -47,6 +57,8 @@ def run_migrations() -> None:
         _add_column_if_missing("upload_records", "organization_id", "INTEGER")
         for col, typ in INTELLIGENCE_COLUMNS:
             _add_column_if_missing("pothole_detections", col, typ)
+        for col, typ in WORK_ORDER_COLUMNS:
+            _add_column_if_missing("work_orders", col, typ)
 
 
 def backfill_intelligence() -> None:

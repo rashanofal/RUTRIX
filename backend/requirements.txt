@@ -22,3 +22,4 @@ bcrypt==4.0.1
 fpdf2==2.8.2
 arabic-reshaper==3.0.0
 python-bidi==0.6.3
+weasyprint==69.0

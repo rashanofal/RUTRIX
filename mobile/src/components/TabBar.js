@@ -7,6 +7,7 @@ import { colors, radius } from "../theme";
 const TABS = [
   { id: "camera", labelKey: "camera", icon: "camera" },
   { id: "map", labelKey: "map", icon: "map" },
+  { id: "tasks", labelKey: "tasks", icon: "clipboard" },
   { id: "activity", labelKey: "activity", icon: "pulse" },
   { id: "profile", labelKey: "profile", icon: "person" },
 ];

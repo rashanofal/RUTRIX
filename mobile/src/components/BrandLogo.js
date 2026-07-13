@@ -3,10 +3,29 @@ import { useLocale } from "../LocaleContext";
 import { colors, spacing } from "../theme";
 
 const logoFull = require("../../assets/logo.png");
+const logoMark = require("../../assets/logo-mark.png");
 
-/** Full brand lockup: stylized R + RUTRIX wordmark */
-export default function BrandLogo({ size = "md", showScientific = true }) {
+const MARK_SIZES = { sm: 34, md: 48, lg: 64, xl: 96 };
+
+/**
+ * Brand lockup.
+ * - variant="full": stylized R + RUTRIX wordmark (default).
+ * - variant="mark": square symbol only — crisp in headers, avatars, tight spaces.
+ */
+export default function BrandLogo({ size = "md", showScientific = true, variant = "full" }) {
   const { t } = useLocale();
+
+  if (variant === "mark") {
+    const dim = MARK_SIZES[size] || MARK_SIZES.md;
+    return (
+      <Image
+        source={logoMark}
+        style={{ width: dim, height: dim }}
+        resizeMode="contain"
+      />
+    );
+  }
+
   const isLg = size === "lg";
   const isSm = size === "sm";
 

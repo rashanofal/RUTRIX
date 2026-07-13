@@ -6,7 +6,6 @@ import {
   TextInput,
   TouchableOpacity,
   ScrollView,
-  Image,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
@@ -14,9 +13,10 @@ import { checkHealth, fetchStats, fetchLeaderboard } from "../api";
 import { useLocale } from "../LocaleContext";
 import StatusChip from "../components/StatusChip";
 import ScreenHeader from "../components/ScreenHeader";
+import BrandLogo from "../components/BrandLogo";
 import { colors, radius, spacing } from "../theme";
 
-export default function ProfileScreen({ auth, apiUrl, onApiUrlChange, onLogout }) {
+export default function ProfileScreen({ auth, apiUrl, onApiUrlChange, onLogout, onBell, unreadCount }) {
   const { t } = useLocale();
   const [connected, setConnected] = useState(false);
   const [stats, setStats] = useState(null);
@@ -42,10 +42,12 @@ export default function ProfileScreen({ auth, apiUrl, onApiUrlChange, onLogout }
 
   return (
     <View style={styles.container}>
-      <ScreenHeader title={t.profile} />
+      <ScreenHeader title={t.profile} onBell={onBell} unreadCount={unreadCount} />
       <ScrollView contentContainerStyle={styles.content}>
         <LinearGradient colors={["rgba(34,211,238,0.15)", "rgba(167,139,250,0.08)"]} style={styles.profileCard}>
-          <Image source={require("../../assets/logo.png")} style={styles.brandLogo} resizeMode="contain" />
+          <View style={styles.markBadge}>
+            <BrandLogo variant="mark" size="xl" />
+          </View>
           <Text style={styles.name}>{auth?.user?.full_name}</Text>
           <Text style={styles.email}>{auth?.user?.email}</Text>
           <View style={styles.orgBadge}>
@@ -147,10 +149,16 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: "rgba(34,211,238,0.4)",
   },
-  brandLogo: {
-    width: 220,
-    height: 60,
+  markBadge: {
+    width: 112,
+    height: 112,
+    borderRadius: 28,
     marginBottom: spacing.md,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "rgba(8,20,32,0.55)",
+    borderWidth: 1,
+    borderColor: "rgba(34,211,238,0.35)",
   },
   name: { color: colors.text, fontSize: 22, fontWeight: "900" },
   email: { color: colors.textMuted, fontSize: 14, marginTop: 4 },

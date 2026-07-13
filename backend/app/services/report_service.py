@@ -25,6 +25,19 @@ _FONT_CANDIDATES = [
     Path("/Library/Fonts/Arial Unicode.ttf"),
 ]
 
+# Brand palette (print-friendly municipal report)
+_NAVY = (11, 18, 32)
+_NAVY_MID = (18, 31, 53)
+_CYAN = (8, 145, 178)
+_CYAN_SOFT = (34, 211, 238)
+_SLATE = (51, 65, 85)
+_MUTED = (100, 116, 139)
+_LINE = (226, 232, 240)
+_CARD_BG = (248, 250, 252)
+_WHITE = (255, 255, 255)
+_INK = (15, 23, 42)
+_AMBER = (180, 83, 9)
+
 _SEV_AR = {
     "low": "منخفضة",
     "medium": "متوسطة",
@@ -70,20 +83,36 @@ def _find_unicode_font() -> Path | None:
     return None
 
 
-def _logo_path() -> Path | None:
-    for path in (_STATIC / "logo.png", _STATIC / "logo-mark.png"):
+def _logo_path(*, variant: str = "report") -> Path | None:
+    if variant == "header":
+        candidates = (
+            _STATIC / "logo-header.png",
+            _STATIC / "logo.png",
+            _STATIC / "logo-report.png",
+        )
+    elif variant == "light":
+        candidates = (_STATIC / "logo-light.png", _STATIC / "logo-report.png")
+    else:
+        candidates = (
+            _STATIC / "logo-header.png",
+            _STATIC / "logo-report.png",
+            _STATIC / "logo.png",
+        )
+    for path in candidates:
         if path.is_file():
             return path
     return None
 
 
 def _logo_data_uri() -> str:
-    path = _logo_path()
+    # Transparent white wordmark: blends into the coloured report header.
+    path = _STATIC / "logo-report.png"
+    if not path.is_file():
+        path = _logo_path(variant="report")
     if not path:
         return ""
-    mime = "image/png"
     encoded = base64.b64encode(path.read_bytes()).decode("ascii")
-    return f"data:{mime};base64,{encoded}"
+    return f"data:image/png;base64,{encoded}"
 
 
 def _group_potholes_for_report(rows: list[PotholeDetection]) -> list[dict]:
@@ -186,7 +215,7 @@ def _report_table_rows(data: dict) -> str:
         rows += f"""
       <tr>
         <td>{p['display_label']}</td>
-        <td>{p['severity_label']}</td>
+        <td><span class="severity severity-{p['severity']}">{p['severity_label']}</span></td>
         <td>{p['rut_score']}</td>
         <td>{p['class_name']}</td>
         <td>{p['depth_cm'] or '-'} / {p['width_cm'] or '-'}</td>
@@ -194,67 +223,189 @@ def _report_table_rows(data: dict) -> str:
         <td>{_fmt_coord(p['latitude'], p['longitude'])}</td>
       </tr>"""
     if not rows:
-        rows = '<tr><td colspan="7">لا توجد كشوفات حفر</td></tr>'
+        rows = '<tr><td colspan="7" style="text-align:center;color:#64748b">لا توجد كشوفات حفر</td></tr>'
     return rows
 
 
 def _report_styles() -> str:
     return """
+    @page {
+      size: A4;
+      margin: 10mm;
+      background: #eef4f8;
+    }
     * { box-sizing: border-box; }
     body {
-      font-family: 'Segoe UI', Tahoma, Arial, sans-serif;
-      background: #0a1020;
-      color: #e2e8f0;
+      font-family: 'DejaVu Sans', 'Segoe UI', Tahoma, Arial, sans-serif;
+      background: #eef4f8;
+      color: #0f172a;
       margin: 0;
-      padding: 28px 32px 36px;
+      padding: 0;
       line-height: 1.55;
     }
+    .sheet {
+      width: 100%;
+      margin: 0 auto;
+      background: #fff;
+      border: 1px solid #d9e5ec;
+      border-radius: 14px;
+      box-shadow: 0 8px 28px rgba(15, 23, 42, 0.12);
+      overflow: hidden;
+    }
     .report-header {
+      background: linear-gradient(125deg, #071a2c 0%, #0b3b4f 58%, #087f8c 100%);
+      color: #e2e8f0;
+      padding: 22px 26px;
       display: flex;
       align-items: center;
-      gap: 20px;
-      margin-bottom: 18px;
-      padding-bottom: 16px;
-      border-bottom: 1px solid #334155;
+      justify-content: space-between;
+      gap: 18px;
+      position: relative;
     }
-    .report-logo { height: 52px; width: auto; max-width: 220px; object-fit: contain; }
-    .report-title { margin: 0; color: #22d3ee; font-size: 1.55rem; font-weight: 800; }
-    .report-sub { margin: 4px 0 0; color: #94a3b8; font-size: 0.92rem; }
-    .card {
-      background: #121f35;
-      border: 1px solid #334155;
-      border-radius: 12px;
-      padding: 18px 20px;
-      margin: 14px 0;
+    .report-header::after {
+      content: "";
+      position: absolute;
+      left: 44%;
+      bottom: -44px;
+      width: 150px;
+      height: 150px;
+      border: 24px solid rgba(34, 211, 238, 0.09);
+      border-radius: 50%;
     }
+    .report-logo {
+      height: 46px;
+      width: auto;
+      max-width: 185px;
+      object-fit: contain;
+      display: block;
+      position: relative;
+      z-index: 1;
+    }
+    .header-meta { text-align: right; position: relative; z-index: 1; }
+    .report-title {
+      margin: 0;
+      color: #fff;
+      font-size: 1.5rem;
+      font-weight: 800;
+      letter-spacing: 0.01em;
+    }
+    .report-sub { margin: 6px 0 0; color: #bae6fd; font-size: 0.82rem; }
+    .accent { height: 5px; background: linear-gradient(90deg, #06b6d4, #34d399, #fbbf24); }
+    .body { padding: 20px 24px 22px; }
     .metrics {
       display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 12px;
-      margin-bottom: 8px;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+    @media (max-width: 720px) {
+      .metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .report-header { flex-direction: column; align-items: flex-start; }
+      .header-meta { text-align: right; }
     }
     .metric {
-      background: rgba(255,255,255,0.03);
-      border: 1px solid #334155;
-      border-radius: 10px;
-      padding: 12px 14px;
+      background: linear-gradient(145deg, #ffffff, #f1f7fa);
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 12px 12px 11px;
+      border-top: 4px solid #06b6d4;
+      box-shadow: 0 3px 10px rgba(15, 23, 42, 0.06);
     }
-    .metric-val { display: block; font-size: 1.55rem; font-weight: 800; color: #fbbf24; }
-    .metric-lbl { display: block; font-size: 0.82rem; color: #94a3b8; margin-top: 2px; }
-    .sev-list { margin: 10px 0 0; padding-inline-start: 20px; color: #cbd5e1; }
-    .note { color: #64748b; font-size: 0.78rem; margin-top: 10px; }
-    h2 { color: #22d3ee; font-size: 1.1rem; margin: 0 0 12px; }
-    table { width: 100%; border-collapse: collapse; font-size: 12px; }
-    th, td { border: 1px solid #334155; padding: 8px 10px; text-align: right; }
-    th { background: #1e293b; color: #22d3ee; font-weight: 700; }
-    tr:nth-child(even) td { background: rgba(255,255,255,0.02); }
-    .footer {
-      margin-top: 22px;
-      padding-top: 14px;
-      border-top: 1px solid #334155;
+    .metric:nth-child(2) { border-top-color: #10b981; }
+    .metric:nth-child(3) { border-top-color: #f59e0b; }
+    .metric:nth-child(4) { border-top-color: #8b5cf6; }
+    .metric-val {
+      display: block;
+      font-size: 1.28rem;
+      font-weight: 800;
+      color: #0f172a;
+      direction: ltr;
+    }
+    .metric-lbl {
+      display: block;
+      font-size: 0.78rem;
       color: #64748b;
-      font-size: 11px;
+      margin-top: 4px;
+    }
+    .card {
+      background: linear-gradient(180deg, #ffffff, #fbfdff);
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 14px 16px;
+      margin: 0 0 14px;
+      box-shadow: 0 3px 12px rgba(15, 23, 42, 0.05);
+      break-inside: avoid;
+    }
+    h2 {
+      color: #0f172a;
+      font-size: 1rem;
+      margin: 0 0 10px;
+      padding: 0 11px 7px 0;
+      border-right: 4px solid #06b6d4;
+      border-bottom: 1px solid #e2e8f0;
+    }
+    .sev-list {
+      margin: 8px 0 0;
+      padding: 0;
+      color: #334155;
+      list-style: none;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .sev-list li {
+      background: #f1f5f9;
+      border: 1px solid #e2e8f0;
+      border-radius: 999px;
+      padding: 3px 10px;
+      font-size: 0.8rem;
+    }
+    .note { color: #64748b; font-size: 0.78rem; margin: 10px 0 0; }
+    table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      font-size: 9px;
+      overflow: hidden;
+      border-radius: 9px;
+      border: 1px solid #dbe5ec;
+    }
+    th, td {
+      border-bottom: 1px solid #e2e8f0;
+      padding: 7px 6px;
+      text-align: right;
+    }
+    th {
+      background: linear-gradient(135deg, #0b3b4f, #087f8c);
+      color: #fff;
+      font-weight: 700;
+    }
+    tbody tr:nth-child(even) td { background: #f4f9fb; }
+    tbody tr:last-child td { border-bottom: 0; }
+    .severity {
+      display: inline-block;
+      padding: 2px 7px;
+      border-radius: 999px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+    .severity-low { color: #047857; background: #d1fae5; }
+    .severity-medium { color: #a16207; background: #fef3c7; }
+    .severity-high { color: #c2410c; background: #ffedd5; }
+    .severity-critical { color: #b91c1c; background: #fee2e2; }
+    .footer {
+      margin-top: 8px;
+      padding-top: 12px;
+      border-top: 1px solid #e2e8f0;
+      color: #64748b;
+      font-size: 9px;
       text-align: center;
+    }
+    thead { display: table-header-group; }
+    tr { break-inside: avoid; }
+    @media print {
+      body { background: #eef4f8; }
+      .sheet { box-shadow: none; }
     }
     """
 
@@ -264,11 +415,11 @@ def _build_report_html(data: dict) -> str:
     logo_html = (
         f'<img class="report-logo" src="{logo}" alt="RUTRIX" />'
         if logo
-        else '<strong style="color:#22d3ee;font-size:1.4rem">RUTRIX</strong>'
+        else '<strong style="color:#22d3ee;font-size:1.5rem;letter-spacing:0.04em">RUTRIX</strong>'
     )
     sev_rows = "".join(
         f"<li>{_severity_label(k)}: {v}</li>" for k, v in data.get("by_severity", {}).items()
-    )
+    ) or "<li>لا توجد بيانات خطورة</li>"
 
     return f"""<!DOCTYPE html>
 <html lang="ar" dir="rtl">
@@ -278,50 +429,56 @@ def _build_report_html(data: dict) -> str:
   <style>{_report_styles()}</style>
 </head>
 <body>
-  <header class="report-header">
-    {logo_html}
-    <div>
-      <h1 class="report-title">RUTRIX — تقرير صيانة الطرق</h1>
-      <p class="report-sub">{data['org_name']} | {data['generated_at']}</p>
+  <div class="sheet">
+    <header class="report-header">
+      {logo_html}
+      <div class="header-meta">
+        <h1 class="report-title">تقرير صيانة الطرق</h1>
+        <p class="report-sub">{data['org_name']} · {data['generated_at']}</p>
+      </div>
+    </header>
+    <div class="accent"></div>
+    <div class="body">
+      <div class="metrics">
+        <div class="metric">
+          <span class="metric-val">{data.get('total_inspections', data['total_issues'])}</span>
+          <span class="metric-lbl">إجمالي الكشوفات</span>
+        </div>
+        <div class="metric">
+          <span class="metric-val">{data.get('total_potholes', data['total_issues'])}</span>
+          <span class="metric-lbl">حفر مكتشفة</span>
+        </div>
+        <div class="metric">
+          <span class="metric-val">{data['critical_count']}</span>
+          <span class="metric-lbl">حالات حرجة</span>
+        </div>
+        <div class="metric">
+          <span class="metric-val">{_fmt_money(data['total_repair_min'])} – {_fmt_money(data['total_repair_max'])}</span>
+          <span class="metric-lbl">تكلفة ترقيع تقديرية</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>ملخص الخطورة</h2>
+        <p style="margin:0;color:#334155">قيد النمو: {data['growing_count']}</p>
+        <ul class="sev-list">{sev_rows}</ul>
+        <p class="note">* التكلفة = ترقيع محلي (cold patch) + عمالة قصيرة — تقدير لكل حفرة.</p>
+      </div>
+
+      <div class="card">
+        <h2>أولويات الصيانة</h2>
+        <table>
+          <thead><tr>
+            <th>الصورة / الحفرة</th><th>الخطورة</th><th>RUT</th><th>النوع</th>
+            <th>عمق/عرض سم</th><th>تكلفة</th><th>إحداثيات</th>
+          </tr></thead>
+          <tbody>{_report_table_rows(data)}</tbody>
+        </table>
+      </div>
+
+      <p class="footer">RUTRIX — Road Infrastructure Intelligence &amp; Asset Management Platform</p>
     </div>
-  </header>
-
-  <div class="card">
-    <div class="metrics">
-      <div class="metric">
-        <span class="metric-val">{data.get('total_inspections', data['total_issues'])}</span>
-        <span class="metric-lbl">إجمالي الكشوفات</span>
-      </div>
-      <div class="metric">
-        <span class="metric-val">{data.get('total_potholes', data['total_issues'])}</span>
-        <span class="metric-lbl">تم اكتشاف حفر</span>
-      </div>
-      <div class="metric">
-        <span class="metric-val">{data['critical_count']}</span>
-        <span class="metric-lbl">حالات حرجة</span>
-      </div>
-      <div class="metric">
-        <span class="metric-val">{_fmt_money(data['total_repair_min'])} – {_fmt_money(data['total_repair_max'])}</span>
-        <span class="metric-lbl">تكلفة ترقيع تقديرية (USD)</span>
-      </div>
-    </div>
-    <p>قيد النمو: {data['growing_count']}</p>
-    <ul class="sev-list">{sev_rows}</ul>
-    <p class="note">* التكلفة = ترقيع محلي بالأسفل البارد + عمالة قصيرة — لكل حفرة على حدة.</p>
   </div>
-
-  <div class="card">
-    <h2>أولويات الصيانة</h2>
-    <table>
-      <thead><tr>
-        <th>الصورة / الحفرة</th><th>الخطورة</th><th>RUT</th><th>النوع</th>
-        <th>عمق/عرض سم</th><th>تكلفة</th><th>إحداثيات</th>
-      </tr></thead>
-      <tbody>{_report_table_rows(data)}</tbody>
-    </table>
-  </div>
-
-  <p class="footer">RUTRIX — Road Infrastructure Intelligence &amp; Asset Management Platform</p>
 </body>
 </html>"""
 
@@ -351,42 +508,145 @@ def generate_pdf_report(data: dict) -> bytes:
     try:
         return _generate_pdf_from_html(data)
     except Exception as exc:
-        logger.exception("HTML-style PDF failed, using table fallback: %s", exc)
+        logger.exception("HTML PDF failed, using native PDF fallback: %s", exc)
         try:
-            return _generate_pdf_report_inner(data)
+            return _generate_pdf_professional(data)
         except Exception:
-            logger.exception("Unicode PDF failed, using ASCII fallback")
+            logger.exception("Native PDF failed, using ASCII fallback")
             return _generate_pdf_report_ascii(data)
 
 
 def _generate_pdf_from_html(data: dict) -> bytes:
-    from fpdf import FPDF
+    """Render the exact HTML report design to PDF using WeasyPrint."""
+    from weasyprint import HTML
 
-    html = _build_report_html(data)
-    pdf = FPDF(orientation="P", unit="mm", format="A4")
-    pdf.set_auto_page_break(auto=True, margin=14)
-    pdf.set_margins(12, 12, 12)
-    pdf.add_page()
-    family = _setup_pdf_font(pdf)
-    pdf.set_font(family, size=10)
-    pdf.write_html(html)
-    content = _pdf_bytes(pdf)
+    content = HTML(
+        string=_build_report_html(data),
+        base_url=str(_STATIC),
+    ).write_pdf()
     if content[:4] != b"%PDF":
-        raise ValueError("PDF generation produced invalid output")
+        raise ValueError("HTML renderer produced invalid PDF output")
     return content
 
 
-def _pdf_ar_line(pdf, family: str, size: int, text: str, *, bold: bool = False, ln: bool = False):
+def _pdf_text(pdf, family: str, size: int, text: str, *, align: str = "R", bold: bool = False):
     if family == "Helvetica":
         pdf.set_font(family, "B" if bold else "", size)
-        pdf.set_x(pdf.l_margin)
-        pdf.multi_cell(pdf.epw, 6, _ascii_safe(text))
+        pdf.multi_cell(pdf.epw, 6, _ascii_safe(text), align="L" if align == "R" else align)
     else:
         pdf.set_font(family, size=size + (1 if bold else 0))
-        pdf.set_x(pdf.l_margin)
-        pdf.multi_cell(pdf.epw, 6, _ar(text), align="R")
-    if ln:
-        pdf.ln(2)
+        pdf.multi_cell(pdf.epw, 6, _ar(text), align=align)
+
+
+def _draw_header(pdf, family: str, data: dict) -> None:
+    page_w = pdf.w
+    header_h = 34
+    pdf.set_fill_color(*_NAVY)
+    pdf.rect(0, 0, page_w, header_h, "F")
+    pdf.set_fill_color(*_CYAN)
+    pdf.rect(0, header_h, page_w, 1.6, "F")
+
+    logo = _STATIC / "logo-report.png"
+    if not logo.is_file():
+        logo = _logo_path(variant="report")
+    logo_drawn = False
+    if logo:
+        try:
+            # Transparent wordmark blends into the coloured header.
+            pdf.image(str(logo), x=10, y=7, h=20)
+            logo_drawn = True
+        except Exception as exc:
+            logger.warning("Could not place report logo: %s", exc)
+
+    if not logo_drawn:
+        pdf.set_xy(12, 10)
+        pdf.set_text_color(*_CYAN_SOFT)
+        pdf.set_font("Helvetica", "B", 18)
+        pdf.cell(40, 10, "RUTRIX")
+
+    # Title block on the right (RTL visual balance)
+    pdf.set_xy(page_w - 105, 8)
+    pdf.set_text_color(*_WHITE)
+    if family == "Helvetica":
+        pdf.set_font(family, "B", 13)
+        pdf.cell(93, 7, "Road Maintenance Report", align="R")
+        pdf.set_xy(page_w - 105, 16)
+        pdf.set_font(family, "", 9)
+        pdf.set_text_color(148, 163, 184)
+        pdf.cell(93, 5, _ascii_safe(f"{data['org_name']}  |  {data['generated_at']}"), align="R")
+    else:
+        pdf.set_font(family, size=13)
+        pdf.cell(93, 7, _ar("تقرير صيانة الطرق"), align="R")
+        pdf.set_xy(page_w - 105, 16)
+        pdf.set_font(family, size=9)
+        pdf.set_text_color(148, 163, 184)
+        pdf.cell(93, 5, _ar(f"{data['org_name']}  |  {data['generated_at']}"), align="R")
+
+    pdf.set_y(header_h + 8)
+    pdf.set_text_color(*_INK)
+
+
+def _draw_metric_card(pdf, x: float, y: float, w: float, h: float, value: str, label: str, family: str):
+    pdf.set_fill_color(*_CARD_BG)
+    pdf.set_draw_color(*_LINE)
+    pdf.rect(x, y, w, h, "DF")
+    pdf.set_fill_color(*_CYAN)
+    pdf.rect(x, y, w, 1.4, "F")
+
+    pdf.set_xy(x + 2, y + 4)
+    pdf.set_text_color(*_INK)
+    if family == "Helvetica":
+        pdf.set_font(family, "B", 12)
+        pdf.cell(w - 4, 7, _ascii_safe(value), align="C")
+        pdf.set_xy(x + 2, y + 12)
+        pdf.set_font(family, "", 8)
+        pdf.set_text_color(*_MUTED)
+        pdf.cell(w - 4, 5, _ascii_safe(label), align="C")
+    else:
+        pdf.set_font(family, size=12)
+        pdf.cell(w - 4, 7, _ar(value), align="C")
+        pdf.set_xy(x + 2, y + 12)
+        pdf.set_font(family, size=8)
+        pdf.set_text_color(*_MUTED)
+        pdf.cell(w - 4, 5, _ar(label), align="C")
+
+
+def _draw_metrics_row(pdf, family: str, data: dict) -> None:
+    y = pdf.get_y()
+    gap = 3.5
+    card_w = (pdf.epw - 3 * gap) / 4
+    card_h = 22
+    x0 = pdf.l_margin
+    cards = [
+        (str(data.get("total_inspections", data["total_issues"])), "إجمالي الكشوفات"),
+        (str(data.get("total_potholes", data["total_issues"])), "حفر مكتشفة"),
+        (str(data["critical_count"]), "حالات حرجة"),
+        (
+            f"{_fmt_money(data['total_repair_min'])} – {_fmt_money(data['total_repair_max'])}",
+            "تكلفة ترقيع تقديرية",
+        ),
+    ]
+    for i, (val, lbl) in enumerate(cards):
+        _draw_metric_card(pdf, x0 + i * (card_w + gap), y, card_w, card_h, val, lbl, family)
+    pdf.set_y(y + card_h + 8)
+    pdf.set_text_color(*_INK)
+
+
+def _draw_section_title(pdf, family: str, title: str) -> None:
+    y = pdf.get_y()
+    pdf.set_text_color(*_INK)
+    if family == "Helvetica":
+        pdf.set_font(family, "B", 12)
+        pdf.cell(pdf.epw, 7, _ascii_safe(title), align="L")
+    else:
+        pdf.set_font(family, size=12)
+        pdf.cell(pdf.epw, 7, _ar(title), align="R")
+    pdf.ln(8)
+    pdf.set_draw_color(*_CYAN)
+    pdf.set_line_width(0.5)
+    pdf.line(pdf.l_margin, pdf.get_y(), pdf.l_margin + 42, pdf.get_y())
+    pdf.ln(4)
+    pdf.set_line_width(0.2)
 
 
 def _render_pdf_table(pdf, family: str, data: dict) -> None:
@@ -394,19 +654,26 @@ def _render_pdf_table(pdf, family: str, data: dict) -> None:
 
     priorities = data.get("priorities") or []
     if not priorities:
-        _pdf_ar_line(pdf, family, 11, "لا توجد كشوفات حفر في المنصة حالياً.", ln=True)
+        pdf.set_fill_color(*_CARD_BG)
+        pdf.set_draw_color(*_LINE)
+        pdf.rect(pdf.l_margin, pdf.get_y(), pdf.epw, 16, "DF")
+        pdf.set_xy(pdf.l_margin, pdf.get_y() + 5)
+        pdf.set_text_color(*_MUTED)
+        _pdf_text(pdf, family, 10, "لا توجد كشوفات حفر في المنصة حالياً.", align="C")
         return
 
-    headings = FontFace(family=family, size_pt=9)
-    pdf.set_font(family, size=8)
+    headings = FontFace(family=family, size_pt=8, color=_WHITE, fill_color=_NAVY)
+    pdf.set_font(family, size=7)
+    pdf.set_text_color(*_INK)
 
     with pdf.table(
         width=pdf.epw,
-        col_widths=(2.1, 1.1, 0.7, 0.9, 1.2, 1.5, 1.5),
-        text_align="RIGHT",
+        col_widths=(2.2, 1.1, 0.7, 0.9, 1.2, 1.4, 1.6),
+        text_align="CENTER",
         first_row_as_headings=True,
         headings_style=headings,
-        line_height=5,
+        line_height=5.2,
+        borders_layout="ALL",
     ) as table:
         header = table.row()
         for col in [
@@ -418,57 +685,77 @@ def _render_pdf_table(pdf, family: str, data: dict) -> None:
             "تكلفة",
             "إحداثيات",
         ]:
-            header.cell(_ar(col))
+            header.cell(_ar(col) if family != "Helvetica" else _ascii_safe(col))
 
         for p in priorities[:80]:
             row = table.row()
-            row.cell(_ar(p["display_label"]))
-            row.cell(_ar(p["severity_label"]))
-            row.cell(str(p["rut_score"]))
-            row.cell(p["class_name"])
-            row.cell(f"{p['depth_cm'] or '-'} / {p['width_cm'] or '-'}")
-            row.cell(f"{_fmt_money(p['repair_min'])} - {_fmt_money(p['repair_max'])}")
-            row.cell(_ar(_fmt_coord(p["latitude"], p["longitude"])))
+            cells = [
+                p["display_label"],
+                p["severity_label"],
+                str(p["rut_score"]),
+                p["class_name"],
+                f"{p['depth_cm'] or '-'} / {p['width_cm'] or '-'}",
+                f"{_fmt_money(p['repair_min'])} - {_fmt_money(p['repair_max'])}",
+                _fmt_coord(p["latitude"], p["longitude"]),
+            ]
+            for i, c in enumerate(cells):
+                if family == "Helvetica":
+                    row.cell(_ascii_safe(c))
+                elif i in (2, 3, 4, 5):
+                    row.cell(c)
+                else:
+                    row.cell(_ar(c))
 
 
-def _generate_pdf_report_inner(data: dict) -> bytes:
+def _generate_pdf_professional(data: dict) -> bytes:
     from fpdf import FPDF
 
-    pdf = FPDF()
-    pdf.set_auto_page_break(auto=True, margin=15)
+    pdf = FPDF(orientation="P", unit="mm", format="A4")
+    pdf.set_auto_page_break(auto=True, margin=16)
+    pdf.set_margins(12, 12, 12)
     pdf.add_page()
     family = _setup_pdf_font(pdf)
 
-    logo = _logo_path()
-    if logo:
-        pdf.image(str(logo), x=pdf.l_margin, y=pdf.get_y(), w=42)
-        pdf.ln(18)
+    _draw_header(pdf, family, data)
+    _draw_metrics_row(pdf, family, data)
 
-    _pdf_ar_line(pdf, family, 16, "RUTRIX — تقرير صيانة الطرق", bold=True, ln=True)
-    _pdf_ar_line(pdf, family, 11, f"الجهة: {data['org_name']}", ln=True)
-    _pdf_ar_line(pdf, family, 11, f"تاريخ التوليد: {data['generated_at']}", ln=True)
-    pdf.ln(3)
-
-    _pdf_ar_line(
+    _draw_section_title(pdf, family, "ملخص الخطورة")
+    sev_bits = [f"{_severity_label(k)}: {v}" for k, v in (data.get("by_severity") or {}).items()]
+    summary = f"قيد النمو: {data['growing_count']}"
+    if sev_bits:
+        summary += "  |  " + "  ·  ".join(sev_bits)
+    pdf.set_text_color(*_SLATE)
+    _pdf_text(pdf, family, 9, summary, align="R")
+    pdf.ln(1)
+    pdf.set_text_color(*_MUTED)
+    _pdf_text(
         pdf,
         family,
-        11,
-        f"إجمالي الكشوفات: {data.get('total_inspections', data['total_issues'])} | "
-        f"حفر: {data.get('total_potholes', data['total_issues'])} | "
-        f"حرجة: {data['critical_count']}",
-        ln=True,
-    )
-    _pdf_ar_line(
-        pdf,
-        family,
-        11,
-        f"تكلفة ترقيع تقديرية: {_fmt_money(data['total_repair_min'])} — {_fmt_money(data['total_repair_max'])}",
-        ln=True,
+        8,
+        "* التكلفة = ترقيع محلي (cold patch) + عمالة قصيرة — تقدير لكل حفرة.",
+        align="R",
     )
     pdf.ln(4)
-    _pdf_ar_line(pdf, family, 13, "أولويات الصيانة", bold=True, ln=True)
-    pdf.ln(2)
+
+    _draw_section_title(pdf, family, "أولويات الصيانة")
     _render_pdf_table(pdf, family, data)
+
+    # Footer (only if room on current page)
+    if pdf.get_y() < pdf.h - 22:
+        pdf.set_y(-14)
+    else:
+        pdf.ln(4)
+    pdf.set_draw_color(*_LINE)
+    pdf.line(pdf.l_margin, pdf.get_y(), pdf.w - pdf.r_margin, pdf.get_y())
+    pdf.ln(2)
+    pdf.set_text_color(*_MUTED)
+    pdf.set_font("Helvetica", size=8)
+    pdf.cell(
+        0,
+        5,
+        "RUTRIX - Road Infrastructure Intelligence & Asset Management Platform",
+        align="C",
+    )
 
     content = _pdf_bytes(pdf)
     if content[:4] != b"%PDF":
@@ -483,25 +770,34 @@ def _generate_pdf_report_ascii(data: dict) -> bytes:
     pdf.set_auto_page_break(auto=True, margin=15)
     pdf.add_page()
 
-    logo = _logo_path()
-    if logo:
-        pdf.image(str(logo), x=10, y=10, w=42)
-        pdf.ln(18)
+    pdf.set_fill_color(*_NAVY)
+    pdf.rect(0, 0, pdf.w, 28, "F")
+    pdf.set_fill_color(*_CYAN)
+    pdf.rect(0, 28, pdf.w, 1.5, "F")
 
-    pdf.set_font("Helvetica", "B", 16)
-    pdf.cell(0, 10, "RUTRIX Road Maintenance Report", ln=True)
-    pdf.set_font("Helvetica", size=11)
-    pdf.cell(0, 8, f"Org: {_ascii_safe(data.get('org_name', ''))}", ln=True)
-    pdf.cell(0, 8, f"Generated: {data['generated_at']}", ln=True)
+    logo = _logo_path(variant="header")
+    if logo:
+        try:
+            pdf.image(str(logo), x=10, y=6, h=16)
+        except Exception:
+            pass
+
+    pdf.set_xy(10, 32)
+    pdf.set_text_color(*_INK)
+    pdf.set_font("Helvetica", "B", 14)
+    pdf.cell(0, 8, "RUTRIX Road Maintenance Report", ln=True)
+    pdf.set_font("Helvetica", size=10)
+    pdf.cell(0, 6, f"Org: {_ascii_safe(data.get('org_name', ''))}", ln=True)
+    pdf.cell(0, 6, f"Generated: {data['generated_at']}", ln=True)
     pdf.cell(
         0,
-        8,
+        6,
         f"Repair estimate: {_fmt_money(data['total_repair_min'])} - {_fmt_money(data['total_repair_max'])}",
         ln=True,
     )
     pdf.ln(4)
-    pdf.set_font("Helvetica", "B", 12)
-    pdf.cell(0, 8, "Maintenance priorities", ln=True)
+    pdf.set_font("Helvetica", "B", 11)
+    pdf.cell(0, 7, "Maintenance priorities", ln=True)
     pdf.set_font("Helvetica", size=8)
     for p in data.get("priorities", [])[:80]:
         line = _ascii_safe(

@@ -11,7 +11,6 @@ export function groupDetectionsForMap(detections) {
   const groups = new Map();
   for (const d of detections || []) {
     if (d.latitude == null || d.longitude == null) continue;
-    if (d.location_status === "uncertain") continue;
     const key = imageGroupKey(d);
     if (!groups.has(key)) groups.set(key, []);
     groups.get(key).push(d);

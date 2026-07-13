@@ -7,7 +7,16 @@ from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.dependencies import get_current_organization, get_current_user
-from app.models import DetectionStatus, DeviceType, LocationStatus, Organization, PotholeDetection, User
+from app.models import (
+    DetectionStatus,
+    DeviceType,
+    LocationStatus,
+    MemberRole,
+    Organization,
+    OrganizationMember,
+    PotholeDetection,
+    User,
+)
 from app.schemas import (
     BBox,
     ClearMapResponse,
@@ -80,6 +89,7 @@ def recent_detections(
     items = (
         db.query(PotholeDetection)
         .filter(PotholeDetection.organization_id == org.id)
+        .filter(PotholeDetection.detection_status != DetectionStatus.rejected)
         .order_by(PotholeDetection.created_at.desc())
         .limit(limit)
         .all()
@@ -103,11 +113,50 @@ def detection_stats(
     )
 
 
-@router.delete("/clear", response_model=ClearMapResponse)
-async def clear_map(
+@router.get("/all", response_model=list[DetectionResponse])
+def all_detections(
+    limit: int = Query(1000, ge=1, le=2000),
+    offset: int = Query(0, ge=0),
     org: Organization = Depends(get_current_organization),
     db: Session = Depends(get_db),
 ):
+    """Return every active map point owned by the current organization."""
+    items = (
+        db.query(PotholeDetection)
+        .filter(PotholeDetection.organization_id == org.id)
+        .filter(PotholeDetection.detection_status != DetectionStatus.rejected)
+        .order_by(PotholeDetection.created_at.desc())
+        .offset(offset)
+        .limit(limit)
+        .all()
+    )
+    payload = [_to_response(d, org.id).model_dump(mode="json") for d in items]
+    return JSONResponse(
+        content=payload,
+        headers={"Cache-Control": "no-store, no-cache, must-revalidate"},
+    )
+
+
+def _member_role(db: Session, org_id: int, user_id: int) -> MemberRole | None:
+    membership = (
+        db.query(OrganizationMember)
+        .filter(
+            OrganizationMember.organization_id == org_id,
+            OrganizationMember.user_id == user_id,
+        )
+        .first()
+    )
+    return membership.role if membership else None
+
+
+@router.delete("/clear", response_model=ClearMapResponse)
+async def clear_map(
+    org: Organization = Depends(get_current_organization),
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    if _member_role(db, org.id, user.id) not in (MemberRole.owner, MemberRole.admin):
+        raise HTTPException(status_code=403, detail="مسح جميع النقاط متاح للمالك أو المشرف فقط")
     result = clear_all_map_data(db, org.id, delete_files=True)
     await manager.broadcast(org.id, {"type": "map_cleared"})
     return ClearMapResponse(
@@ -120,8 +169,23 @@ async def clear_map(
 async def remove_detection(
     detection_id: int,
     org: Organization = Depends(get_current_organization),
+    user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
+    detection = (
+        db.query(PotholeDetection)
+        .filter(
+            PotholeDetection.id == detection_id,
+            PotholeDetection.organization_id == org.id,
+        )
+        .first()
+    )
+    if not detection:
+        raise HTTPException(status_code=404, detail="Detection not found")
+    is_admin = _member_role(db, org.id, user.id) in (MemberRole.owner, MemberRole.admin)
+    if detection.reporter_user_id != user.id and not is_admin:
+        raise HTTPException(status_code=403, detail="لا يمكن حذف نقطة أضافها مستخدم آخر")
+
     result = delete_detection(db, detection_id, org.id, delete_file=True)
     if not result:
         raise HTTPException(status_code=404, detail="Detection not found")

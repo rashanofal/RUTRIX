@@ -69,7 +69,14 @@
         }
       ],
       "expo-asset",
-      "expo-font"
+      "expo-font",
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/logo-mark.png",
+          "color": "#2ee6ff"
+        }
+      ]
     ],
     "owner": "rashanofal"
   }

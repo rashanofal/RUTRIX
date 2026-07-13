@@ -21,7 +21,7 @@ const STATUS_NEXT = {
   completed: "verified",
 };
 
-export default function ActivityScreen({ apiUrl, refreshKey }) {
+export default function ActivityScreen({ apiUrl, refreshKey, onBell, unreadCount }) {
   const { t } = useLocale();
   const [tab, setTab] = useState("recent");
   const [items, setItems] = useState([]);
@@ -103,7 +103,12 @@ export default function ActivityScreen({ apiUrl, refreshKey }) {
 
   return (
     <View style={styles.container}>
-      <ScreenHeader title={t.activityTitle} onAction={load} />
+      <ScreenHeader
+        title={t.activityTitle}
+        onAction={load}
+        onBell={onBell}
+        unreadCount={unreadCount}
+      />
       <View style={styles.tabs}>
         {TABS.map((id) => (
           <TouchableOpacity
