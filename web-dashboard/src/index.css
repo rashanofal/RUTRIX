@@ -382,7 +382,6 @@ body {
 .rutrix-logo--lg .rutrix-logo__img {
   height: 72px;
   width: auto;
-  margin-bottom: 0.85rem;
 }
 
 .brand-name {
@@ -2857,8 +2856,8 @@ body {
   background: #02040a;
 }
 
-.topbar-brand-stack .rutrix-logo--lockup {
-  margin-bottom: 0.15rem;
+.topbar-brand-stack .topbar-scientific {
+  margin-top: 0;
 }
 
 .page-hero-compact {

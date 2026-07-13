@@ -491,26 +491,52 @@ body {
 }
 
 .rutrix-logo--lockup {
-  display: flex;
-  flex-direction: column;
+  display: inline-flex;
+  flex-direction: row;
   align-items: center;
-  gap: 0.35rem;
+  gap: 0.55rem;
+}
+
+.rutrix-logo--image .rutrix-logo__full-img {
+  height: 40px;
+  width: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 6px 14px rgba(46, 230, 255, 0.2));
+}
+
+.rutrix-logo--lg.rutrix-logo--image .rutrix-logo__full-img {
+  height: 56px;
+}
+
+.rutrix-logo--md.rutrix-logo--image .rutrix-logo__full-img {
+  height: 40px;
 }
 
 .rutrix-logo__mark {
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.rutrix-logo--lg .rutrix-logo__mark {
   width: 52px;
   height: 52px;
-  object-fit: contain;
 }
 
 .rutrix-logo__word {
-  font-family: var(--font);
-  font-size: 1.05rem;
+  font-family: var(--font-display);
+  font-size: 1.15rem;
   font-weight: 800;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.02em;
   color: #f8fbff;
-  line-height: 1.1;
+  line-height: 1;
   text-transform: none;
+  white-space: nowrap;
+}
+
+.rutrix-logo--lg .rutrix-logo__word {
+  font-size: 1.45rem;
 }
 
 /* ─── Intelligence / ops panels ─── */

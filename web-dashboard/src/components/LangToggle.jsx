@@ -9,24 +9,32 @@ export default function LangToggle({ className = "" }) {
   );
 }
 
-/** Brand lockup — icon mark + localized wordmark (reliable on all devices) */
+/** Brand lockup — icon mark or horizontal wordmark */
 export function BrandLogo({ size = "md", variant = "full", showName = true }) {
-  const { t } = useLocale();
-  const isMark = variant === "mark";
-  const src = "/brand/logo-mark.png?v=4";
-  if (isMark || !showName) {
+  const { t, locale } = useLocale();
+  const v = "5";
+  const markSrc = `/brand/logo-mark.png?v=${v}`;
+  const fullSrc = `/brand/logo.png?v=${v}`;
+
+  if (variant === "mark" || !showName) {
     return (
-      <div
-        className={`rutrix-logo rutrix-logo--${size} rutrix-logo--mark`}
-        aria-hidden
-      >
-        <img className="rutrix-logo__img" src={src} alt="" />
+      <div className={`rutrix-logo rutrix-logo--${size} rutrix-logo--mark`} aria-hidden>
+        <img className="rutrix-logo__img" src={markSrc} alt="" />
       </div>
     );
   }
+
+  if (locale === "en") {
+    return (
+      <div className={`rutrix-logo rutrix-logo--${size} rutrix-logo--image`} aria-hidden>
+        <img className="rutrix-logo__img rutrix-logo__full-img" src={fullSrc} alt={t.brand} />
+      </div>
+    );
+  }
+
   return (
     <div className={`rutrix-logo rutrix-logo--${size} rutrix-logo--lockup`} aria-hidden>
-      <img className="rutrix-logo__img rutrix-logo__mark" src={src} alt="" />
+      <img className="rutrix-logo__img rutrix-logo__mark" src={markSrc} alt="" />
       <span className="rutrix-logo__word">{t.brand}</span>
     </div>
   );

@@ -36,7 +36,6 @@ export default function AppShell({
           aria-label={t.brand}
         >
           <BrandLogo size="sm" variant="mark" />
-          <span className="nav-rail-brand-name">{t.brand}</span>
         </button>
         <div className="nav-rail-items">
           {navItems.map((item) => (
@@ -63,7 +62,6 @@ export default function AppShell({
           <div className="topbar-brand">
             {page === "overview" ? (
               <div className="topbar-brand-stack">
-                <BrandLogo size="md" variant="full" />
                 <p className="topbar-scientific">{t.brandSub}</p>
                 {t.tagline ? <p className="topbar-tagline">{t.tagline}</p> : null}
               </div>
