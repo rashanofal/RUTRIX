@@ -351,6 +351,9 @@ export default function AdminPanel({
         </form>
       )}
 
+        </>
+      ) : null}
+
       <h3 className="intel-h3 admin-media-title">
         {t.adminMediaTitle} ({media.length})
       </h3>
