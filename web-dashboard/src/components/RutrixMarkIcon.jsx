@@ -1,32 +1,15 @@
-/** Inline RUTRIX mark — scales cleanly in the sidebar without PNG crop/clipping issues */
+/** Sidebar mark — PNG from brand asset with padded wrapper so the full R stays visible */
+const MARK_V = "12";
+
 export default function RutrixMarkIcon({ className = "" }) {
   return (
-    <svg
-      className={className}
-      viewBox="96 72 320 360"
-      xmlns="http://www.w3.org/2000/svg"
-      aria-hidden
-      focusable="false"
-      preserveAspectRatio="xMidYMid meet"
-    >
-      <defs>
-        <linearGradient id="rutrix-mark-grad" x1="18%" y1="8%" x2="88%" y2="92%">
-          <stop offset="0%" stopColor="#7dffc8" />
-          <stop offset="42%" stopColor="#3dffa8" />
-          <stop offset="100%" stopColor="#128a58" />
-        </linearGradient>
-      </defs>
-      <g transform="translate(88, 88) scale(0.64)">
-        <path
-          fill="url(#rutrix-mark-grad)"
-          d="M118 96 L248 96 L318 168 L318 228 L268 228 L268 196 L168 196 L168 416 L118 416 Z"
-        />
-        <path
-          fill="url(#rutrix-mark-grad)"
-          d="M268 228 L318 228 L398 416 L342 416 L278 284 L268 284 Z"
-        />
-        <path fill="#9dffda" opacity="0.9" d="M118 96 L168 96 L168 196 L118 196 Z" />
-      </g>
-    </svg>
+    <span className="rutrix-logo__mark-wrap" aria-hidden>
+      <img
+        className={["rutrix-logo__img", "rutrix-logo__mark", className].filter(Boolean).join(" ")}
+        src={`/brand/logo-mark.png?v=${MARK_V}`}
+        alt=""
+        decoding="async"
+      />
+    </span>
   );
 }

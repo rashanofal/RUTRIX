@@ -2530,6 +2530,29 @@ body {
   filter: drop-shadow(0 4px 12px rgba(46, 230, 255, 0.28));
 }
 
+.rutrix-logo--lockup-stack.rutrix-logo--sm .rutrix-logo__mark-wrap {
+  width: 54px;
+  height: 54px;
+  min-width: 54px;
+  min-height: 54px;
+  padding: 6px;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: visible;
+  flex-shrink: 0;
+  margin-inline: auto;
+}
+
+.rutrix-logo--lockup-stack.rutrix-logo--sm .rutrix-logo__mark-wrap .rutrix-logo__mark {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center;
+  filter: drop-shadow(0 4px 12px rgba(46, 230, 255, 0.28));
+}
+
 .rutrix-logo--lockup-stack.rutrix-logo--sm .rutrix-logo__mark-svg {
   width: 48px;
   height: 48px;
