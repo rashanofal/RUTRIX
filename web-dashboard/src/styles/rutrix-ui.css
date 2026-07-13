@@ -482,13 +482,21 @@ body {
 }
 
 .rutrix-logo--mark .rutrix-logo__img {
-  width: 44px;
-  height: auto;
+  width: 40px;
+  height: 40px;
   display: block;
   margin-inline: auto;
   object-fit: contain;
   object-position: center;
   filter: drop-shadow(0 6px 16px rgba(46, 230, 255, 0.35));
+}
+
+.nav-rail-brand .rutrix-logo--mark {
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 0;
 }
 
 .rutrix-logo--lockup {
@@ -1149,7 +1157,23 @@ body {
   }
 
   .map-legend-bottom {
-    display: none;
+    display: flex;
+    bottom: 0.35rem;
+    max-width: min(98vw, 720px);
+    gap: 0.45rem;
+  }
+
+  .map-legend-block {
+    padding: 0.4rem 0.55rem;
+  }
+
+  .map-legend-title {
+    font-size: 0.56rem;
+  }
+
+  .map-legend-severity {
+    gap: 0.35rem 0.5rem;
+    font-size: 0.62rem;
   }
 
   .map-wrap .leaflet-top.leaflet-left {

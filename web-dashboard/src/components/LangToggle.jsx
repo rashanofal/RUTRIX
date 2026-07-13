@@ -12,7 +12,7 @@ export default function LangToggle({ className = "" }) {
 /** Official RUTRIX lockup — horizontal logo image or icon mark only */
 export function BrandLogo({ size = "md", variant = "full", showName = true }) {
   const { t } = useLocale();
-  const v = "7";
+  const v = "8";
   const markSrc = `/brand/logo-mark.png?v=${v}`;
   const fullSrc = `/brand/logo.png?v=${v}`;
 

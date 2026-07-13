@@ -189,15 +189,25 @@ function DetectionImage({ detection, openLabel }) {
 }
 
 function MapLegend({ t, showSeverity, showPriority, showHeatmap, showRoadQuality }) {
-  const showRutKey = showHeatmap || showRoadQuality;
-  const hasLegend = showRutKey || showSeverity || showPriority;
+  const hasLegend = showRoadQuality || showHeatmap || showSeverity || showPriority;
   if (!hasLegend) return null;
 
   return (
     <div className="map-legend-bottom">
-      {showRutKey && (
+      {showRoadQuality && (
+        <div className="map-legend-block">
+          <span className="map-legend-title">{t.mapLegendRoadQuality}</span>
+          <div className="map-legend-severity">
+            <span><i style={{ background: rutHeatColor(8) }} /> {t.rutLabelSafe}</span>
+            <span><i style={{ background: rutHeatColor(30) }} /> {t.rutLabelFair}</span>
+            <span><i style={{ background: rutHeatColor(50) }} /> {t.rutLabelPoor}</span>
+            <span><i style={{ background: rutHeatColor(70) }} /> {t.rutLabelCritical}</span>
+          </div>
+        </div>
+      )}
+      {showHeatmap && (
         <div className="map-legend-block map-legend-rut">
-          <span className="map-legend-title">{t.mapLegendRut}</span>
+          <span className="map-legend-title">{t.mapLegendHeatmap}</span>
           <div className="map-legend-gradient rut-gradient" />
           <div className="map-legend-labels map-legend-labels-ltr">
             <span className="legend-rut-safe">{t.rutLabelSafe}</span>
