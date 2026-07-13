@@ -269,7 +269,7 @@ export const translations = {
     clusterReports: "{n} بلاغات",
     viewOnMap: "عرض على الخريطة",
     criticalAlertTitle: "RUTRIX — تنبيه حفر",
-    criticalAlertBody: "حفرة #{id} — RUT {rut} ({severity})",
+    criticalAlertBody: "حفرة #{id} — مؤشر RUT {rut} ({severity})",
     layerSeverity: "الخطورة",
     mapLegendRut: "مفتاح جودة الطرق (RUT)",
     mapLegendSeverity: "مفتاح الخطورة",
@@ -289,6 +289,7 @@ export const translations = {
     maintP3: "متوسطة",
     maintP4: "منخفضة",
     maintenancePriorityPopup: "أولوية صيانة",
+    rutShort: "مؤشر RUT",
     roadQualityLayerEmpty: "لا توجد مناطق تدهور — الصورة الحالية بدون حفر",
     severityLayerEmpty: "طبقة الخطورة تظهر عند وجود كشوفات حفر فعلية",
     maintenanceLayerEmpty: "طبقة الصيانة تظهر عند وجود حفر تحتاج إصلاحاً",
@@ -597,6 +598,7 @@ export const translations = {
     maintP3: "Medium",
     maintP4: "Low",
     maintenancePriorityPopup: "Maintenance priority",
+    rutShort: "RUT",
     roadQualityLayerEmpty: "No deterioration zones — current pin has no potholes",
     severityLayerEmpty: "Severity layer shows when real pothole detections exist",
     maintenanceLayerEmpty: "Maintenance layer shows when potholes need repair",
@@ -623,4 +625,15 @@ export const translations = {
 export function deviceLabel(t, device) {
   const map = { phone: t.devicePhone, mms: t.deviceMms, drone: t.deviceDrone };
   return map[device] || device;
+}
+
+export function severityLabel(t, severity) {
+  const key = severity || "low";
+  const map = {
+    low: t.sevLow,
+    medium: t.sevMedium,
+    high: t.sevHigh,
+    critical: t.sevCritical,
+  };
+  return map[key] || key;
 }

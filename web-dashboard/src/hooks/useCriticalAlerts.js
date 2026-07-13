@@ -1,4 +1,5 @@
 import { useCallback, useRef } from "react";
+import { severityLabel } from "../i18n/translations";
 
 function isCriticalDetection(d) {
   if (!d || d.class_name === "photo") return false;
@@ -32,7 +33,7 @@ export function useCriticalAlerts({ t, showToast, enabled = true }) {
       const body = (t.criticalAlertBody || "Pothole #{id} — RUT {rut} ({severity})")
         .replace("{id}", String(d.id))
         .replace("{rut}", String(Math.round(d.rut_score ?? 0)))
-        .replace("{severity}", d.severity || "high");
+        .replace("{severity}", severityLabel(t, d.severity || "high"));
 
       showToast(`⚠️ ${body}`, "warn");
 

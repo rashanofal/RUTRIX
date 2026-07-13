@@ -11,7 +11,7 @@ import {
 } from "react-leaflet";
 import L from "leaflet";
 import { useLocale } from "../context/LocaleContext";
-import { deviceLabel } from "../i18n/translations";
+import { deviceLabel, severityLabel } from "../i18n/translations";
 import NavIcon from "./NavIcons";
 import {
   bufferRadiusM,
@@ -544,8 +544,8 @@ const SAFE_SURVEY_RUT = 8;
                 <div className="popup-content">
                   <h3>{t.rutHeatmapZone}</h3>
                   <p>
-                    RUT: <strong>{Math.round(c.rut)}</strong> · {t.severity}:{" "}
-                    <strong>{c.severity}</strong>
+                    {t.rutShort}: <strong>{Math.round(c.rut)}</strong> · {t.severity}:{" "}
+                    <strong>{severityLabel(t, c.severity)}</strong>
                   </p>
                   {c.count > 1 && (
                     <p>{t.clusterReports.replace("{n}", String(c.count))}</p>
@@ -576,7 +576,7 @@ const SAFE_SURVEY_RUT = 8;
                       t.noPotholes
                     ) : (
                       <>
-                        RUT: <strong>{Math.round(c.rut)}</strong> · {c.pointCount}{" "}
+                        {t.rutShort}: <strong>{Math.round(c.rut)}</strong> · {c.pointCount}{" "}
                         {t.detectionsCount}
                       </>
                     )}
@@ -626,7 +626,7 @@ const SAFE_SURVEY_RUT = 8;
                   <div className="popup-content">
                     <h3>{t.maintenancePriorityPopup}</h3>
                     <p>
-                      {t.severity}: <strong>{d.severity}</strong> · RUT{" "}
+                      {t.severity}: <strong>{severityLabel(t, d.severity)}</strong> · {t.rutShort}{" "}
                       <strong>{d.rut_score ?? 0}</strong>
                     </p>
                   </div>
@@ -660,8 +660,8 @@ const SAFE_SURVEY_RUT = 8;
                   ) : (
                     <>
                       <p>
-                        RUT: <strong>{d.rut_score ?? 0}</strong> · {t.severity}:{" "}
-                        <strong>{d.severity || "low"}</strong>
+                        {t.rutShort}: <strong>{d.rut_score ?? 0}</strong> · {t.severity}:{" "}
+                        <strong>{severityLabel(t, d.severity || "low")}</strong>
                       </p>
                       <p>
                         {t.confidence}: <strong>{(d.confidence * 100).toFixed(1)}%</strong>

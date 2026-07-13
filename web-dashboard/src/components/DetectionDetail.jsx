@@ -1,5 +1,5 @@
 import { useLocale } from "../context/LocaleContext";
-import DetectionStatusPipeline from "./DetectionStatusPipeline";
+import { severityLabel } from "../i18n/translations";
 import { countClusterReports } from "../hooks/useCriticalAlerts";
 
 export default function DetectionDetail({
@@ -39,7 +39,7 @@ export default function DetectionDetail({
         {selected.class_name !== "photo" && (
           <>
             {" "}
-            — RUT {selected.rut_score ?? 0} · {t.severity}: {selected.severity}
+            — {t.rutShort} {selected.rut_score ?? 0} · {t.severity}: {severityLabel(t, selected.severity)}
             {" "}
             — {t.confidence}: {(selected.confidence * 100).toFixed(0)}%
           </>

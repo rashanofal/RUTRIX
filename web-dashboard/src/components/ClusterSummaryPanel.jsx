@@ -2,17 +2,12 @@ import { useEffect, useState } from "react";
 import { useLocale } from "../context/LocaleContext";
 import { fetchRoadQuality } from "../hooks/useApi";
 import NavIcon from "./NavIcons";
-
-const SEV_LABELS = {
-  ar: { low: "منخفضة", medium: "متوسطة", high: "عالية", critical: "حرجة" },
-  en: { low: "Low", medium: "Medium", high: "High", critical: "Critical" },
-};
+import { severityLabel } from "../i18n/translations";
 
 export default function ClusterSummaryPanel({ refreshKey = 0, onSelectCluster }) {
-  const { t, locale } = useLocale();
+  const { t } = useLocale();
   const [clusters, setClusters] = useState([]);
   const [loading, setLoading] = useState(true);
-  const sev = SEV_LABELS[locale] || SEV_LABELS.en;
 
   useEffect(() => {
     (async () => {
@@ -49,9 +44,9 @@ export default function ClusterSummaryPanel({ refreshKey = 0, onSelectCluster })
           {clusters.map((c) => (
             <li key={c.cluster_id} className={`cluster-item sev-${c.severity || "low"}`}>
               <div className="cluster-top">
-                <span className="cluster-rut">RUT {Math.round(c.rut_score ?? 0)}</span>
+                <span className="cluster-rut">{t.rutShort} {Math.round(c.rut_score ?? 0)}</span>
                 <span className={`cluster-sev sev-badge-${c.severity || "low"}`}>
-                  {sev[c.severity] || c.severity}
+                  {severityLabel(t, c.severity)}
                 </span>
                 {(c.detection_count ?? 0) > 1 && (
                   <span className="cluster-count">
