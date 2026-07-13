@@ -2527,6 +2527,13 @@ body {
   filter: drop-shadow(0 4px 12px rgba(46, 230, 255, 0.28));
 }
 
+.rutrix-logo--lockup-stack.rutrix-logo--sm .rutrix-logo__img.rutrix-logo__mark {
+  width: 46px;
+  height: 46px;
+  max-width: 46px;
+  margin-inline: auto;
+}
+
 .rutrix-logo--mark.rutrix-logo--sm .rutrix-logo__img {
   width: 44px;
   height: 44px;

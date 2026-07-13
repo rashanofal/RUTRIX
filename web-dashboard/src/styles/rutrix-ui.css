@@ -512,11 +512,19 @@ body {
   gap: 0.35rem;
 }
 
+.nav-rail-brand .rutrix-logo--lockup-stack {
+  width: 100%;
+  overflow: visible;
+}
+
 .nav-rail-brand .rutrix-logo--lockup-stack .rutrix-logo__mark {
-  width: 44px;
-  height: 44px;
+  width: 46px;
+  height: 46px;
+  max-width: 46px;
   object-fit: contain;
+  object-position: center;
   background: transparent;
+  display: block;
 }
 
 .nav-rail-brand .rutrix-logo--lockup-stack .rutrix-logo__word {

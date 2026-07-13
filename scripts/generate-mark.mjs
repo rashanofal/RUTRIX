@@ -5,6 +5,7 @@ import { fileURLToPath } from "url";
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(__dirname, "..");
 const LOGO = join(ROOT, "web-dashboard", "public", "brand", "logo.png");
+const TARGET = 512;
 
 const MARK_SVG = Buffer.from(`<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
   <defs>
@@ -14,7 +15,7 @@ const MARK_SVG = Buffer.from(`<svg width="512" height="512" viewBox="0 0 512 512
       <stop offset="100%" stop-color="#128a58"/>
     </linearGradient>
   </defs>
-  <g transform="translate(64, 56) scale(0.76)">
+  <g transform="translate(72, 64) scale(0.72)">
     <path fill="url(#rg)" d="M118 96 L248 96 L318 168 L318 228 L268 228 L268 196 L168 196 L168 416 L118 416 Z"/>
     <path fill="url(#rg)" d="M268 228 L318 228 L398 416 L342 416 L278 284 L268 284 Z"/>
     <path fill="#9dffda" opacity="0.9" d="M118 96 L168 96 L168 196 L118 196 Z"/>
@@ -41,7 +42,7 @@ async function findGreenIconBounds() {
       const g = data[i + 1];
       const b = data[i + 2];
       const a = data[i + 3];
-      if (a > 10 && g > 80 && g > r + 20) {
+      if (a > 10 && g > 60 && g > r + 8) {
         minX = Math.min(minX, x);
         minY = Math.min(minY, y);
         maxX = Math.max(maxX, x);
@@ -54,14 +55,33 @@ async function findGreenIconBounds() {
   return { minX, minY, maxX, maxY };
 }
 
+async function centerOnCanvas(inputBuf, size = TARGET) {
+  const meta = await sharp(inputBuf).metadata();
+  const scale = Math.min((size * 0.72) / meta.width, (size * 0.72) / meta.height);
+  const w = Math.max(1, Math.round(meta.width * scale));
+  const h = Math.max(1, Math.round(meta.height * scale));
+  const resized = await sharp(inputBuf).resize(w, h, { fit: "fill" }).png().toBuffer();
+  const left = Math.floor((size - w) / 2);
+  const top = Math.floor((size - h) / 2);
+  return sharp({
+    create: {
+      width: size,
+      height: size,
+      channels: 4,
+      background: { r: 0, g: 0, b: 0, alpha: 0 },
+    },
+  })
+    .composite([{ input: resized, left, top }])
+    .png()
+    .toBuffer();
+}
+
 async function fromLogoCrop() {
   const bounds = await findGreenIconBounds();
   if (!bounds) throw new Error("Green icon not found in logo.png");
 
   const iconW = bounds.maxX - bounds.minX + 1;
   const iconH = bounds.maxY - bounds.minY + 1;
-  const margin = 40;
-  const side = Math.max(iconW, iconH) + margin * 2;
 
   const iconBuf = await sharp(LOGO)
     .extract({
@@ -70,27 +90,17 @@ async function fromLogoCrop() {
       width: iconW,
       height: iconH,
     })
-    .png()
-    .toBuffer();
-
-  const leftPad = Math.floor((side - iconW) / 2);
-  const topPad = Math.floor((side - iconH) / 2);
-
-  return sharp({
-    create: {
-      width: side,
-      height: side,
-      channels: 4,
-      background: { r: 0, g: 0, b: 0, alpha: 0 },
-    },
-  })
-    .composite([{ input: iconBuf, left: leftPad, top: topPad }])
-    .resize(512, 512, {
-      fit: "contain",
+    .extend({
+      top: 36,
+      bottom: 36,
+      left: 52,
+      right: 28,
       background: { r: 0, g: 0, b: 0, alpha: 0 },
     })
     .png()
     .toBuffer();
+
+  return centerOnCanvas(iconBuf);
 }
 
 async function main() {
