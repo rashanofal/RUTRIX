@@ -24,8 +24,14 @@ if (Test-Path $tmp) { Remove-Item -Recurse -Force $tmp }
 New-Item -ItemType Directory -Path $tmp | Out-Null
 
 Write-Host "==> Cloning Space: $Space" -ForegroundColor Cyan
+$prevEap = $ErrorActionPreference
+$ErrorActionPreference = "Continue"
 git clone "https://huggingface.co/spaces/$Space" $tmp 2>&1 | ForEach-Object {
     if ($_ -match '^(Cloning|remote:|Receiving|Resolving)') { Write-Host $_ }
+}
+$ErrorActionPreference = $prevEap
+if (-not (Test-Path (Join-Path $tmp ".git"))) {
+    throw "Failed to clone Hugging Face Space: $Space"
 }
 
 Write-Host "==> Copying project files" -ForegroundColor Cyan
@@ -74,8 +80,11 @@ git commit -m "Deploy RUTRIX Docker app (FastAPI + dashboard + ML)" 2>$null
 if ($LASTEXITCODE -ne 0) { Write-Host "No new changes or commit skipped" -ForegroundColor Yellow }
 
 Write-Host "==> Pushing to Hugging Face (build starts automatically)" -ForegroundColor Cyan
+$ErrorActionPreference = "Continue"
 git push origin main 2>&1
 if ($LASTEXITCODE -ne 0) { git push origin master 2>&1 }
+$ErrorActionPreference = $prevEap
+if ($LASTEXITCODE -ne 0) { throw "Hugging Face git push failed" }
 
 Pop-Location
 Write-Host ""

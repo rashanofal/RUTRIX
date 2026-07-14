@@ -19,6 +19,8 @@ from app.models import (
 )
 from app.schemas import (
     BBox,
+    BatchItemResult,
+    BatchUploadResponse,
     ClearMapResponse,
     DeleteDetectionResponse,
     DetectionCreate,
@@ -29,6 +31,14 @@ from app.schemas import (
 )
 from app.services.access_control import is_platform_owner, scoped_detections_query
 from app.services.auth_service import effective_organization_id
+from app.services.batch_media import (
+    MAX_BATCH_IMAGES,
+    MAX_VIDEO_FRAMES,
+    extract_video_frames,
+    interpolate_gps,
+    is_image_filename,
+    is_video_filename,
+)
 from app.services.exif_geo import extract_gps_from_bytes, normalize_image_for_processing
 from app.services.geo_service import (
     clear_all_map_data,
@@ -346,9 +356,175 @@ async def upload_and_detect(
         ) from exc
 
 
+@router.post("/upload-batch", response_model=BatchUploadResponse)
+async def upload_batch_and_detect(
+    files: list[UploadFile] = File(...),
+    device_type: DeviceType = Form(DeviceType.mms),
+    latitude: float | None = Form(None),
+    longitude: float | None = Form(None),
+    end_latitude: float | None = Form(None),
+    end_longitude: float | None = Form(None),
+    bearing: float | None = Form(None),
+    source_id: str | None = Form(None),
+    mission_id: str | None = Form(None),
+    frame_interval_sec: float = Form(1.0),
+    org: Organization = Depends(get_current_organization),
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Batch ingest for MMS / drone / dashboard — images and/or a video."""
+    if not files:
+        raise HTTPException(status_code=400, detail="No files uploaded")
+
+    mission = (mission_id or source_id or "").strip() or None
+    items: list[BatchItemResult] = []
+    all_detections: list[DetectionResponse] = []
+    work_units: list[tuple[bytes, str, float | None, float | None]] = []
+
+    image_files: list[UploadFile] = []
+    video_files: list[UploadFile] = []
+    for f in files:
+        name = f.filename or ""
+        if is_video_filename(name):
+            video_files.append(f)
+        elif is_image_filename(name) or not name:
+            image_files.append(f)
+        else:
+            # Unknown extension: try as image if small content sniff later
+            image_files.append(f)
+
+    if len(image_files) > MAX_BATCH_IMAGES:
+        raise HTTPException(
+            status_code=400,
+            detail=f"حد أقصى {MAX_BATCH_IMAGES} صورة في الدفعة الواحدة",
+        )
+    if len(video_files) > 1:
+        raise HTTPException(status_code=400, detail="ارفع فيديو واحد فقط في كل دفعة")
+
+    for f in image_files:
+        content = await f.read()
+        if not content:
+            items.append(
+                BatchItemResult(
+                    filename=f.filename or "empty",
+                    ok=False,
+                    error="Empty file",
+                )
+            )
+            continue
+        work_units.append((content, Path(f.filename or "upload.jpg").name, None, None))
+
+    for vf in video_files:
+        raw = await vf.read()
+        try:
+            frames = extract_video_frames(
+                raw,
+                original_name=vf.filename or "mission.mp4",
+                interval_sec=frame_interval_sec,
+                max_frames=MAX_VIDEO_FRAMES,
+            )
+        except ValueError as exc:
+            raise HTTPException(status_code=400, detail=str(exc)) from exc
+        total = len(frames)
+        for fr in frames:
+            lat, lon = interpolate_gps(
+                fr.frame_index,
+                total,
+                latitude,
+                longitude,
+                end_latitude,
+                end_longitude,
+            )
+            work_units.append((fr.content, fr.filename, lat, lon))
+
+    if not work_units and not items:
+        raise HTTPException(status_code=400, detail="لا ملفات صالحة للمعالجة")
+
+    # Assign per-image GPS: explicit frame GPS, else EXIF inside impl, else fallback form GPS
+    total_units = len(work_units)
+    for idx, (content, filename, frame_lat, frame_lon) in enumerate(work_units):
+        if frame_lat is None or frame_lon is None:
+            # Image batch: interpolate along path if end GPS given
+            frame_lat, frame_lon = interpolate_gps(
+                idx,
+                total_units,
+                latitude,
+                longitude,
+                end_latitude,
+                end_longitude,
+            )
+        unit_source = mission
+        if mission and total_units > 1:
+            unit_source = f"{mission}#{idx + 1}"
+
+        try:
+            result = await _upload_and_detect_impl(
+                content=content,
+                filename=filename,
+                device_type=device_type,
+                device_lat=frame_lat,
+                device_lon=frame_lon,
+                bearing=bearing,
+                source_id=unit_source,
+                edge_detections=None,
+                anomaly_type=None,
+                org=org,
+                user=user,
+                db=db,
+            )
+            items.append(
+                BatchItemResult(
+                    filename=filename,
+                    ok=True,
+                    upload_id=result.upload_id,
+                    detection_count=len(result.detections),
+                    message=result.message,
+                )
+            )
+            all_detections.extend(result.detections)
+        except HTTPException as exc:
+            detail = exc.detail if isinstance(exc.detail, str) else str(exc.detail)
+            items.append(BatchItemResult(filename=filename, ok=False, error=detail))
+        except Exception as exc:
+            logger.exception("batch item failed: %s", filename)
+            items.append(
+                BatchItemResult(
+                    filename=filename,
+                    ok=False,
+                    error=f"{type(exc).__name__}: {exc}",
+                )
+            )
+
+    succeeded = sum(1 for i in items if i.ok)
+    failed = sum(1 for i in items if not i.ok)
+    holes = sum(1 for d in all_detections if d.class_name != "photo")
+    src = device_type.value
+    msg = (
+        f"دفعة {src}: عُولج {succeeded}/{len(items)} ملف — "
+        f"{holes} كشف — "
+        + (f"مهمة {mission}" if mission else "بدون رقم مهمة")
+    )
+    if failed:
+        msg += f" — فشل {failed}"
+
+    return BatchUploadResponse(
+        mission_id=mission,
+        device_type=device_type,
+        processed=len(items),
+        succeeded=succeeded,
+        failed=failed,
+        total_detections=len(all_detections),
+        items=items,
+        detections=all_detections,
+        message=msg,
+    )
+
+
 async def _upload_and_detect_impl(
     *,
-    file: UploadFile,
+    file: UploadFile | None = None,
+    content: bytes | None = None,
+    filename: str | None = None,
     device_type: DeviceType,
     device_lat: float | None,
     device_lon: float | None,
@@ -360,13 +536,17 @@ async def _upload_and_detect_impl(
     user: User,
     db: Session,
 ) -> UploadResponse:
-    content = await file.read()
+    if content is None:
+        if file is None:
+            raise HTTPException(status_code=400, detail="Empty file")
+        content = await file.read()
     if not content:
         raise HTTPException(status_code=400, detail="Empty file")
 
     exif_lat, exif_lon = extract_gps_from_bytes(content)
     content = normalize_image_for_processing(content)
-    filename = Path(file.filename or "upload.jpg").name or "upload.jpg"
+    raw_name = filename or (file.filename if file else None) or "upload.jpg"
+    filename = Path(raw_name).name or "upload.jpg"
     if not filename.lower().endswith((".jpg", ".jpeg")):
         filename = f"{Path(filename).stem or 'upload'}.jpg"
 
@@ -375,16 +555,17 @@ async def _upload_and_detect_impl(
     map_lat: float | None = None
     map_lon: float | None = None
 
-    if device_lat is not None and device_lon is not None:
+    # Prefer EXIF GPS (where the photo was taken) over live device coordinates,
+    # so album uploads from phones land on the correct map spot.
+    if exif_lat is not None and exif_lon is not None:
+        map_lat, map_lon = exif_lat, exif_lon
+        has_map_location = True
+        location_source = "exif"
+    elif device_lat is not None and device_lon is not None:
         if -90 <= device_lat <= 90 and -180 <= device_lon <= 180:
             map_lat, map_lon = device_lat, device_lon
             has_map_location = True
             location_source = "device_gps"
-
-    if not has_map_location and exif_lat is not None and exif_lon is not None:
-        map_lat, map_lon = exif_lat, exif_lon
-        has_map_location = True
-        location_source = "exif"
 
     saved_path = save_upload_file(content, filename, org.id)
     save_training_sample(

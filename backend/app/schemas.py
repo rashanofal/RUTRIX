@@ -152,6 +152,27 @@ class UploadResponse(BaseModel):
     message: str
 
 
+class BatchItemResult(BaseModel):
+    filename: str
+    ok: bool
+    upload_id: int | None = None
+    detection_count: int = 0
+    message: str = ""
+    error: str | None = None
+
+
+class BatchUploadResponse(BaseModel):
+    mission_id: str | None = None
+    device_type: DeviceType
+    processed: int
+    succeeded: int
+    failed: int
+    total_detections: int
+    items: list[BatchItemResult]
+    detections: list[DetectionResponse]
+    message: str
+
+
 class MapBoundsQuery(BaseModel):
     min_lat: float
     min_lon: float

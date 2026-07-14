@@ -38,19 +38,32 @@ async function apiGet(path, apiBase, timeoutMs = 15000) {
   return res.json();
 }
 
-export async function uploadDetection(imageUri, apiBase, coords) {
+function guessMime(name, fallback = "image/jpeg") {
+  const lower = (name || "").toLowerCase();
+  if (lower.endsWith(".png")) return "image/png";
+  if (lower.endsWith(".webp")) return "image/webp";
+  if (lower.endsWith(".heic") || lower.endsWith(".heif")) return "image/heic";
+  if (lower.endsWith(".mp4")) return "video/mp4";
+  if (lower.endsWith(".mov")) return "video/quicktime";
+  if (lower.endsWith(".webm")) return "video/webm";
+  return fallback;
+}
+
+export async function uploadDetection(imageUri, apiBase, coords, options = {}) {
+  const name = options.name || "capture.jpg";
   const formData = new FormData();
   formData.append("file", {
     uri: imageUri,
-    name: "capture.jpg",
-    type: "image/jpeg",
+    name,
+    type: options.type || guessMime(name),
   });
-  formData.append("device_type", "phone");
+  formData.append("device_type", options.deviceType || "phone");
 
   if (coords?.latitude != null && coords?.longitude != null) {
     formData.append("latitude", String(coords.latitude));
     formData.append("longitude", String(coords.longitude));
   }
+  if (options.sourceId) formData.append("source_id", options.sourceId);
 
   const headers = await authHeaders(apiBase, { Accept: "application/json" });
   const response = await fetchWithTimeout(
@@ -63,6 +76,48 @@ export async function uploadDetection(imageUri, apiBase, coords) {
   if (!response.ok) {
     const text = await response.text();
     throw new Error(text || "فشل الرفع");
+  }
+  return response.json();
+}
+
+/** Batch upload images and/or one video — EXIF GPS preferred per image on the server. */
+export async function uploadDetectionBatch(assets, apiBase, coords, options = {}) {
+  const list = (assets || []).filter((a) => a?.uri);
+  if (!list.length) throw new Error("لا ملفات");
+
+  const formData = new FormData();
+  list.forEach((asset, idx) => {
+    const name =
+      asset.fileName ||
+      asset.name ||
+      (asset.type?.startsWith("video") ? `clip_${idx}.mp4` : `photo_${idx}.jpg`);
+    formData.append("files", {
+      uri: asset.uri,
+      name,
+      type: asset.mimeType || asset.type || guessMime(name),
+    });
+  });
+  formData.append("device_type", options.deviceType || "phone");
+  formData.append("frame_interval_sec", String(options.frameIntervalSec || 1));
+  if (options.missionId) formData.append("mission_id", options.missionId);
+
+  // Fallback only when photos lack EXIF (server still prefers EXIF when present)
+  if (coords?.latitude != null && coords?.longitude != null) {
+    formData.append("latitude", String(coords.latitude));
+    formData.append("longitude", String(coords.longitude));
+  }
+
+  const headers = await authHeaders(apiBase, { Accept: "application/json" });
+  const response = await fetchWithTimeout(
+    `${getApiBase(apiBase)}/api/detections/upload-batch`,
+    { method: "POST", body: formData, headers },
+    300000
+  );
+
+  if (response.status === 401) throw new Error("انتهت الجلسة");
+  if (!response.ok) {
+    const text = await response.text();
+    throw new Error(text || "فشل رفع الدفعة");
   }
   return response.json();
 }

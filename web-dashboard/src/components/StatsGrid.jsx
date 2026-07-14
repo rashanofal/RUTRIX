@@ -6,6 +6,8 @@ const STAT_KEYS = [
   { key: "potholes", field: "total_potholes", labelKey: "statPotholes", icon: "pothole", cls: "potholes" },
   { key: "verified", field: "verified_detections", labelKey: "statVerified", icon: "check", cls: "success" },
   { key: "phone", field: "by_device.phone", labelKey: "statPhone", icon: "mobile", cls: "phone" },
+  { key: "mms", field: "by_device.mms", labelKey: "statMms", icon: "signal", cls: "mms" },
+  { key: "drone", field: "by_device.drone", labelKey: "statDrone", icon: "field", cls: "drone" },
 ];
 
 function getStatValue(stats, field) {
@@ -21,7 +23,7 @@ export default function StatsGrid({ stats, variant = "default" }) {
   const { t } = useLocale();
   if (!stats) return null;
 
-  const statsKey = `${stats.total_detections}-${stats.total_potholes}-${stats.verified_detections}-${stats.by_device?.phone ?? 0}`;
+  const statsKey = `${stats.total_detections}-${stats.total_potholes}-${stats.verified_detections}-${stats.by_device?.phone ?? 0}-${stats.by_device?.mms ?? 0}-${stats.by_device?.drone ?? 0}`;
 
   return (
     <div className={`stat-grid stat-grid-${variant}`} key={statsKey}>

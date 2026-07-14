@@ -863,6 +863,7 @@ body {
 .stat-card.accent { --stat-accent: var(--accent); }
 .stat-card.success { --stat-accent: var(--success); }
 .stat-card.phone { --stat-accent: #60a5fa; }
+.stat-card.mms { --stat-accent: #c4b5fd; }
 .stat-card.drone { --stat-accent: #a78bfa; }
 
 /* ─── Detection list ─── */
@@ -1627,6 +1628,92 @@ body {
   color: var(--text-dim);
   margin-bottom: 0.9rem;
   line-height: 1.6;
+}
+
+.upload-source-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-bottom: 0.45rem;
+}
+
+.upload-source-btn {
+  flex: 1;
+  min-width: 4.5rem;
+  border: 1px solid rgba(148, 163, 184, 0.28);
+  background: rgba(15, 23, 42, 0.35);
+  color: var(--text-dim);
+  border-radius: 10px;
+  padding: 0.45rem 0.55rem;
+  font-size: 0.82rem;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s, background 0.15s;
+}
+
+.upload-source-btn.active {
+  border-color: rgba(34, 211, 238, 0.65);
+  color: #ecfeff;
+  background: rgba(34, 211, 238, 0.14);
+}
+
+.upload-source-hint {
+  font-size: 0.75rem;
+  color: var(--text-dim);
+  margin: 0 0 0.75rem;
+  line-height: 1.45;
+}
+
+.upload-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.28rem;
+  margin-bottom: 0.55rem;
+  font-size: 0.78rem;
+  color: var(--text-dim);
+}
+
+.upload-field input {
+  border: 1px solid rgba(148, 163, 184, 0.28);
+  background: rgba(15, 23, 42, 0.4);
+  color: var(--text);
+  border-radius: 10px;
+  padding: 0.45rem 0.6rem;
+  font-family: inherit;
+  font-size: 0.85rem;
+}
+
+.upload-check {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.45rem;
+  margin: 0.15rem 0 0.55rem;
+  font-size: 0.78rem;
+  color: var(--text-dim);
+  cursor: pointer;
+}
+
+.upload-check input {
+  margin-top: 0.15rem;
+}
+
+.upload-gps-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.4rem;
+  margin-bottom: 0.75rem;
+}
+
+.upload-gps-grid input {
+  border: 1px solid rgba(148, 163, 184, 0.28);
+  background: rgba(15, 23, 42, 0.4);
+  color: var(--text);
+  border-radius: 10px;
+  padding: 0.4rem 0.5rem;
+  font-family: inherit;
+  font-size: 0.8rem;
+  min-width: 0;
 }
 
 .upload-zone {

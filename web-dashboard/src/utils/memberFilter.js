@@ -52,7 +52,6 @@ export function toggleMemberInFilter(memberFilter, userId, allUserIds = []) {
       return { mode: "users", userIds: Array.from(ids) };
     }
     ids.add(id);
-    if (all.length && ids.size >= all.length) return { mode: "all" };
     return { mode: "users", userIds: Array.from(ids) };
   }
 
@@ -82,14 +81,37 @@ export function filterDetectionsByMember(detections, memberFilter) {
 }
 
 export function formatSelectedCount(template, count) {
-  const tpl = template || "{count}";
-  return String(tpl).replace("{count}", String(count));
+  const tpl = typeof template === "string" ? template : "{count}";
+  return tpl.replace("{count}", String(count));
+}
+
+function normalizeEmail(email) {
+  return String(email || "")
+    .trim()
+    .toLowerCase()
+    .replace("@gmai.com", "@gmail.com");
+}
+
+/** Drop duplicate accounts (e.g. owner typo email) — keep the row with most activity. */
+export function dedupeMembersByEmail(members) {
+  const byKey = new Map();
+  for (const m of members || []) {
+    const email = normalizeEmail(m.email);
+    const key = email || `id:${m.user_id}`;
+    const score =
+      (m.map_pins || 0) + (m.total_detections || 0) + (m.role === "owner" ? 1000 : 0);
+    const prev = byKey.get(key);
+    if (!prev || score > (prev._score || 0)) {
+      byKey.set(key, { ...m, _score: score });
+    }
+  }
+  return Array.from(byKey.values()).map(({ _score, ...m }) => m);
 }
 
 /** Include reporters visible on the map even if team API missed them (org merge lag). */
 export function enrichMembersWithReporters(members, detections) {
   const byId = new Map(
-    (Array.isArray(members) ? members : []).map((m) => [Number(m.user_id), { ...m }])
+    dedupeMembersByEmail(members).map((m) => [Number(m.user_id), { ...m }])
   );
   for (const item of detections || []) {
     const id = Number(item.reporter_user_id);
@@ -104,7 +126,7 @@ export function enrichMembersWithReporters(members, detections) {
       total_detections: mine.length,
     });
   }
-  return Array.from(byId.values()).sort((a, b) =>
+  return dedupeMembersByEmail(Array.from(byId.values())).sort((a, b) =>
     String(a.full_name || "").localeCompare(String(b.full_name || ""), undefined, {
       sensitivity: "base",
     })

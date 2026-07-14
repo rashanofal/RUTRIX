@@ -609,7 +609,7 @@
         <input type="file" id="cameraInput" class="hidden" accept="image/*" capture="environment" />
         <label class="btn btn-album" id="albumLabel">
           <span id="albumLabelText">Choose from album</span>
-          <input type="file" id="albumInput" accept="image/*" />
+          <input type="file" id="albumInput" accept="image/*,video/mp4,video/quicktime,video/webm,.mp4,.mov,.webm" multiple />
         </label>
         <p id="msg"></p>
         <button type="button" class="btn btn-album hidden" id="skipLocBtn" style="margin-top:0.5rem">Skip</button>
@@ -717,7 +717,7 @@
         locFailed: "تعذّر الموقع — جرّب الألبوم أو فعّل الموقع لـ Safari",
         locInsecure: "الموقع يحتاج HTTPS — أو استخدم HTTP :8000",
         capture: "تصوير بالكاميرا",
-        album: "اختيار من الألبوم",
+        album: "اختيار صور / فيديو من الألبوم",
         logout: "تسجيل الخروج",
         secureGps: "افتح HTTPS لتفعيل الموقع",
         captureSection: "تصوير ميداني",
@@ -727,6 +727,8 @@
         uploadedMap: "تم — ظهرت على الخريطة",
         uploadedGeneric: "تم الرفع",
         uploadFail: "فشل الرفع",
+        batchProgress: "جاري رفع الدفعة والكشف (الصور تستخدم موقع EXIF إن وُجد)...",
+        albumExifTip: "صور الألبوم ذات الموقع تنزل مكانها الأصلي على الخريطة",
         loginFail: "فشل الدخول",
         insecureTip: "للموقع على الخريطة: اضغط زر HTTPS أعلاه أو اسمح بالموقع",
         gpsReady: "الموقع جاهز",
@@ -771,7 +773,7 @@
         mapScopeMine: "Showing your points only — the owner sees the full organization",
         mapScopeOwner: "Showing all organization points (platform owner)",
         reportedBy: "Reported by",
-        logout: "Logout", capture: "Camera capture", album: "Choose from album",
+        logout: "Logout", capture: "Camera capture", album: "Choose photos / video from album",
         secureGps: "Open HTTPS for GPS location",
         captureSection: "Field capture",
         mapCard: "Detection points on the map",
@@ -780,6 +782,8 @@
         uploadedMap: "Done — shown on the map",
         uploadedGeneric: "Uploaded",
         uploadFail: "Upload failed",
+        batchProgress: "Uploading batch and detecting (album photos use EXIF location when present)...",
+        albumExifTip: "Album photos with GPS land on their original map location",
         loginFail: "Sign in failed",
         insecureTip: "For map location: tap HTTPS above or allow location",
         gpsTip: "Camera photos have no GPS — allow location before capture (see «Location ready» badge)",
@@ -1284,6 +1288,52 @@
       }
     }
 
+    function isVideoFile(file) {
+      if (!file) return false;
+      var t = (file.type || "").toLowerCase();
+      var n = (file.name || "").toLowerCase();
+      return t.startsWith("video/") || /\.(mp4|mov|webm|m4v|avi)$/.test(n);
+    }
+
+    async function doUploadBatch(files, fallbackCoords) {
+      var list = Array.prototype.slice.call(files || []).filter(Boolean);
+      if (!list.length) return;
+      var auth = getAuth();
+      if (!auth || !auth.access_token) { showLogin(); return; }
+
+      var tr = t();
+      showUploadFeedback(tr.batchProgress || tr.uploadProgress, "warn");
+
+      var form = new FormData();
+      list.forEach(function (f) { form.append("files", f); });
+      form.append("device_type", "phone");
+      form.append("frame_interval_sec", "1");
+      // Fallback only — server prefers each image's EXIF GPS when present
+      appendCoords(form, fallbackCoords);
+
+      try {
+        var res = await fetch("/api/detections/upload-batch", {
+          method: "POST",
+          headers: { Authorization: "Bearer " + auth.access_token },
+          body: form,
+        });
+        if (res.status === 401) { showLogin(); return; }
+        if (!res.ok) throw new Error(await res.text());
+        var data = await res.json();
+        var onMap = data.detections && data.detections.some(function (d) { return d.latitude != null; });
+        showUploadFeedback(data.message || tr.uploadedGeneric, "ok");
+        if (onMap) {
+          setTimeout(function () {
+            var mapTabBtn = document.querySelector('.tab[data-tab="map"]');
+            if (mapTabBtn) mapTabBtn.click();
+          }, 1400);
+        }
+        loadMap();
+      } catch (e) {
+        showUploadFeedback(e.message || tr.uploadFail, "err");
+      }
+    }
+
     async function upload(file, askLocation) {
       if (!file) return;
       hideSkipLoc();
@@ -1298,6 +1348,31 @@
       }
 
       await doUpload(file, coords, askLocation && window.isSecureContext && !coords);
+    }
+
+    async function uploadAlbumFiles(fileList) {
+      var files = Array.prototype.slice.call(fileList || []).filter(Boolean);
+      if (!files.length) return;
+      hideSkipLoc();
+
+      var hasVideo = files.some(isVideoFile);
+      var isBatch = files.length > 1 || hasVideo;
+
+      if (!isBatch) {
+        // Single album image: do not send live GPS — EXIF pins the original place
+        await doUpload(files[0], null, false);
+        return;
+      }
+
+      // Video may need a fallback GPS for frames; images still use EXIF first
+      var fallback = hasVideo ? getCachedLocation(300000) : null;
+      if (hasVideo && !fallback && window.isSecureContext) {
+        fallback = await Promise.race([
+          requestLocationNow(3500),
+          new Promise(function (r) { setTimeout(function () { r(null); }, 3500); }),
+        ]);
+      }
+      await doUploadBatch(files, fallback);
     }
 
     function markerColor(d) {
@@ -1813,9 +1888,9 @@
       if (file) upload(file, true);
     };
     document.getElementById("albumInput").onchange = (e) => {
-      var file = e.target.files[0];
+      var files = e.target.files;
       e.target.value = "";
-      if (file) upload(file, true);
+      if (files && files.length) uploadAlbumFiles(files);
     };
 
     function secureMobileUrl() {
