@@ -8,8 +8,8 @@ from app.persistence import ensure_storage_dirs
 from app.database import SessionLocal, engine
 from app.models import Base, MemberRole, Organization, OrganizationMember, PotholeDetection, User
 from app.services.auth_service import get_demo_organization, get_user_org_membership, hash_password, register_user, verify_password
-from app.services.inference import reload_model
 from app.services.rut_intelligence import analyze_detection
+# Do not import inference/YOLO at module load — keeps uvicorn import fast on HF.
 
 INTELLIGENCE_COLUMNS = [
     ("reporter_user_id", "INTEGER"),

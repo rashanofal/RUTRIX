@@ -7,6 +7,7 @@ sdk: docker
 app_port: 7860
 pinned: false
 license: mit
+startup_duration_timeout: 1h
 ---
 
 # RUTRIX — Road Infrastructure Intelligence
