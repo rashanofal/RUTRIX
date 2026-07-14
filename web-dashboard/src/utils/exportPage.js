@@ -93,7 +93,7 @@ export function buildPageHtmlDocument({ forPrint = false, exportContext = null }
     : "";
 
   return `<!DOCTYPE html>
-<html lang="${document.documentElement.lang || "ar"}" dir="${dir}">
+<html lang="${document.documentElement.lang || "en"}" dir="${dir}">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />

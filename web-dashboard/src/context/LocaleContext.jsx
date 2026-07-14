@@ -2,7 +2,7 @@ import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { translations } from "../i18n/translations";
 
 const LocaleContext = createContext(null);
-const STORAGE_KEY = "rutrix_locale_v2";
+const STORAGE_KEY = "rutrix_locale_v3";
 
 export function LocaleProvider({ children }) {
   const [locale, setLocale] = useState(() => {

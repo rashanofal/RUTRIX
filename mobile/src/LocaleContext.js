@@ -3,7 +3,7 @@ import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { translations } from "./i18n";
 
 const LocaleContext = createContext(null);
-const KEY = "rutrix_locale_v2";
+const KEY = "rutrix_locale_v3";
 
 export function LocaleProvider({ children }) {
   const [locale, setLocale] = useState("en");
