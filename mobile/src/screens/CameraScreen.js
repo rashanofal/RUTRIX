@@ -68,6 +68,7 @@ export default function CameraScreen({
   const isRtl = locale === "ar";
   const [permission, requestPermission] = useCameraPermissions();
   const [loading, setLoading] = useState(false);
+  const [uploadStatus, setUploadStatus] = useState("");
   const cameraRef = useRef(null);
 
   const coordsPayload = () => {
@@ -104,6 +105,7 @@ export default function CameraScreen({
 
   const handlePick = async () => {
     setLoading(true);
+    setUploadStatus(t.uploading);
     try {
       const libPerm = await ImagePicker.requestMediaLibraryPermissionsAsync();
       if (!libPerm.granted) {
@@ -119,12 +121,20 @@ export default function CameraScreen({
         selectionLimit: 20,
         videoMaxDuration: 120,
       });
-      if (pick.canceled || !pick.assets?.length) return;
+      if (pick.canceled) {
+        setUploadStatus("");
+        return;
+      }
+      if (!pick.assets?.length) {
+        Alert.alert(t.error, t.albumEmpty || t.uploadFail);
+        return;
+      }
 
       const assets = pick.assets;
       const hasVideo = assets.some(isVideoAsset);
       const fallbackCoords = hasVideo ? coordsPayload() : null;
 
+      setUploadStatus(t.uploading);
       const result =
         assets.length === 1 && !hasVideo
           ? await uploadDetection(assets[0].uri, apiUrl, null, {
@@ -137,8 +147,10 @@ export default function CameraScreen({
             });
 
       onUploaded?.(result);
+      setUploadStatus("");
       Alert.alert(t.success, uploadResultMessage(result, t));
     } catch (e) {
+      setUploadStatus("");
       Alert.alert(t.error, e.message || t.uploadFail);
     } finally {
       setLoading(false);
@@ -187,7 +199,9 @@ export default function CameraScreen({
 
         <View style={[styles.hintBox, isRtl && styles.hintBoxRtl]}>
           <Ionicons name="navigate" size={16} color={colors.primary} />
-          <Text style={[styles.hint, isRtl && styles.rtlText]}>{t.captureHint}</Text>
+          <Text style={[styles.hint, isRtl && styles.rtlText]}>
+            {uploadStatus || t.captureHint}
+          </Text>
         </View>
 
         <View style={styles.controls}>

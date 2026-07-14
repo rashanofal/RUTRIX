@@ -160,6 +160,43 @@
       background: rgba(127, 29, 29, 0.94);
       border: 1px solid rgba(248, 113, 113, 0.45);
     }
+    .upload-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 2000;
+      background: rgba(3, 8, 18, 0.72);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+    }
+    .upload-overlay.hidden { display: none !important; }
+    .upload-overlay-box {
+      background: rgba(15, 23, 42, 0.96);
+      border: 1px solid rgba(34, 211, 238, 0.35);
+      border-radius: 18px;
+      padding: 1.25rem 1.5rem;
+      min-width: min(92vw, 320px);
+      text-align: center;
+    }
+    .upload-spinner {
+      width: 42px;
+      height: 42px;
+      margin: 0 auto 0.85rem;
+      border: 3px solid rgba(34, 211, 238, 0.25);
+      border-top-color: #22d3ee;
+      border-radius: 50%;
+      animation: uploadSpin 0.85s linear infinite;
+    }
+    @keyframes uploadSpin { to { transform: rotate(360deg); } }
+    #uploadOverlayText {
+      margin: 0;
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: #e2e8f0;
+      line-height: 1.55;
+    }
+    .btn-album:disabled, .btn-camera:disabled { opacity: 0.55; pointer-events: none; }
     .header {
       display: flex; justify-content: space-between; align-items: flex-start;
       flex-wrap: wrap;
@@ -607,10 +644,16 @@
         <p class="section-title" id="captureSection">Field capture</p>
         <label class="btn btn-camera" for="cameraInput" id="cameraLabel">Camera capture</label>
         <input type="file" id="cameraInput" class="hidden" accept="image/*" capture="environment" />
-        <label class="btn btn-album" id="albumLabel">
+        <button type="button" class="btn btn-album" id="albumBtn">
           <span id="albumLabelText">Choose from album</span>
-          <input type="file" id="albumInput" accept="image/*,video/mp4,video/quicktime,video/webm,.mp4,.mov,.webm" multiple />
-        </label>
+        </button>
+        <input type="file" id="albumInput" class="hidden" accept="image/*,video/*,.heic,.heif,.jpg,.jpeg,.png,.mp4,.mov,.webm" multiple />
+        <div id="uploadOverlay" class="upload-overlay hidden" aria-live="polite">
+          <div class="upload-overlay-box">
+            <div class="upload-spinner"></div>
+            <p id="uploadOverlayText">Processing...</p>
+          </div>
+        </div>
         <p id="msg"></p>
         <button type="button" class="btn btn-album hidden" id="skipLocBtn" style="margin-top:0.5rem">Skip</button>
       </div>
@@ -729,6 +772,9 @@
         uploadFail: "فشل الرفع",
         batchProgress: "جاري رفع الدفعة والكشف (الصور تستخدم موقع EXIF إن وُجد)...",
         albumExifTip: "صور الألبوم ذات الموقع تنزل مكانها الأصلي على الخريطة",
+        albumNoFiles: "لم يُختَر ملف — جرّبي مرة أخرى",
+        sessionExpired: "انتهت الجلسة — سجّلي الدخول مرة أخرى",
+        preparingUpload: "جاري التحضير للرفع...",
         loginFail: "فشل الدخول",
         insecureTip: "للموقع على الخريطة: اضغط زر HTTPS أعلاه أو اسمح بالموقع",
         gpsReady: "الموقع جاهز",
@@ -784,6 +830,9 @@
         uploadFail: "Upload failed",
         batchProgress: "Uploading batch and detecting (album photos use EXIF location when present)...",
         albumExifTip: "Album photos with GPS land on their original map location",
+        albumNoFiles: "No file selected — try again",
+        sessionExpired: "Session expired — please sign in again",
+        preparingUpload: "Preparing upload...",
         loginFail: "Sign in failed",
         insecureTip: "For map location: tap HTTPS above or allow location",
         gpsTip: "Camera photos have no GPS — allow location before capture (see «Location ready» badge)",
@@ -1195,6 +1244,19 @@
     };
 
     var uploadToastTimer = null;
+    var uploadBusy = false;
+
+    function setUploadBusy(on, text) {
+      uploadBusy = !!on;
+      var overlay = document.getElementById("uploadOverlay");
+      var overlayText = document.getElementById("uploadOverlayText");
+      var albumBtn = document.getElementById("albumBtn");
+      var cameraLabel = document.getElementById("cameraLabel");
+      if (overlay) overlay.classList.toggle("hidden", !on);
+      if (overlayText && text) overlayText.textContent = text;
+      if (albumBtn) albumBtn.disabled = on;
+      if (cameraLabel) cameraLabel.classList.toggle("disabled", on);
+    }
 
     function potholeCount(detections) {
       if (!detections || !detections.length) return 0;
@@ -1272,6 +1334,7 @@
     async function doUpload(file, withCoords, noGps) {
       if (!file) return;
       var tr = t();
+      setUploadBusy(true, tr.uploadProgress);
       showUploadFeedback(tr.uploadProgress, "warn");
 
       try {
@@ -1302,10 +1365,14 @@
         }
         loadMap();
       } catch (e) {
-        if (e.message !== "login") {
+        if (e.message === "login") {
+          showUploadFeedback(tr.sessionExpired, "err");
+        } else {
           showUploadFeedback(e.message || t().uploadFail, "err");
         }
         throw e;
+      } finally {
+        setUploadBusy(false);
       }
     }
 
@@ -1324,6 +1391,7 @@
       if (!auth || !auth.access_token) { showLogin(); return; }
 
       var tr = t();
+      setUploadBusy(true, tr.batchProgress || tr.uploadProgress);
       showUploadFeedback(tr.batchProgress || tr.uploadProgress, "warn");
 
       var form = new FormData();
@@ -1339,7 +1407,7 @@
           headers: { Authorization: "Bearer " + auth.access_token },
           body: form,
         });
-        if (res.status === 401) { showLogin(); return; }
+        if (res.status === 401) { showLogin(); showUploadFeedback(tr.sessionExpired, "err"); return; }
         if (!res.ok) throw new Error(parseUploadError(await res.text(), res.status));
         var data = await res.json();
         var onMap = data.detections && data.detections.some(function (d) { return d.latitude != null; });
@@ -1353,61 +1421,90 @@
         loadMap();
       } catch (e) {
         showUploadFeedback(e.message || tr.uploadFail, "err");
+      } finally {
+        setUploadBusy(false);
       }
     }
 
     async function uploadAlbumFiles(fileList) {
       var files = Array.prototype.slice.call(fileList || []).filter(Boolean);
-      if (!files.length) return;
-      hideSkipLoc();
-
-      var images = files.filter(function (f) { return !isVideoFile(f); });
-      var videos = files.filter(isVideoFile);
-      if (videos.length > 1) {
-        showUploadFeedback(locale === "ar" ? "ارفع فيديو واحد فقط" : "Upload one video at a time", "err");
+      var tr = t();
+      if (!files.length) {
+        showUploadFeedback(tr.albumNoFiles, "warn");
         return;
       }
+      if (uploadBusy) return;
 
-      var tr = t();
-      var ok = 0;
-      var fail = 0;
+      hideSkipLoc();
+      setUploadBusy(true, tr.preparingUpload);
+      showUploadFeedback(tr.preparingUpload, "warn");
 
-      for (var i = 0; i < images.length; i++) {
-        showUploadFeedback(
-          (locale === "ar" ? "جاري رفع الصورة " : "Uploading photo ") + (i + 1) + "/" + images.length,
-          "warn"
-        );
-        try {
-          await uploadOne(images[i], null);
-          ok += 1;
-        } catch (e) {
-          if (e.message === "login") return;
-          fail += 1;
-          if (images.length === 1) {
-            showUploadFeedback(e.message || tr.uploadFail, "err");
-            return;
+      try {
+        var images = files.filter(function (f) { return !isVideoFile(f); });
+        var videos = files.filter(isVideoFile);
+        if (videos.length > 1) {
+          showUploadFeedback(locale === "ar" ? "ارفع فيديو واحد فقط" : "Upload one video at a time", "err");
+          return;
+        }
+
+        // Single photo — full feedback + map jump (was silently succeeding before)
+        if (images.length === 1 && !videos.length) {
+          await doUpload(images[0], null, false);
+          return;
+        }
+
+        var ok = 0;
+        var fail = 0;
+        var lastData = null;
+
+        for (var i = 0; i < images.length; i++) {
+          var progress = (locale === "ar" ? "جاري رفع الصورة " : "Uploading photo ") + (i + 1) + "/" + images.length;
+          setUploadBusy(true, progress);
+          showUploadFeedback(progress, "warn");
+          try {
+            lastData = await uploadOne(images[i], null);
+            ok += 1;
+          } catch (e) {
+            if (e.message === "login") {
+              showUploadFeedback(tr.sessionExpired, "err");
+              showLogin();
+              return;
+            }
+            fail += 1;
           }
         }
-      }
 
-      if (videos.length) {
-        var fallback = getCachedLocation(300000);
-        if (!fallback && window.isSecureContext) {
-          fallback = await Promise.race([
-            requestLocationNow(3500),
-            new Promise(function (r) { setTimeout(function () { r(null); }, 3500); }),
-          ]);
+        if (videos.length) {
+          var fallback = getCachedLocation(300000);
+          if (!fallback && window.isSecureContext) {
+            fallback = await Promise.race([
+              requestLocationNow(3500),
+              new Promise(function (r) { setTimeout(function () { r(null); }, 3500); }),
+            ]);
+          }
+          await doUploadBatch(videos, fallback, { frameIntervalSec: 2, maxVideoFrames: 12 });
+          return;
         }
-        await doUploadBatch(videos, fallback, { frameIntervalSec: 2, maxVideoFrames: 12 });
-        return;
-      }
 
-      if (images.length > 1) {
-        var summary = locale === "ar"
-          ? ("تم رفع " + ok + " صورة" + (fail ? (" — فشل " + fail) : ""))
-          : ("Uploaded " + ok + " photo(s)" + (fail ? (" — failed " + fail) : ""));
-        showUploadFeedback(summary, fail ? "warn" : "ok");
-        loadMap();
+        if (images.length > 0) {
+          var summary = locale === "ar"
+            ? ("تم رفع " + ok + " صورة" + (fail ? (" — فشل " + fail) : ""))
+            : ("Uploaded " + ok + " photo(s)" + (fail ? (" — failed " + fail) : ""));
+          showUploadFeedback(summary, fail && !ok ? "err" : (fail ? "warn" : "ok"));
+          if (ok > 0) {
+            loadMap();
+            if (lastData && lastData.detections && lastData.detections.some(function (d) { return d.latitude != null; })) {
+              setTimeout(function () {
+                var mapTabBtn = document.querySelector('.tab[data-tab="map"]');
+                if (mapTabBtn) mapTabBtn.click();
+              }, 1200);
+            }
+          }
+        }
+      } catch (e) {
+        showUploadFeedback(e.message || tr.uploadFail, "err");
+      } finally {
+        setUploadBusy(false);
       }
     }
 
@@ -1939,11 +2036,30 @@
       e.target.value = "";
       if (file) upload(file, true);
     };
-    document.getElementById("albumInput").onchange = (e) => {
-      var files = e.target.files;
-      e.target.value = "";
-      if (files && files.length) uploadAlbumFiles(files);
-    };
+
+    var albumInput = document.getElementById("albumInput");
+    var albumBtn = document.getElementById("albumBtn");
+    if (albumBtn && albumInput) {
+      albumBtn.addEventListener("click", function () {
+        if (uploadBusy) return;
+        albumInput.click();
+      });
+    }
+    if (albumInput) {
+      albumInput.addEventListener("change", function (e) {
+        var files = e.target.files;
+        // Defer reset so iOS keeps the FileList reference until upload starts
+        setTimeout(function () { e.target.value = ""; }, 500);
+        if (!files || !files.length) {
+          showUploadFeedback(t().albumNoFiles, "warn");
+          return;
+        }
+        uploadAlbumFiles(files).catch(function (err) {
+          setUploadBusy(false);
+          showUploadFeedback(err && err.message ? err.message : t().uploadFail, "err");
+        });
+      });
+    }
 
     function secureMobileUrl() {
       return `https://${location.hostname}:8443/mobile`;
