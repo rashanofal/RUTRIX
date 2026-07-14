@@ -330,15 +330,15 @@ def bootstrap() -> None:
 
 
 def bootstrap_fast() -> None:
-    """Must finish before the API accepts traffic (dirs + schema + demo)."""
+    """Must finish before the API accepts traffic (dirs + schema only)."""
     ensure_storage_dirs()
     run_migrations()
-    seed_demo_account()
 
 
 def bootstrap_background() -> None:
     """Non-critical reconcile/backfill — safe after the app is listening."""
     try:
+        seed_demo_account()
         db = SessionLocal()
         try:
             reconcile_canonical_organization(db)
