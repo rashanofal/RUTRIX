@@ -348,6 +348,108 @@ def work_order_to_dict(db: Session, wo: WorkOrder) -> dict:
     }
 
 
+_DELETABLE_STATUSES = {
+    WorkOrderStatus.completed,
+    WorkOrderStatus.verified,
+    WorkOrderStatus.cancelled,
+    WorkOrderStatus.declined,
+}
+
+
+def delete_work_order(
+    db: Session,
+    work_order_id: int,
+    organization_id: int,
+    *,
+    actor_user_id: int | None = None,
+) -> bool:
+    """Hard-delete a closed work order (completed, verified, cancelled, or declined)."""
+    wo = get_work_order(db, work_order_id, organization_id)
+    if not wo:
+        return False
+    if wo.status not in _DELETABLE_STATUSES:
+        raise ValueError("يمكن حذف أوامر الصيانة المنتهية أو الملغاة فقط")
+
+    detection_id = wo.detection_id
+    was_verified = wo.status == WorkOrderStatus.verified
+    was_resolved = wo.status in (WorkOrderStatus.completed, WorkOrderStatus.verified)
+
+    db.query(WorkOrderEvent).filter(WorkOrderEvent.work_order_id == wo.id).delete(
+        synchronize_session=False
+    )
+    db.delete(wo)
+    db.commit()
+
+    if detection_id:
+        active = (
+            db.query(WorkOrder)
+            .filter(
+                WorkOrder.organization_id == organization_id,
+                WorkOrder.detection_id == detection_id,
+                WorkOrder.status.notin_(
+                    [
+                        WorkOrderStatus.verified,
+                        WorkOrderStatus.cancelled,
+                        WorkOrderStatus.declined,
+                    ]
+                ),
+            )
+            .first()
+        )
+        if not active:
+            det = (
+                db.query(PotholeDetection)
+                .filter(PotholeDetection.id == detection_id)
+                .first()
+            )
+            if det:
+                if was_verified:
+                    det.detection_status = DetectionStatus.detected
+                if was_resolved and det.evolution_stage == "resolved":
+                    det.evolution_stage = "stable"
+                db.commit()
+    return True
+
+
+def reject_work_completion(
+    db: Session,
+    wo: WorkOrder,
+    *,
+    actor_user_id: int,
+    reason: str | None = None,
+) -> WorkOrder:
+    """Supervisor rejects a completed repair — sends the order back to in_progress."""
+    if wo.status != WorkOrderStatus.completed:
+        raise ValueError("يمكن رفض العمل فقط بعد تسجيل الإتمام وقبل الاعتماد")
+
+    prev = wo.status
+    rejection_note = (reason or "").strip() or "بحاجة لإعادة العمل"
+    wo.status = WorkOrderStatus.in_progress
+    wo.completed_at = None
+    wo.verified_at = None
+    wo.verified_by_user_id = None
+    wo.declined_reason = rejection_note
+    wo.notes = f"رفض المشرف: {rejection_note}"
+
+    if wo.detection_id:
+        det = db.query(PotholeDetection).filter(PotholeDetection.id == wo.detection_id).first()
+        if det and det.evolution_stage == "resolved":
+            det.evolution_stage = "stable"
+
+    log_event(
+        db,
+        wo,
+        actor_user_id=actor_user_id,
+        event_type="rejected",
+        from_status=prev.value,
+        to_status=wo.status.value,
+        commit=False,
+    )
+    db.commit()
+    db.refresh(wo)
+    return wo
+
+
 def purge_orphan_work_orders(db: Session, organization_id: int) -> int:
     """Remove work orders whose linked detection was deleted."""
     deleted = (

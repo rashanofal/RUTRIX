@@ -2,7 +2,7 @@ import { useLocale } from "../context/LocaleContext";
 import { useIsOwner } from "../hooks/useIsAdmin";
 import PotholeMap from "../components/PotholeMap";
 import DetectionDetail from "../components/DetectionDetail";
-import ReportExportPanel from "../components/ReportExportPanel";
+import PageExportToolbar from "../components/PageExportToolbar";
 
 export default function MapPage({
   detections,
@@ -33,7 +33,7 @@ export default function MapPage({
         <span className={`map-status-pill ${wsConnected ? "live" : "offline"}`}>
           {wsConnected ? `● ${t.liveSync}` : `○ ${t.disconnected}`}
         </span>
-        <ReportExportPanel variant="toolbar" className="map-report-toolbar" />
+        <PageExportToolbar variant="toolbar" className="map-report-toolbar" exportContext={{ detections }} />
       </div>
 
       <div className="map-fullframe">

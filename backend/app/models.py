@@ -210,6 +210,7 @@ class PotholeDetection(Base):
     predicted_days_to_critical: Mapped[int | None] = mapped_column(Integer, nullable=True)
     bicycle_safe: Mapped[bool] = mapped_column(Boolean, default=True)
     priority_rank: Mapped[int] = mapped_column(Integer, default=0)
+    rejection_reason: Mapped[str | None] = mapped_column(Text, nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()
     )

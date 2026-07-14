@@ -2,8 +2,10 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useLocale } from "../context/LocaleContext";
 import {
   createWorkOrder,
+  deleteWorkOrder,
   fetchTeamMembers,
   fetchWorkOrders,
+  rejectWorkOrder,
   updateWorkOrder,
   verifyWorkOrder,
 } from "../hooks/useApi";
@@ -18,6 +20,7 @@ const LOCKED_ASSIGN_STATUSES = new Set([
 ]);
 const STATUS_FLOW = ["open", "assigned", "accepted", "in_progress", "completed", "verified"];
 const CLOSED_STATUSES = new Set(["completed", "verified", "cancelled", "declined"]);
+const DELETABLE_STATUSES = new Set(["completed", "verified", "cancelled", "declined"]);
 
 function formatWorkOrderError(err, t) {
   const detail = err?.message?.trim();
@@ -132,6 +135,7 @@ export default function MaintenancePanel({
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
   const [noteDrafts, setNoteDrafts] = useState({});
+  const [rejectDrafts, setRejectDrafts] = useState({});
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -287,6 +291,36 @@ export default function MaintenancePanel({
     }
   };
 
+  const rejectOrder = async (order, reasonText) => {
+    const reason = (reasonText ?? rejectDrafts[order.id] ?? "").trim();
+    if (!reason) {
+      window.alert(t.woRejectReasonRequired);
+      return;
+    }
+    if (!window.confirm(t.woRejectConfirm)) return;
+    try {
+      await rejectWorkOrder(order.id, reason);
+      setRejectDrafts((prev) => ({ ...prev, [order.id]: "" }));
+      await load();
+      onChanged?.();
+      window.alert(t.workOrderRejected);
+    } catch (err) {
+      window.alert(formatWorkOrderError(err, t));
+    }
+  };
+
+  const removeOrder = async (order) => {
+    if (!window.confirm(t.woDeleteConfirm)) return;
+    try {
+      await deleteWorkOrder(order.id);
+      await load();
+      onChanged?.();
+      window.alert(t.workOrderDeleted);
+    } catch (err) {
+      window.alert(formatWorkOrderError(err, t));
+    }
+  };
+
   const labels = STATUS_LABELS[locale] || STATUS_LABELS.ar;
   const severityLabels = {
     critical: t.sevCritical,
@@ -425,8 +459,44 @@ export default function MaintenancePanel({
                 </div>
               )}
 
-              {wo.declined_reason && wo.status === "declined" && (
+              {wo.declined_reason && (wo.status === "declined" || wo.status === "in_progress") && (
                 <p className="wo-declined-reason">⛔ {wo.declined_reason}</p>
+              )}
+
+              {wo.status === "completed" && isAdmin && (
+                <div className="wo-verify-block">
+                  <h4 className="wo-verify-title">{t.woFieldVerifyTitle}</h4>
+                  <p className="wo-verify-hint">{t.woFieldVerifyHint}</p>
+                  <label className="wo-notes-label" htmlFor={`wo-reject-${wo.id}`}>
+                    {t.woRejectReasonPrompt}
+                  </label>
+                  <textarea
+                    id={`wo-reject-${wo.id}`}
+                    className="wo-notes-input"
+                    rows={2}
+                    placeholder={t.woRejectReasonPlaceholder}
+                    value={rejectDrafts[wo.id] ?? ""}
+                    onChange={(e) =>
+                      setRejectDrafts((prev) => ({ ...prev, [wo.id]: e.target.value }))
+                    }
+                  />
+                  <div className="wo-verify-actions">
+                    <button type="button" className="wo-advance-btn" onClick={() => verifyOrder(wo)}>
+                      {t.woActionVerify}
+                    </button>
+                    <button
+                      type="button"
+                      className="wo-reject-btn"
+                      onClick={() => rejectOrder(wo, rejectDrafts[wo.id])}
+                    >
+                      {t.woRejectWork}
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {wo.status === "verified" && isAdmin && (
+                <p className="wo-verified-delete-hint">{t.woVerifiedDeleteHint}</p>
               )}
 
               {wo.completed_at && (
@@ -451,25 +521,15 @@ export default function MaintenancePanel({
                     </option>
                   ))}
                 </select>
-                {wo.status !== "verified" && wo.status !== "cancelled" && (
+                {wo.status !== "verified" && wo.status !== "cancelled" && wo.status !== "completed" && (
                   <>
-                    {wo.status === "completed" ? (
-                      <button
-                        type="button"
-                        className="wo-advance-btn"
-                        onClick={() => verifyOrder(wo)}
-                      >
-                        {t.woActionVerify}
-                      </button>
-                    ) : (
-                      <button
-                        type="button"
-                        className="wo-advance-btn"
-                        onClick={() => advanceStatus(wo)}
-                      >
-                        {actionLabel(wo.status, t)}
-                      </button>
-                    )}
+                    <button
+                      type="button"
+                      className="wo-advance-btn"
+                      onClick={() => advanceStatus(wo)}
+                    >
+                      {actionLabel(wo.status, t)}
+                    </button>
                     {wo.status === "open" && (
                       <button
                         type="button"
@@ -480,6 +540,15 @@ export default function MaintenancePanel({
                       </button>
                     )}
                   </>
+                )}
+                {DELETABLE_STATUSES.has(wo.status) && (
+                  <button
+                    type="button"
+                    className="wo-delete-btn"
+                    onClick={() => removeOrder(wo)}
+                  >
+                    {t.woDeleteOrder}
+                  </button>
                 )}
                   </>
                 ) : null}

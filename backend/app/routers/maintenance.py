@@ -25,9 +25,11 @@ from app.schemas import (
 from app.services.geo_service import save_upload_file
 from app.services.maintenance_service import (
     create_work_order,
+    delete_work_order,
     get_maintenance_dashboard,
     get_work_order,
     list_work_orders,
+    reject_work_completion,
     transition_work_order,
     update_work_order,
     work_order_to_dict,
@@ -246,6 +248,58 @@ async def verify_work_order(
             )
         except Exception:
             pass
+    return WorkOrderResponse(**work_order_to_dict(db, wo))
+
+
+@router.delete("/work-orders/{work_order_id}", status_code=204)
+def remove_work_order(
+    work_order_id: int,
+    user: User = Depends(get_current_user),
+    org: Organization = Depends(get_current_organization),
+    role: str = Depends(get_current_role),
+    db: Session = Depends(get_db),
+):
+    _require_admin(role)
+    try:
+        deleted = delete_work_order(
+            db, work_order_id, org.id, actor_user_id=user.id
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e)) from e
+    if not deleted:
+        raise HTTPException(status_code=404, detail="Work order not found")
+
+
+@router.post("/work-orders/{work_order_id}/reject", response_model=WorkOrderResponse)
+async def reject_work_order(
+    work_order_id: int,
+    payload: WorkOrderActionRequest | None = None,
+    user: User = Depends(get_current_user),
+    org: Organization = Depends(get_current_organization),
+    role: str = Depends(get_current_role),
+    db: Session = Depends(get_db),
+):
+    _require_admin(role)
+    wo = get_work_order(db, work_order_id, org.id)
+    if not wo:
+        raise HTTPException(status_code=404, detail="Work order not found")
+    reason = payload.reason if payload else None
+    try:
+        wo = reject_work_completion(db, wo, actor_user_id=user.id, reason=reason)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e)) from e
+
+    if wo.assigned_to_user_id:
+        await notify_user(
+            db,
+            organization_id=org.id,
+            user_id=wo.assigned_to_user_id,
+            type=NotificationType.work_order_declined.value,
+            title="تم رفض إنجاز الصيانة",
+            body=f"{wo.title}" + (f" — {reason}" if reason else ""),
+            work_order_id=wo.id,
+            detection_id=wo.detection_id,
+        )
     return WorkOrderResponse(**work_order_to_dict(db, wo))
 
 

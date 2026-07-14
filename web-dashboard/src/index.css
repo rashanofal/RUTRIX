@@ -2555,6 +2555,80 @@ body {
   cursor: pointer;
   font-family: inherit;
 }
+.wo-reject-btn {
+  border: 1px solid rgba(251, 146, 60, 0.45);
+  background: rgba(251, 146, 60, 0.08);
+  color: #fdba74;
+  font-weight: 600;
+  font-size: 0.72rem;
+  padding: 0.35rem 0.6rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-family: inherit;
+}
+.wo-delete-btn {
+  border: 1px solid rgba(239, 68, 68, 0.5);
+  background: rgba(127, 29, 29, 0.25);
+  color: #fecaca;
+  font-weight: 700;
+  font-size: 0.72rem;
+  padding: 0.35rem 0.6rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-family: inherit;
+}
+.wo-verify-block {
+  margin-top: 0.65rem;
+  padding: 0.75rem;
+  border-radius: 12px;
+  border: 1px solid rgba(34, 211, 238, 0.25);
+  background: rgba(34, 211, 238, 0.06);
+}
+.wo-verify-title {
+  margin: 0 0 0.25rem;
+  font-size: 0.88rem;
+  color: var(--primary);
+}
+.wo-verify-hint {
+  margin: 0 0 0.55rem;
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+.wo-verify-actions {
+  display: flex;
+  gap: 0.45rem;
+  flex-wrap: wrap;
+  margin-top: 0.55rem;
+}
+.wo-verified-delete-hint {
+  margin: 0.35rem 0 0;
+  font-size: 0.74rem;
+  color: var(--muted);
+}
+.page-reports { max-width: 760px; margin: 0 auto; }
+.page-export-panel { margin-bottom: 1rem; }
+.page-export-title { margin: 0; font-size: 1rem; }
+.page-export-sub { margin: 0.35rem 0 0.75rem; color: var(--muted); font-size: 0.82rem; }
+.page-export-sub--tight { margin-top: 0; margin-bottom: 0.65rem; }
+.page-export-btns { display: flex; gap: 0.45rem; flex-wrap: wrap; }
+.page-export-print-table {
+  margin-top: 1rem;
+  padding: 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface-2);
+}
+.page-export-print-table .page-export-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.78rem;
+}
+.page-export-print-table .page-export-table th,
+.page-export-print-table .page-export-table td {
+  border: 1px solid var(--border);
+  padding: 0.3rem 0.45rem;
+  text-align: start;
+}
 .wo-tracking-heading { margin-top: 1rem; }
 .wo-tracking-sub {
   font-size: 0.78rem;
@@ -3975,6 +4049,101 @@ body {
 
   .topbar-user-name {
     display: none;
+  }
+}
+
+@media print {
+  .app-stale-banner,
+  .app-toast,
+  .app-nav-rail,
+  .app-topbar,
+  .app-footer,
+  .report-export-panel,
+  .report-export-toolbar,
+  .page-export-toolbar,
+  .page-export-panel,
+  .report-btns,
+  .no-print,
+  .lang-toggle-rail,
+  .lang-toggle-topbar,
+  .topbar-logout,
+  .topbar-live-pill,
+  .leaflet-control-container,
+  .map-toolbar-actions,
+  .supervisor-rail,
+  .upload-panel-actions {
+    display: none !important;
+  }
+
+  body,
+  .app-shell,
+  .app-main,
+  .app-page {
+    background: #fff !important;
+    color: #111 !important;
+    overflow: visible !important;
+    height: auto !important;
+    min-height: 0 !important;
+  }
+
+  .app-shell {
+    display: block !important;
+    min-height: 0 !important;
+  }
+
+  .app-shell::before {
+    display: none !important;
+  }
+
+  .app-main {
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  .app-page {
+    padding: 0.5rem 0 !important;
+    max-height: none !important;
+    overflow: visible !important;
+  }
+
+  .section-card,
+  .intel-panel,
+  .maintenance-panel,
+  .report-export-panel,
+  .pothole-map-wrap,
+  .page-map,
+  .page-overview,
+  .page-field,
+  .page-ops,
+  .page-intel,
+  .page-supervisor,
+  .page-profile {
+    break-inside: avoid;
+    box-shadow: none !important;
+    border: 1px solid #ddd !important;
+    background: #fff !important;
+    color: #111 !important;
+  }
+
+  .wo-item,
+  .detection-card,
+  .priority-row,
+  .stat-card {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  .pothole-map,
+  .leaflet-container {
+    height: 420px !important;
+    min-height: 320px !important;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
+  a[href]::after {
+    content: none !important;
   }
 }
 

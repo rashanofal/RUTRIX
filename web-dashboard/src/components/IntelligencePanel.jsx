@@ -6,7 +6,7 @@ import {
 } from "../hooks/useApi";
 import ClusterSummaryPanel from "./ClusterSummaryPanel";
 import NavIcon from "./NavIcons";
-import ReportExportPanel from "./ReportExportPanel";
+import PageExportToolbar from "./PageExportToolbar";
 import { severityLabel } from "../i18n/translations";
 
 export default function IntelligencePanel({ stats, refreshKey = 0, detections = [] }) {
@@ -57,7 +57,7 @@ export default function IntelligencePanel({ stats, refreshKey = 0, detections = 
         </div>
       </div>
 
-      <ReportExportPanel variant="compact" />
+      <PageExportToolbar variant="compact" exportContext={{ detections }} />
 
       <ClusterSummaryPanel refreshKey={refreshKey} />
 

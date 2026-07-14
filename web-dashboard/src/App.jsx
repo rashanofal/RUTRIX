@@ -5,6 +5,7 @@ import OverviewPage from "./pages/OverviewPage";
 import MapPage from "./pages/MapPage";
 import FieldPage from "./pages/FieldPage";
 import OperationsPage from "./pages/OperationsPage";
+import ReportsPage from "./pages/ReportsPage";
 import IntelligencePage from "./pages/IntelligencePage";
 import MobilePage from "./pages/MobilePage";
 import ProfilePage from "./pages/ProfilePage";
@@ -239,9 +240,15 @@ function Dashboard() {
   };
 
   const handleReject = async (id) => {
+    const reason = window.prompt(t.rejectReasonPrompt);
+    if (reason === null) return;
+    if (!reason.trim()) {
+      window.alert(t.rejectReasonRequired);
+      return;
+    }
     if (!window.confirm(t.rejectConfirm)) return;
     try {
-      await updateDetectionStatus(id, "rejected");
+      await updateDetectionStatus(id, "rejected", reason.trim());
       setDetections((prev) => prev.filter((d) => d.id !== id));
       setSelectedId(null);
       await refreshAll();
@@ -355,6 +362,8 @@ function Dashboard() {
             }}
           />
         );
+      case "reports":
+        return <ReportsPage />;
       case "supervisor":
         return (
           <SupervisorPage

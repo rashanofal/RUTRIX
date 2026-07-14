@@ -282,6 +282,10 @@ async def update_detection_status(
     if not det:
         raise HTTPException(status_code=404, detail="Detection not found")
     det.detection_status = payload.detection_status
+    if payload.detection_status == DetectionStatus.rejected:
+        det.rejection_reason = (payload.rejection_reason or "").strip() or None
+    elif payload.detection_status != DetectionStatus.rejected:
+        det.rejection_reason = None
     if payload.detection_status == DetectionStatus.verified:
         det.cloud_verified = True
     db.commit()

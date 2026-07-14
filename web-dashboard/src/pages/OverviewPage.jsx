@@ -2,12 +2,13 @@ import { useState } from "react";
 import { useLocale } from "../context/LocaleContext";
 import { BrandLogo } from "../components/LangToggle";
 import NavIcon from "../components/NavIcons";
-import ReportExportPanel from "../components/ReportExportPanel";
+import PageExportToolbar from "../components/PageExportToolbar";
 
 const QUICK_LINKS = [
   { page: "map", icon: "map", labelKey: "navMap", descKey: "quickMapDesc" },
   { page: "field", icon: "upload", labelKey: "navField", descKey: "quickFieldDesc" },
   { page: "ops", icon: "ops", labelKey: "navOps", descKey: "quickOpsDesc" },
+  { page: "reports", icon: "report", labelKey: "navReports", descKey: "quickReportsDesc" },
   { page: "intel", icon: "chart", labelKey: "navIntel", descKey: "quickIntelDesc" },
   { page: "mobile", icon: "mobile", labelKey: "navMobile", descKey: "pageSub_mobile" },
 ];
@@ -70,9 +71,9 @@ export default function OverviewPage({ detections, onNavigate }) {
         </div>
       </section>
 
-      <section className="overview-card overview-reports" aria-label={t.overviewReportsTitle}>
-        <h3 className="overview-card-title">{t.overviewReportsTitle}</h3>
-        <ReportExportPanel variant="compact" />
+      <section className="overview-card overview-reports" aria-label={t.pageExportTitle}>
+        <h3 className="overview-card-title">{t.pageExportTitle}</h3>
+        <PageExportToolbar variant="compact" exportContext={{ detections }} />
       </section>
     </div>
   );

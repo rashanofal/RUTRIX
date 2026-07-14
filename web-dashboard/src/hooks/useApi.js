@@ -174,11 +174,13 @@ export async function confirmDetection(id) {
   return res.json();
 }
 
-export async function updateDetectionStatus(id, detection_status) {
+export async function updateDetectionStatus(id, detection_status, rejection_reason = null) {
+  const body = { detection_status };
+  if (rejection_reason) body.rejection_reason = rejection_reason;
   const res = await apiFetch(`/api/detections/${id}/status`, {
     method: "PATCH",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ detection_status }),
+    body: JSON.stringify(body),
   });
   if (!res.ok) throw new Error("Status update failed");
   return res.json();
@@ -245,6 +247,23 @@ export async function verifyWorkOrder(id) {
     method: "POST",
   });
   if (!res.ok) await readApiError(res, "Verify work order failed");
+  return res.json();
+}
+
+export async function deleteWorkOrder(id) {
+  const res = await apiFetch(`/api/maintenance/work-orders/${id}`, {
+    method: "DELETE",
+  });
+  if (!res.ok) await readApiError(res, "Delete work order failed");
+}
+
+export async function rejectWorkOrder(id, reason) {
+  const res = await apiFetch(`/api/maintenance/work-orders/${id}/reject`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ reason: reason || null }),
+  });
+  if (!res.ok) await readApiError(res, "Reject work order failed");
   return res.json();
 }
 

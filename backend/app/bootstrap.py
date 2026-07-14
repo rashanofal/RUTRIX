@@ -27,6 +27,7 @@ INTELLIGENCE_COLUMNS = [
     ("predicted_days_to_critical", "INTEGER"),
     ("bicycle_safe", "INTEGER DEFAULT 1"),
     ("priority_rank", "INTEGER DEFAULT 0"),
+    ("rejection_reason", "TEXT"),
 ]
 
 

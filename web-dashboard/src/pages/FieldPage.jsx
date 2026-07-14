@@ -3,7 +3,7 @@ import UploadPanel from "../components/UploadPanel";
 import DetectionList from "../components/DetectionList";
 import DetectionDetail from "../components/DetectionDetail";
 import StatsGrid from "../components/StatsGrid";
-import ReportExportPanel from "../components/ReportExportPanel";
+import PageExportToolbar from "../components/PageExportToolbar";
 
 export default function FieldPage({
   stats,
@@ -32,7 +32,7 @@ export default function FieldPage({
 
       <StatsGrid stats={stats} variant="hero" />
 
-      <ReportExportPanel variant="compact" />
+      <PageExportToolbar variant="compact" exportContext={{ detections }} />
 
       <div className="field-layout">
         <div className="field-col field-col-upload">

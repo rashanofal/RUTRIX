@@ -411,3 +411,4 @@ class TeamInviteRequest(BaseModel):
 
 class DetectionStatusUpdate(BaseModel):
     detection_status: DetectionStatus
+    rejection_reason: str | None = None
