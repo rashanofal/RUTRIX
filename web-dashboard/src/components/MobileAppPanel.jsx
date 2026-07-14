@@ -7,7 +7,8 @@ import QrCodeBlock from "./QrCodeBlock";
 function resolvePublicMobileUrl() {
   if (typeof window === "undefined") return "";
   const path = APP_DISTRIBUTION.publicMobilePath || "/mobile";
-  return `${window.location.origin}${path.startsWith("/") ? path : `/${path}`}`;
+  const base = `${window.location.origin}${path.startsWith("/") ? path : `/${path}`}`;
+  return `${base}?lang=en`;
 }
 
 function isLocalHost() {
