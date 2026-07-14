@@ -206,6 +206,17 @@
       color: rgba(148, 163, 184, 0.75);
       letter-spacing: 0.04em;
     }
+    .inapp-warn {
+      margin: 0.45rem 0 0;
+      padding: 0.55rem 0.65rem;
+      border-radius: 12px;
+      background: rgba(120, 53, 15, 0.55);
+      border: 1px solid rgba(251, 191, 36, 0.45);
+      color: #fde68a;
+      font-size: 0.78rem;
+      line-height: 1.5;
+      text-align: center;
+    }
     #msg {
       font-size: 0.9rem; min-height: 2.75rem; margin-top: 0.75rem;
       line-height: 1.6; text-align: center; unicode-bidi: plaintext;
@@ -671,7 +682,8 @@
         </button>
         <input type="file" id="albumInput" class="hidden" accept="image/*,.heic,.heif,.jpg,.jpeg,.png,.webp" multiple />
         <input type="file" id="albumVideoInput" class="hidden" accept="video/*,.mp4,.mov,.webm,.m4v" />
-        <p class="mobile-build-tag" id="mobileBuildTag">Mobile v2.0.4</p>
+        <p class="mobile-build-tag" id="mobileBuildTag">Mobile v2.0.5</p>
+        <p class="inapp-warn hidden" id="inAppWarn"></p>
         <div id="uploadOverlay" class="upload-overlay hidden" aria-live="polite">
           <div class="upload-overlay-box">
             <div class="upload-spinner"></div>
@@ -802,6 +814,7 @@
         albumNoFiles: "لم يُختَر ملف — جرّبي مرة أخرى",
         sessionExpired: "انتهت الجلسة — سجّلي الدخول مرة أخرى",
         preparingUpload: "جاري التحضير للرفع...",
+        inAppBrowserWarn: "للرفع من الألبوم: افتحي الرابط في Safari (ليس من داخل واتساب)",
         loginFail: "فشل الدخول",
         insecureTip: "للموقع على الخريطة: اضغط زر HTTPS أعلاه أو اسمح بالموقع",
         gpsReady: "الموقع جاهز",
@@ -863,6 +876,7 @@
         albumNoFiles: "No file selected — try again",
         sessionExpired: "Session expired — please sign in again",
         preparingUpload: "Preparing upload...",
+        inAppBrowserWarn: "For album upload, open this link in Safari (not inside WhatsApp)",
         loginFail: "Sign in failed",
         insecureTip: "For map location: tap HTTPS above or allow location",
         gpsTip: "Camera photos have no GPS — allow location before capture (see «Location ready» badge)",
@@ -984,7 +998,16 @@
       const albumVideoText = document.getElementById("albumVideoLabelText");
       if (albumVideoText) albumVideoText.textContent = tr.albumVideo;
       const buildTag = document.getElementById("mobileBuildTag");
-      if (buildTag) buildTag.textContent = "Mobile v2.0.4";
+      if (buildTag) buildTag.textContent = "Mobile v2.0.5";
+      var inApp = document.getElementById("inAppWarn");
+      if (inApp) {
+        if (isInAppBrowser()) {
+          inApp.textContent = tr.inAppBrowserWarn;
+          inApp.classList.remove("hidden");
+        } else {
+          inApp.classList.add("hidden");
+        }
+      }
       const secure = document.getElementById("secureLink");
       if (secure) secure.textContent = tr.secureGps;
       const enableGps = document.getElementById("enableGpsBtn");
@@ -2071,9 +2094,18 @@
       if (file) upload(file, true);
     };
 
-    function bindAlbumInput(inputEl, openHintKey) {
+    function isInAppBrowser() {
+      var ua = navigator.userAgent || "";
+      return /WhatsApp|FBAN|FBAV|Instagram|Line\//i.test(ua);
+    }
+
+    function bindAlbumInput(inputEl) {
       if (!inputEl) return;
-      inputEl.addEventListener("change", function (e) {
+      var lastPickAt = 0;
+      var handler = function (e) {
+        var now = Date.now();
+        if (now - lastPickAt < 400) return;
+        lastPickAt = now;
         var files = e.target.files;
         setTimeout(function () { e.target.value = ""; }, 800);
         if (!files || !files.length) {
@@ -2084,7 +2116,9 @@
           setUploadBusy(false);
           showUploadFeedback(err && err.message ? err.message : t().uploadFail, "err");
         });
-      });
+      };
+      inputEl.addEventListener("change", handler);
+      inputEl.addEventListener("input", handler);
     }
 
     var albumInput = document.getElementById("albumInput");
@@ -2106,8 +2140,12 @@
         albumVideoInput.click();
       });
     }
-    bindAlbumInput(albumInput, "openAlbumHint");
-    bindAlbumInput(albumVideoInput, "openVideoHint");
+    bindAlbumInput(albumInput);
+    bindAlbumInput(albumVideoInput);
+
+    window.addEventListener("pageshow", function () {
+      if (uploadBusy) setUploadBusy(false);
+    });
 
     function secureMobileUrl() {
       return `https://${location.hostname}:8443/mobile`;

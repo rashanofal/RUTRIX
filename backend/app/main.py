@@ -166,6 +166,8 @@ def serve_org_upload_image(org_id: str, filename: str):
 def _static_page(name: str) -> FileResponse:
     resp = FileResponse(STATIC_DIR / name)
     resp.headers["Cache-Control"] = "no-store, no-cache, must-revalidate"
+    if name == "mobile.html":
+        resp.headers["X-RUTRIX-Mobile-Version"] = "2.0.5"
     return resp
 
 
