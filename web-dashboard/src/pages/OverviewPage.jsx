@@ -8,7 +8,6 @@ const QUICK_LINKS = [
   { page: "map", icon: "map", labelKey: "navMap", descKey: "quickMapDesc" },
   { page: "field", icon: "upload", labelKey: "navField", descKey: "quickFieldDesc" },
   { page: "ops", icon: "ops", labelKey: "navOps", descKey: "quickOpsDesc" },
-  { page: "reports", icon: "report", labelKey: "navReports", descKey: "quickReportsDesc" },
   { page: "intel", icon: "chart", labelKey: "navIntel", descKey: "quickIntelDesc" },
   { page: "mobile", icon: "mobile", labelKey: "navMobile", descKey: "pageSub_mobile" },
 ];

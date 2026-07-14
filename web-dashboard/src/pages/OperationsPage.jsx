@@ -1,3 +1,4 @@
+import ReportExportPanel from "../components/ReportExportPanel";
 import ExecutiveDashboard from "../components/ExecutiveDashboard";
 import MaintenancePanel from "../components/MaintenancePanel";
 import PageExportToolbar from "../components/PageExportToolbar";
@@ -13,8 +14,15 @@ export default function OperationsPage({
 }) {
   return (
     <div className="page-ops">
-      <PageExportToolbar variant="compact" exportContext={{ detections }} />
       <div className="ops-sections">
+        <section className="ops-block">
+          <ReportExportPanel />
+        </section>
+
+        <section className="ops-block">
+          <PageExportToolbar variant="compact" exportContext={{ detections }} />
+        </section>
+
         <section className="ops-block">
           <ExecutiveDashboard stats={stats} refreshKey={maintRefresh} />
         </section>

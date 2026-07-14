@@ -5,7 +5,6 @@ import OverviewPage from "./pages/OverviewPage";
 import MapPage from "./pages/MapPage";
 import FieldPage from "./pages/FieldPage";
 import OperationsPage from "./pages/OperationsPage";
-import ReportsPage from "./pages/ReportsPage";
 import IntelligencePage from "./pages/IntelligencePage";
 import MobilePage from "./pages/MobilePage";
 import ProfilePage from "./pages/ProfilePage";
@@ -362,8 +361,6 @@ function Dashboard() {
             }}
           />
         );
-      case "reports":
-        return <ReportsPage />;
       case "supervisor":
         return (
           <SupervisorPage

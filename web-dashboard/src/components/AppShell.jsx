@@ -8,7 +8,6 @@ const NAV = [
   { id: "map", icon: "map", labelKey: "navMap" },
   { id: "field", icon: "field", labelKey: "navField" },
   { id: "ops", icon: "ops", labelKey: "navOps" },
-  { id: "reports", icon: "report", labelKey: "navReports" },
   { id: "supervisor", icon: "supervisor", labelKey: "navSupervisor", ownerOnly: true },
   { id: "intel", icon: "intel", labelKey: "navIntel" },
   { id: "mobile", icon: "mobile", labelKey: "navMobile" },
