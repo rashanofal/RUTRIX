@@ -121,10 +121,6 @@
       margin-bottom: 0.35rem;
     }
     input[type=file] { display: none; }
-    #msg {
-      font-size: 0.9rem; min-height: 2.5rem; margin-top: 0.75rem;
-      line-height: 1.6; text-align: center; unicode-bidi: plaintext;
-    }
     .ok { color: var(--success); } .err { color: var(--danger); } .warn { color: #fbbf24; }
     .upload-toast {
       position: fixed;
@@ -197,6 +193,29 @@
       line-height: 1.55;
     }
     .btn-album:disabled, .btn-camera:disabled { opacity: 0.55; pointer-events: none; }
+    .btn-album-secondary {
+      margin-top: 0.45rem;
+      background: rgba(30, 41, 59, 0.92);
+      border: 1px solid rgba(148, 163, 184, 0.28);
+      color: #e2e8f0;
+    }
+    .mobile-build-tag {
+      margin: 0.55rem 0 0;
+      text-align: center;
+      font-size: 0.68rem;
+      color: rgba(148, 163, 184, 0.75);
+      letter-spacing: 0.04em;
+    }
+    #msg {
+      font-size: 0.9rem; min-height: 2.75rem; margin-top: 0.75rem;
+      line-height: 1.6; text-align: center; unicode-bidi: plaintext;
+      padding: 0.55rem 0.65rem;
+      border-radius: 12px;
+      background: rgba(15, 23, 42, 0.55);
+      border: 1px solid rgba(148, 163, 184, 0.18);
+    }
+    #msg:empty { display: none; }
+    #msg.warn, #msg.ok, #msg.err { display: block; }
     .header {
       display: flex; justify-content: space-between; align-items: flex-start;
       flex-wrap: wrap;
@@ -645,9 +664,14 @@
         <label class="btn btn-camera" for="cameraInput" id="cameraLabel">Camera capture</label>
         <input type="file" id="cameraInput" class="hidden" accept="image/*" capture="environment" />
         <button type="button" class="btn btn-album" id="albumBtn">
-          <span id="albumLabelText">Choose from album</span>
+          <span id="albumLabelText">Choose photos from album</span>
         </button>
-        <input type="file" id="albumInput" class="hidden" accept="image/*,video/*,.heic,.heif,.jpg,.jpeg,.png,.mp4,.mov,.webm" multiple />
+        <button type="button" class="btn btn-album btn-album-secondary" id="albumVideoBtn">
+          <span id="albumVideoLabelText">Choose video from album</span>
+        </button>
+        <input type="file" id="albumInput" class="hidden" accept="image/*,.heic,.heif,.jpg,.jpeg,.png,.webp" multiple />
+        <input type="file" id="albumVideoInput" class="hidden" accept="video/*,.mp4,.mov,.webm,.m4v" />
+        <p class="mobile-build-tag" id="mobileBuildTag">Mobile v2.0.4</p>
         <div id="uploadOverlay" class="upload-overlay hidden" aria-live="polite">
           <div class="upload-overlay-box">
             <div class="upload-spinner"></div>
@@ -760,7 +784,10 @@
         locFailed: "تعذّر الموقع — جرّب الألبوم أو فعّل الموقع لـ Safari",
         locInsecure: "الموقع يحتاج HTTPS — أو استخدم HTTP :8000",
         capture: "تصوير بالكاميرا",
-        album: "اختيار صور / فيديو من الألبوم",
+        album: "اختيار صور من الألبوم",
+        albumVideo: "اختيار فيديو من الألبوم",
+        openAlbumHint: "افتحي الألبوم واختاري الصور...",
+        openVideoHint: "افتحي الألبوم واختاري فيديو...",
         logout: "تسجيل الخروج",
         secureGps: "افتح HTTPS لتفعيل الموقع",
         captureSection: "تصوير ميداني",
@@ -819,7 +846,10 @@
         mapScopeMine: "Showing your points only — the owner sees the full organization",
         mapScopeOwner: "Showing all organization points (platform owner)",
         reportedBy: "Reported by",
-        logout: "Logout", capture: "Camera capture", album: "Choose photos / video from album",
+        logout: "Logout", capture: "Camera capture", album: "Choose photos from album",
+        albumVideo: "Choose video from album",
+        openAlbumHint: "Open album and select photos...",
+        openVideoHint: "Open album and select a video...",
         secureGps: "Open HTTPS for GPS location",
         captureSection: "Field capture",
         mapCard: "Detection points on the map",
@@ -951,6 +981,10 @@
       if (camBtn) camBtn.textContent = tr.capture;
       const albumText = document.getElementById("albumLabelText");
       if (albumText) albumText.textContent = tr.album;
+      const albumVideoText = document.getElementById("albumVideoLabelText");
+      if (albumVideoText) albumVideoText.textContent = tr.albumVideo;
+      const buildTag = document.getElementById("mobileBuildTag");
+      if (buildTag) buildTag.textContent = "Mobile v2.0.4";
       const secure = document.getElementById("secureLink");
       if (secure) secure.textContent = tr.secureGps;
       const enableGps = document.getElementById("enableGpsBtn");
@@ -2037,19 +2071,11 @@
       if (file) upload(file, true);
     };
 
-    var albumInput = document.getElementById("albumInput");
-    var albumBtn = document.getElementById("albumBtn");
-    if (albumBtn && albumInput) {
-      albumBtn.addEventListener("click", function () {
-        if (uploadBusy) return;
-        albumInput.click();
-      });
-    }
-    if (albumInput) {
-      albumInput.addEventListener("change", function (e) {
+    function bindAlbumInput(inputEl, openHintKey) {
+      if (!inputEl) return;
+      inputEl.addEventListener("change", function (e) {
         var files = e.target.files;
-        // Defer reset so iOS keeps the FileList reference until upload starts
-        setTimeout(function () { e.target.value = ""; }, 500);
+        setTimeout(function () { e.target.value = ""; }, 800);
         if (!files || !files.length) {
           showUploadFeedback(t().albumNoFiles, "warn");
           return;
@@ -2060,6 +2086,28 @@
         });
       });
     }
+
+    var albumInput = document.getElementById("albumInput");
+    var albumVideoInput = document.getElementById("albumVideoInput");
+    var albumBtn = document.getElementById("albumBtn");
+    var albumVideoBtn = document.getElementById("albumVideoBtn");
+
+    if (albumBtn && albumInput) {
+      albumBtn.addEventListener("click", function () {
+        if (uploadBusy) return;
+        showUploadFeedback(t().openAlbumHint, "warn");
+        albumInput.click();
+      });
+    }
+    if (albumVideoBtn && albumVideoInput) {
+      albumVideoBtn.addEventListener("click", function () {
+        if (uploadBusy) return;
+        showUploadFeedback(t().openVideoHint, "warn");
+        albumVideoInput.click();
+      });
+    }
+    bindAlbumInput(albumInput, "openAlbumHint");
+    bindAlbumInput(albumVideoInput, "openVideoHint");
 
     function secureMobileUrl() {
       return `https://${location.hostname}:8443/mobile`;
