@@ -326,3 +326,27 @@ def bootstrap() -> None:
     finally:
         db.close()
     backfill_intelligence()
+
+
+def bootstrap_fast() -> None:
+    """Must finish before the API accepts traffic (dirs + schema + demo)."""
+    ensure_storage_dirs()
+    run_migrations()
+    seed_demo_account()
+
+
+def bootstrap_background() -> None:
+    """Non-critical reconcile/backfill — safe after the app is listening."""
+    try:
+        db = SessionLocal()
+        try:
+            reconcile_canonical_organization(db)
+            reconcile_detection_orgs(db)
+            reconcile_owner_roles(db)
+        finally:
+            db.close()
+        backfill_intelligence()
+    except Exception:
+        import logging
+
+        logging.getLogger(__name__).exception("background bootstrap failed")

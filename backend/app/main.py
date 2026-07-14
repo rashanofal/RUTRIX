@@ -1,12 +1,13 @@
 from contextlib import asynccontextmanager
 from pathlib import Path
+import threading
 
 from fastapi import FastAPI, HTTPException, Query, Request, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
-from app.bootstrap import bootstrap
+from app.bootstrap import bootstrap_background, bootstrap_fast
 from app.persistence import storage_status
 from app.config import settings
 from app.routers import auth, detections, intelligence, maintenance, notifications, team
@@ -23,7 +24,13 @@ UPLOAD_ROOT = Path(settings.upload_dir)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    bootstrap()
+    # Keep startup short so Hugging Face can open port 7860 (APP_STARTING → RUNNING).
+    bootstrap_fast()
+    threading.Thread(
+        target=bootstrap_background,
+        name="rutrix-bootstrap-bg",
+        daemon=True,
+    ).start()
     yield
 
 
