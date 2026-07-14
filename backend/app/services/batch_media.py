@@ -7,7 +7,6 @@ import tempfile
 from dataclasses import dataclass
 from pathlib import Path
 
-import cv2
 import numpy as np
 
 logger = logging.getLogger(__name__)
@@ -69,6 +68,9 @@ def extract_video_frames(
     max_frames: int = MAX_VIDEO_FRAMES,
 ) -> list[MediaFrame]:
     """Sample JPEG frames from a video at approximately interval_sec spacing."""
+    # Lazy import — keep API startup light for Hugging Face health probes.
+    import cv2
+
     if not video_bytes:
         return []
 
@@ -135,6 +137,8 @@ def extract_video_frames(
 
 
 def jpeg_bytes_from_ndarray(arr: np.ndarray, quality: int = 88) -> bytes:
+    import cv2
+
     ok, buf = cv2.imencode(".jpg", arr, [int(cv2.IMWRITE_JPEG_QUALITY), quality])
     if not ok:
         raise ValueError("failed to encode frame")
