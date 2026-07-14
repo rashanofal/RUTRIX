@@ -621,8 +621,8 @@
         <div class="field"><input type="text" id="fullName" autocomplete="name" placeholder="Full name" /></div>
         <div class="field"><input type="text" id="orgNameInput" autocomplete="organization" placeholder="Organization" /></div>
       </div>
-      <div class="field"><input type="email" id="email" value="demo@pothole.app" autocomplete="email" placeholder="Email" /></div>
-      <div class="field"><input type="password" id="password" value="demo1234" autocomplete="current-password" placeholder="Password" minlength="6" /></div>
+      <div class="field"><input type="email" id="email" value="" autocomplete="email" placeholder="Email" /></div>
+      <div class="field"><input type="password" id="password" value="" autocomplete="current-password" placeholder="Password" minlength="6" /></div>
       <button class="btn btn-primary" id="loginBtn">Sign In</button>
       <button type="button" class="btn btn-album" id="authToggleBtn" style="margin-top:0.55rem">Create account</button>
       <p id="loginMsg" class="err" style="margin-top:0.75rem;text-align:center"></p>
@@ -913,7 +913,17 @@
         if (params.has("login")) return "login";
         if (params.has("register")) return "register";
       } catch { /* ignore */ }
-      return "register";
+      return "login";
+    }
+
+    function shouldForceLoginScreen() {
+      try {
+        const params = new URLSearchParams(window.location.search);
+        if (params.get("mode") === "login") return true;
+        if (params.has("login")) return true;
+        if (params.get("logout") === "1" || params.get("logout") === "true") return true;
+      } catch { /* ignore */ }
+      return false;
     }
     let authMode = initialAuthMode();
     function t() { return I18N[locale] || I18N.en; }
@@ -932,8 +942,10 @@
       if (toggleBtn) toggleBtn.textContent = mode === "register" ? tr.toggleLogin : tr.toggleRegister;
       if (email && mode === "register" && email.value === "demo@pothole.app") email.value = "";
       if (password && mode === "register" && password.value === "demo1234") password.value = "";
-      if (email && mode === "login" && !email.value) email.value = "demo@pothole.app";
-      if (password && mode === "login" && !password.value) password.value = "demo1234";
+      if (mode === "login") {
+        if (email) email.value = "";
+        if (password) password.value = "";
+      }
       if (email) email.autocomplete = mode === "register" ? "email" : "username";
       if (password) password.autocomplete = mode === "register" ? "new-password" : "current-password";
     }
@@ -2168,12 +2180,19 @@
     }
     setupSecureLink();
 
-    const saved = getAuth();
-    if (saved?.access_token) {
+    const saved = shouldForceLoginScreen() ? null : getAuth();
+    if (shouldForceLoginScreen()) {
+      clearAuth();
+      showLogin();
+      setAuthMode("login");
+    } else if (saved?.access_token) {
       fetch("/api/auth/me", { headers: { Authorization: "Bearer " + saved.access_token } })
         .then((r) => (r.ok ? r.json() : Promise.reject()))
         .then((data) => { setAuth(data); showApp(data); })
         .catch(showLogin);
+    } else {
+      showLogin();
+      setAuthMode(authMode);
     }
   </script>
 </body>

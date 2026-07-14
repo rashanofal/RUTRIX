@@ -8,7 +8,7 @@ function resolvePublicMobileUrl() {
   if (typeof window === "undefined") return "";
   const path = APP_DISTRIBUTION.publicMobilePath || "/mobile";
   const base = `${window.location.origin}${path.startsWith("/") ? path : `/${path}`}`;
-  return `${base}?lang=en`;
+  return `${base}?lang=en&mode=login`;
 }
 
 function isLocalHost() {

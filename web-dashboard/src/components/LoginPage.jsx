@@ -14,7 +14,7 @@ function initialAuthMode() {
   } catch {
     /* ignore */
   }
-  return "register";
+  return "login";
 }
 
 export default function LoginPage() {
@@ -24,9 +24,10 @@ export default function LoginPage() {
   const [mode, setMode] = useState(startMode);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  // Shared login links stay empty — do not auto-fill the demo account.
   const [form, setForm] = useState({
-    email: startMode === "login" ? "demo@pothole.app" : "",
-    password: startMode === "login" ? "demo1234" : "",
+    email: "",
+    password: "",
     full_name: "",
     organization_name: "",
   });

@@ -13,11 +13,44 @@ function loadStored() {
   }
 }
 
+/** Shared links like ?mode=login or ?login force a clean login screen. */
+export function shouldForceLoginScreen() {
+  try {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("mode") === "login") return true;
+    if (params.has("login")) return true;
+    if (params.get("logout") === "1" || params.get("logout") === "true") return true;
+  } catch {
+    /* ignore */
+  }
+  return false;
+}
+
 export function AuthProvider({ children }) {
-  const [auth, setAuth] = useState(loadStored);
+  const [auth, setAuth] = useState(() => {
+    if (typeof window !== "undefined" && shouldForceLoginScreen()) {
+      try {
+        localStorage.removeItem(STORAGE_KEY);
+      } catch {
+        /* ignore */
+      }
+      return null;
+    }
+    return loadStored();
+  });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (shouldForceLoginScreen()) {
+      try {
+        localStorage.removeItem(STORAGE_KEY);
+      } catch {
+        /* ignore */
+      }
+      setAuth(null);
+      setLoading(false);
+      return;
+    }
     const stored = loadStored();
     if (!stored?.access_token) {
       setLoading(false);
