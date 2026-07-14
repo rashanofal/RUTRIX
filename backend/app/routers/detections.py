@@ -358,7 +358,8 @@ async def upload_and_detect(
 
 @router.post("/upload-batch", response_model=BatchUploadResponse)
 async def upload_batch_and_detect(
-    files: list[UploadFile] = File(...),
+    files: list[UploadFile] = File(default=[]),
+    file: UploadFile | None = File(None),
     device_type: DeviceType = Form(DeviceType.mms),
     latitude: float | None = Form(None),
     longitude: float | None = Form(None),
@@ -368,13 +369,21 @@ async def upload_batch_and_detect(
     source_id: str | None = Form(None),
     mission_id: str | None = Form(None),
     frame_interval_sec: float = Form(1.0),
+    max_video_frames: int | None = Form(None),
     org: Organization = Depends(get_current_organization),
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
     """Batch ingest for MMS / drone / dashboard — images and/or a video."""
-    if not files:
+    incoming: list[UploadFile] = list(files or [])
+    if file is not None:
+        incoming.append(file)
+    if not incoming:
         raise HTTPException(status_code=400, detail="No files uploaded")
+
+    video_frame_cap = MAX_VIDEO_FRAMES
+    if max_video_frames is not None:
+        video_frame_cap = max(1, min(int(max_video_frames), MAX_VIDEO_FRAMES))
 
     mission = (mission_id or source_id or "").strip() or None
     items: list[BatchItemResult] = []
@@ -383,7 +392,7 @@ async def upload_batch_and_detect(
 
     image_files: list[UploadFile] = []
     video_files: list[UploadFile] = []
-    for f in files:
+    for f in incoming:
         name = f.filename or ""
         if is_video_filename(name):
             video_files.append(f)
@@ -421,7 +430,7 @@ async def upload_batch_and_detect(
                 raw,
                 original_name=vf.filename or "mission.mp4",
                 interval_sec=frame_interval_sec,
-                max_frames=MAX_VIDEO_FRAMES,
+                max_frames=video_frame_cap,
             )
         except ValueError as exc:
             raise HTTPException(status_code=400, detail=str(exc)) from exc

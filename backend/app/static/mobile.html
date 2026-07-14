@@ -1229,35 +1229,53 @@
       return tr.uploadedGeneric;
     }
 
-    async function doUpload(file, withCoords, noGps) {
-      if (!file) return;
-      var auth = getAuth();
-      if (!auth || !auth.access_token) { showLogin(); return; }
-
+    function parseUploadError(text, status) {
       var tr = t();
-      showUploadFeedback(tr.uploadProgress, "warn");
+      if (!text) return status ? ("HTTP " + status) : tr.uploadFail;
+      try {
+        var j = JSON.parse(text);
+        if (typeof j.detail === "string") return j.detail;
+        if (Array.isArray(j.detail)) {
+          return j.detail.map(function (d) { return d.msg || d.message || JSON.stringify(d); }).join(" — ");
+        }
+        if (j.message) return j.message;
+      } catch (e) { /* plain text */ }
+      return text.length > 220 ? text.slice(0, 220) + "…" : text;
+    }
+
+    async function uploadOne(file, withCoords) {
+      if (!file) throw new Error("No file");
+      var auth = getAuth();
+      if (!auth || !auth.access_token) { showLogin(); throw new Error("login"); }
 
       var form = new FormData();
       form.append("file", file);
       form.append("device_type", "phone");
-
       appendCoords(form, withCoords);
 
+      var uploadUrl = "/api/detections/upload";
+      if (withCoords && withCoords.lat != null && withCoords.lon != null) {
+        uploadUrl +=
+          "?latitude=" + encodeURIComponent(withCoords.lat) +
+          "&longitude=" + encodeURIComponent(withCoords.lon);
+      }
+      var res = await fetch(uploadUrl, {
+        method: "POST",
+        headers: { Authorization: "Bearer " + auth.access_token },
+        body: form,
+      });
+      if (res.status === 401) { showLogin(); throw new Error("login"); }
+      if (!res.ok) throw new Error(parseUploadError(await res.text(), res.status));
+      return res.json();
+    }
+
+    async function doUpload(file, withCoords, noGps) {
+      if (!file) return;
+      var tr = t();
+      showUploadFeedback(tr.uploadProgress, "warn");
+
       try {
-        var uploadUrl = "/api/detections/upload";
-        if (withCoords && withCoords.lat != null && withCoords.lon != null) {
-          uploadUrl +=
-            "?latitude=" + encodeURIComponent(withCoords.lat) +
-            "&longitude=" + encodeURIComponent(withCoords.lon);
-        }
-        var res = await fetch(uploadUrl, {
-          method: "POST",
-          headers: { Authorization: "Bearer " + auth.access_token },
-          body: form,
-        });
-        if (res.status === 401) { showLogin(); return; }
-        if (!res.ok) throw new Error(await res.text());
-        var data = await res.json();
+        var data = await uploadOne(file, withCoords);
         var onMap = data.detections && data.detections.some(function (d) { return d.latitude != null; });
         var text = buildUploadMessage(data, tr);
         var kind = "ok";
@@ -1284,7 +1302,10 @@
         }
         loadMap();
       } catch (e) {
-        showUploadFeedback(e.message || t().uploadFail, "err");
+        if (e.message !== "login") {
+          showUploadFeedback(e.message || t().uploadFail, "err");
+        }
+        throw e;
       }
     }
 
@@ -1295,7 +1316,8 @@
       return t.startsWith("video/") || /\.(mp4|mov|webm|m4v|avi)$/.test(n);
     }
 
-    async function doUploadBatch(files, fallbackCoords) {
+    async function doUploadBatch(files, fallbackCoords, opts) {
+      opts = opts || {};
       var list = Array.prototype.slice.call(files || []).filter(Boolean);
       if (!list.length) return;
       var auth = getAuth();
@@ -1307,8 +1329,8 @@
       var form = new FormData();
       list.forEach(function (f) { form.append("files", f); });
       form.append("device_type", "phone");
-      form.append("frame_interval_sec", "1");
-      // Fallback only — server prefers each image's EXIF GPS when present
+      form.append("frame_interval_sec", String(opts.frameIntervalSec || 2));
+      form.append("max_video_frames", String(opts.maxVideoFrames || 12));
       appendCoords(form, fallbackCoords);
 
       try {
@@ -1318,7 +1340,7 @@
           body: form,
         });
         if (res.status === 401) { showLogin(); return; }
-        if (!res.ok) throw new Error(await res.text());
+        if (!res.ok) throw new Error(parseUploadError(await res.text(), res.status));
         var data = await res.json();
         var onMap = data.detections && data.detections.some(function (d) { return d.latitude != null; });
         showUploadFeedback(data.message || tr.uploadedGeneric, "ok");
@@ -1331,6 +1353,61 @@
         loadMap();
       } catch (e) {
         showUploadFeedback(e.message || tr.uploadFail, "err");
+      }
+    }
+
+    async function uploadAlbumFiles(fileList) {
+      var files = Array.prototype.slice.call(fileList || []).filter(Boolean);
+      if (!files.length) return;
+      hideSkipLoc();
+
+      var images = files.filter(function (f) { return !isVideoFile(f); });
+      var videos = files.filter(isVideoFile);
+      if (videos.length > 1) {
+        showUploadFeedback(locale === "ar" ? "ارفع فيديو واحد فقط" : "Upload one video at a time", "err");
+        return;
+      }
+
+      var tr = t();
+      var ok = 0;
+      var fail = 0;
+
+      for (var i = 0; i < images.length; i++) {
+        showUploadFeedback(
+          (locale === "ar" ? "جاري رفع الصورة " : "Uploading photo ") + (i + 1) + "/" + images.length,
+          "warn"
+        );
+        try {
+          await uploadOne(images[i], null);
+          ok += 1;
+        } catch (e) {
+          if (e.message === "login") return;
+          fail += 1;
+          if (images.length === 1) {
+            showUploadFeedback(e.message || tr.uploadFail, "err");
+            return;
+          }
+        }
+      }
+
+      if (videos.length) {
+        var fallback = getCachedLocation(300000);
+        if (!fallback && window.isSecureContext) {
+          fallback = await Promise.race([
+            requestLocationNow(3500),
+            new Promise(function (r) { setTimeout(function () { r(null); }, 3500); }),
+          ]);
+        }
+        await doUploadBatch(videos, fallback, { frameIntervalSec: 2, maxVideoFrames: 12 });
+        return;
+      }
+
+      if (images.length > 1) {
+        var summary = locale === "ar"
+          ? ("تم رفع " + ok + " صورة" + (fail ? (" — فشل " + fail) : ""))
+          : ("Uploaded " + ok + " photo(s)" + (fail ? (" — failed " + fail) : ""));
+        showUploadFeedback(summary, fail ? "warn" : "ok");
+        loadMap();
       }
     }
 
@@ -1348,31 +1425,6 @@
       }
 
       await doUpload(file, coords, askLocation && window.isSecureContext && !coords);
-    }
-
-    async function uploadAlbumFiles(fileList) {
-      var files = Array.prototype.slice.call(fileList || []).filter(Boolean);
-      if (!files.length) return;
-      hideSkipLoc();
-
-      var hasVideo = files.some(isVideoFile);
-      var isBatch = files.length > 1 || hasVideo;
-
-      if (!isBatch) {
-        // Single album image: do not send live GPS — EXIF pins the original place
-        await doUpload(files[0], null, false);
-        return;
-      }
-
-      // Video may need a fallback GPS for frames; images still use EXIF first
-      var fallback = hasVideo ? getCachedLocation(300000) : null;
-      if (hasVideo && !fallback && window.isSecureContext) {
-        fallback = await Promise.race([
-          requestLocationNow(3500),
-          new Promise(function (r) { setTimeout(function () { r(null); }, 3500); }),
-        ]);
-      }
-      await doUploadBatch(files, fallback);
     }
 
     function markerColor(d) {

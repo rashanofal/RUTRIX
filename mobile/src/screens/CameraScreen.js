@@ -12,7 +12,7 @@ import { CameraView, useCameraPermissions } from "expo-camera";
 import { LinearGradient } from "expo-linear-gradient";
 import * as ImagePicker from "expo-image-picker";
 import { Ionicons } from "@expo/vector-icons";
-import { uploadDetection, uploadDetectionBatch } from "../api";
+import { uploadDetection, uploadPhotosSequential } from "../api";
 import { useLocale } from "../LocaleContext";
 import StatusChip from "../components/StatusChip";
 import { colors, radius, spacing } from "../theme";
@@ -105,33 +105,36 @@ export default function CameraScreen({
   const handlePick = async () => {
     setLoading(true);
     try {
+      const libPerm = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (!libPerm.granted) {
+        Alert.alert(t.error, t.albumPerm || t.permSub);
+        return;
+      }
+
       const pick = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ["images", "videos"],
+        mediaTypes: ImagePicker.MediaTypeOptions.All,
         quality: 0.88,
         exif: true,
         allowsMultipleSelection: true,
-        selectionLimit: 40,
-        videoMaxDuration: 180,
+        selectionLimit: 20,
+        videoMaxDuration: 120,
       });
       if (pick.canceled || !pick.assets?.length) return;
 
       const assets = pick.assets;
       const hasVideo = assets.some(isVideoAsset);
-      const isBatch = assets.length > 1 || hasVideo;
-
-      // Album: do not force live GPS — server uses each photo's EXIF location.
-      // Live GPS is only a fallback for files without EXIF / video frames.
       const fallbackCoords = hasVideo ? coordsPayload() : null;
-      const result = isBatch
-        ? await uploadDetectionBatch(assets, apiUrl, fallbackCoords, {
-            deviceType: "phone",
-            frameIntervalSec: 1,
-          })
-        : await uploadDetection(assets[0].uri, apiUrl, null, {
-            name: assets[0].fileName || "album.jpg",
-            type: assets[0].mimeType || "image/jpeg",
-            deviceType: "phone",
-          });
+
+      const result =
+        assets.length === 1 && !hasVideo
+          ? await uploadDetection(assets[0].uri, apiUrl, null, {
+              name: assets[0].fileName || "album.jpg",
+              type: assets[0].mimeType || "image/jpeg",
+              deviceType: "phone",
+            })
+          : await uploadPhotosSequential(assets, apiUrl, fallbackCoords, {
+              deviceType: "phone",
+            });
 
       onUploaded?.(result);
       Alert.alert(t.success, uploadResultMessage(result, t));

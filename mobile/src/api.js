@@ -49,6 +49,27 @@ function guessMime(name, fallback = "image/jpeg") {
   return fallback;
 }
 
+function isVideoAsset(asset) {
+  const mime = (asset?.mimeType || asset?.type || "").toLowerCase();
+  const name = (asset?.fileName || asset?.uri || "").toLowerCase();
+  return mime.startsWith("video") || /\.(mp4|mov|webm|m4v|avi)$/.test(name);
+}
+
+function parseUploadError(text, status) {
+  if (!text) return status ? `HTTP ${status}` : "فشل الرفع";
+  try {
+    const data = JSON.parse(text);
+    if (typeof data.detail === "string") return data.detail;
+    if (Array.isArray(data.detail)) {
+      return data.detail.map((d) => d.msg || d.message || JSON.stringify(d)).join(" — ");
+    }
+    if (data.message) return data.message;
+  } catch {
+    /* plain text */
+  }
+  return text.length > 240 ? text.slice(0, 240) + "…" : text;
+}
+
 export async function uploadDetection(imageUri, apiBase, coords, options = {}) {
   const name = options.name || "capture.jpg";
   const formData = new FormData();
@@ -75,9 +96,56 @@ export async function uploadDetection(imageUri, apiBase, coords, options = {}) {
   if (response.status === 401) throw new Error("انتهت الجلسة");
   if (!response.ok) {
     const text = await response.text();
-    throw new Error(text || "فشل الرفع");
+    throw new Error(parseUploadError(text, response.status));
   }
   return response.json();
+}
+
+/** Upload many photos one-by-one (reliable on mobile) + optional single video batch. */
+export async function uploadPhotosSequential(assets, apiBase, coords, options = {}) {
+  const list = (assets || []).filter((a) => a?.uri);
+  if (!list.length) throw new Error("لا ملفات");
+
+  const photos = list.filter((a) => !isVideoAsset(a));
+  const videos = list.filter(isVideoAsset);
+  if (videos.length > 1) throw new Error("ارفع فيديو واحد فقط في كل مرة");
+
+  const allDetections = [];
+  let lastMessage = "";
+
+  for (let i = 0; i < photos.length; i += 1) {
+    const asset = photos[i];
+    const name = asset.fileName || asset.name || `photo_${i + 1}.jpg`;
+    const result = await uploadDetection(asset.uri, apiBase, null, {
+      name,
+      type: asset.mimeType || asset.type || guessMime(name),
+      deviceType: options.deviceType || "phone",
+      sourceId: options.missionId,
+    });
+    allDetections.push(...(result.detections || []));
+    lastMessage = result.message || lastMessage;
+  }
+
+  if (videos.length) {
+    const result = await uploadDetectionBatch(videos, apiBase, coords, {
+      ...options,
+      deviceType: options.deviceType || "phone",
+      frameIntervalSec: options.frameIntervalSec || 2,
+      maxVideoFrames: options.maxVideoFrames || 12,
+    });
+    allDetections.push(...(result.detections || []));
+    lastMessage = result.message || lastMessage;
+  }
+
+  const holes = allDetections.filter((d) => d.class_name && d.class_name !== "photo").length;
+  return {
+    detections: allDetections,
+    message:
+      lastMessage ||
+      (photos.length > 1
+        ? `تم رفع ${photos.length} صورة — ${holes} كشف`
+        : `تم الرفع — ${holes} كشف`),
+  };
 }
 
 /** Batch upload images and/or one video — EXIF GPS preferred per image on the server. */
@@ -99,6 +167,9 @@ export async function uploadDetectionBatch(assets, apiBase, coords, options = {}
   });
   formData.append("device_type", options.deviceType || "phone");
   formData.append("frame_interval_sec", String(options.frameIntervalSec || 1));
+  if (options.maxVideoFrames != null) {
+    formData.append("max_video_frames", String(options.maxVideoFrames));
+  }
   if (options.missionId) formData.append("mission_id", options.missionId);
 
   // Fallback only when photos lack EXIF (server still prefers EXIF when present)
@@ -117,7 +188,7 @@ export async function uploadDetectionBatch(assets, apiBase, coords, options = {}
   if (response.status === 401) throw new Error("انتهت الجلسة");
   if (!response.ok) {
     const text = await response.text();
-    throw new Error(text || "فشل رفع الدفعة");
+    throw new Error(parseUploadError(text, response.status));
   }
   return response.json();
 }
