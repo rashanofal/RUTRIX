@@ -146,6 +146,10 @@ def create_detection(
         class_name=class_name,
         image_path=image_path,
         source_id=payload.source_id,
+        mission_id=payload.mission_id,
+        frame_index=payload.frame_index,
+        timestamp_sec=payload.timestamp_sec,
+        video_path=payload.video_path,
         bearing=payload.bearing,
         edge_confidence=payload.edge_confidence,
         cloud_verified=cloud_verified,
@@ -273,6 +277,7 @@ def delete_detection(
         return None
 
     image_path = det.image_path
+    video_path = getattr(det, "video_path", None)
     if image_path:
         siblings = (
             db.query(PotholeDetection.id)
@@ -321,6 +326,21 @@ def delete_detection(
             if p.is_file():
                 p.unlink(missing_ok=True)
                 files_deleted = 1
+
+    if delete_file and video_path:
+        video_remaining = (
+            db.query(PotholeDetection)
+            .filter(
+                PotholeDetection.organization_id == organization_id,
+                PotholeDetection.video_path == video_path,
+            )
+            .count()
+        )
+        if video_remaining == 0:
+            vp = Path(video_path)
+            if vp.is_file():
+                vp.unlink(missing_ok=True)
+                files_deleted += 1
 
     return {
         "id": detection_id,

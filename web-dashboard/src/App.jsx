@@ -275,6 +275,11 @@ function Dashboard() {
     [loadDetections, isOwner, t.ownerOnlyHint]
   );
 
+  const selectAndShowOnMap = useCallback((id) => {
+    setSelectedId(id);
+    setPage("map");
+  }, []);
+
   const handleBoundsChange = useCallback((b) => {
     setBounds(b);
   }, []);
@@ -337,6 +342,7 @@ function Dashboard() {
             selected={selected}
             selectedId={selectedId}
             onSelect={setSelectedId}
+            onShowOnMap={selectAndShowOnMap}
             deletingId={deletingId}
             onDelete={isAdmin ? handleDelete : undefined}
             isAdmin={isAdmin}

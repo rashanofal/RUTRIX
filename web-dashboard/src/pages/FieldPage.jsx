@@ -11,6 +11,7 @@ export default function FieldPage({
   selected,
   selectedId,
   onSelect,
+  onShowOnMap,
   deletingId,
   onDelete,
   isAdmin = false,
@@ -56,6 +57,8 @@ export default function FieldPage({
               onConfirm={onConfirm}
               onVerify={onVerify}
               onReject={onReject}
+              onSelect={onSelect}
+              onShowOnMap={onShowOnMap}
             />
           )}
         </div>
@@ -65,6 +68,7 @@ export default function FieldPage({
             detections={detections}
             selectedId={selectedId}
             onSelect={onSelect}
+            onShowOnMap={onShowOnMap}
           />
         </div>
       </div>

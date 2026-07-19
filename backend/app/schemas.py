@@ -41,6 +41,10 @@ class DetectionCreate(BaseModel):
     edge_confidence: float | None = None
     bearing: float | None = None
     source_id: str | None = None
+    mission_id: str | None = None
+    frame_index: int | None = None
+    timestamp_sec: float | None = None
+    video_path: str | None = None
     location_status: LocationStatus = LocationStatus.pending
     metadata: dict | None = None
 
@@ -123,6 +127,12 @@ class DetectionResponse(BaseModel):
     bbox_h: float | None
     image_path: str | None
     image_url: str | None = None
+    source_id: str | None = None
+    mission_id: str | None = None
+    frame_index: int | None = None
+    timestamp_sec: float | None = None
+    video_path: str | None = None
+    video_url: str | None = None
     cloud_verified: bool
     cluster_id: str | None
     created_at: datetime

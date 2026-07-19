@@ -60,6 +60,7 @@ export default function MapPage({
             onConfirm={onConfirm}
             onVerify={onVerify}
             onReject={onReject}
+            onSelect={onSelect}
           />
         </aside>
       )}

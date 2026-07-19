@@ -28,6 +28,10 @@ INTELLIGENCE_COLUMNS = [
     ("bicycle_safe", "INTEGER DEFAULT 1"),
     ("priority_rank", "INTEGER DEFAULT 0"),
     ("rejection_reason", "TEXT"),
+    ("mission_id", "VARCHAR(100)"),
+    ("frame_index", "INTEGER"),
+    ("timestamp_sec", "REAL"),
+    ("video_path", "VARCHAR(500)"),
 ]
 
 

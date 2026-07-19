@@ -32,6 +32,7 @@ export default function DetectionList({
   detections,
   selectedId,
   onSelect,
+  onShowOnMap,
   compact = false,
   hideHeader = false,
 }) {
@@ -47,6 +48,11 @@ export default function DetectionList({
     return counts;
   }, [detections]);
 
+  const handlePick = (id) => {
+    if (onShowOnMap) onShowOnMap(id);
+    else onSelect?.(id);
+  };
+
   return (
     <section className={`detection-section ${compact ? "compact" : ""}`}>
       {!hideHeader && !compact && (
@@ -61,8 +67,8 @@ export default function DetectionList({
         {grouped.map(({ primary: d, count, potholeCount }) => (
           <li
             key={d.image_url ? `img-${d.image_url}` : d.id}
-            className={`detection-item ${selectedId === d.id ? "active" : ""}`}
-            onClick={() => onSelect(d.id)}
+            className={`detection-item ${selectedId === d.id ? "active" : ""} ${potholeCount > 0 ? "has-holes" : "no-holes"}`}
+            onClick={() => handlePick(d.id)}
           >
             {d.image_url ? (
               <img src={d.image_url} alt="" className="detection-thumb" loading="lazy" />
@@ -77,18 +83,14 @@ export default function DetectionList({
                   {deviceLabel(t, d.device_type)}
                 </span>
                 <span
-                  className={`badge badge-${d.class_name === "photo" ? "photo" : d.detection_status}`}
+                  className={`badge ${potholeCount > 0 ? "badge-count" : "badge-photo"}`}
                 >
-                  {d.class_name === "photo"
-                    ? t.photo
-                    : d.detection_status === "verified"
-                      ? t.verified
-                      : t.detected}
+                  {potholeCount > 0
+                    ? t.framePotholeCount.replace("{n}", String(potholeCount))
+                    : t.frameNoPotholes}
                 </span>
-                {potholeCount > 0 && (
-                  <span className="badge badge-count">
-                    {t.potholesDetected.replace("{n}", String(potholeCount))}
-                  </span>
+                {d.detection_status === "verified" && potholeCount > 0 && (
+                  <span className="badge badge-verified">{t.verified}</span>
                 )}
                 {d.cluster_id && (clusterCounts[d.cluster_id] ?? 0) > 1 && (
                   <span className="badge badge-cluster">
@@ -97,7 +99,7 @@ export default function DetectionList({
                 )}
               </div>
               <div>
-                {d.class_name === "photo" ? (
+                {d.class_name === "photo" || potholeCount === 0 ? (
                   t.onMap
                 ) : (
                   <>
@@ -116,7 +118,7 @@ export default function DetectionList({
                   </span>
                 ) : null}
                 {d.latitude != null
-                  ? `${d.latitude?.toFixed(5)}, ${d.longitude?.toFixed(5)}`
+                  ? `${t.showOnMap} · ${d.latitude?.toFixed(5)}, ${d.longitude?.toFixed(5)}`
                   : t.noGps}
               </div>
             </div>

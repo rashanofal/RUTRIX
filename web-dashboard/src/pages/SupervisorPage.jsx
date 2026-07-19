@@ -182,6 +182,7 @@ export default function SupervisorPage({
               onConfirm={onConfirm}
               onVerify={onVerify}
               onReject={onReject}
+              onSelect={onSelect}
             />
           </aside>
         ) : null}

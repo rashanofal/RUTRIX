@@ -147,12 +147,28 @@ def _resolve_upload_path(filename: str, org_id: str | None = None) -> Path | Non
     return None
 
 
+def _upload_media_type(path: Path) -> str | None:
+    suffix = path.suffix.lower()
+    if suffix in {".mp4", ".m4v"}:
+        return "video/mp4"
+    if suffix == ".webm":
+        return "video/webm"
+    if suffix == ".mov":
+        return "video/quicktime"
+    if suffix == ".avi":
+        return "video/x-msvideo"
+    if suffix == ".mkv":
+        return "video/x-matroska"
+    return None
+
+
 @app.get("/api/uploads/{filename}")
 def serve_upload_image(filename: str):
     path = _resolve_upload_path(filename)
     if not path:
         raise HTTPException(status_code=404, detail="Image not found")
-    return FileResponse(path)
+    media = _upload_media_type(path)
+    return FileResponse(path, media_type=media) if media else FileResponse(path)
 
 
 @app.get("/api/uploads/{org_id}/{filename}")
@@ -160,7 +176,8 @@ def serve_org_upload_image(org_id: str, filename: str):
     path = _resolve_upload_path(filename, org_id)
     if not path:
         raise HTTPException(status_code=404, detail="Image not found")
-    return FileResponse(path)
+    media = _upload_media_type(path)
+    return FileResponse(path, media_type=media) if media else FileResponse(path)
 
 
 def _static_page(name: str) -> FileResponse:

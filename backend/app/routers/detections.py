@@ -1,3 +1,4 @@
+from datetime import datetime, timezone
 import logging
 from pathlib import Path
 
@@ -62,15 +63,21 @@ from app.websocket import manager
 router = APIRouter(prefix="/api/detections", tags=["detections"])
 logger = logging.getLogger(__name__)
 
+MAX_VIDEO_BYTES = 100 * 1024 * 1024  # 100 MB
 
-def _image_url(image_path: str | None, organization_id: int | None = None) -> str | None:
-    if not image_path:
+
+def _media_url(file_path: str | None, organization_id: int | None = None) -> str | None:
+    if not file_path:
         return None
-    p = Path(image_path)
+    p = Path(file_path)
     name = p.name
     if organization_id is not None and str(organization_id) in p.parts:
         return f"/api/uploads/{organization_id}/{name}"
     return f"/api/uploads/{name}"
+
+
+def _image_url(image_path: str | None, organization_id: int | None = None) -> str | None:
+    return _media_url(image_path, organization_id)
 
 
 def _reporter_names(db: Session, items: list) -> dict[int, str]:
@@ -93,6 +100,12 @@ def _to_response(
     return data.model_copy(
         update={
             "image_url": _image_url(d.image_path, org_id),
+            "video_url": _media_url(getattr(d, "video_path", None), org_id),
+            "source_id": getattr(d, "source_id", None),
+            "mission_id": getattr(d, "mission_id", None),
+            "frame_index": getattr(d, "frame_index", None),
+            "timestamp_sec": getattr(d, "timestamp_sec", None),
+            "video_path": getattr(d, "video_path", None),
             "reporter_user_id": rep_id,
             "reporter_name": rep_name,
         }
@@ -392,7 +405,10 @@ async def upload_batch_and_detect(
     mission = (mission_id or source_id or "").strip() or None
     items: list[BatchItemResult] = []
     all_detections: list[DetectionResponse] = []
-    work_units: list[tuple[bytes, str, float | None, float | None]] = []
+    # content, filename, lat, lon, frame_index, timestamp_sec, video_path
+    work_units: list[
+        tuple[bytes, str, float | None, float | None, int | None, float | None, str | None]
+    ] = []
 
     image_files: list[UploadFile] = []
     video_files: list[UploadFile] = []
@@ -425,10 +441,22 @@ async def upload_batch_and_detect(
                 )
             )
             continue
-        work_units.append((content, Path(f.filename or "upload.jpg").name, None, None))
+        work_units.append((content, Path(f.filename or "upload.jpg").name, None, None, None, None, None))
 
+    saved_video_path: str | None = None
     for vf in video_files:
         raw = await vf.read()
+        if not raw:
+            raise HTTPException(status_code=400, detail="ملف الفيديو فارغ")
+        if len(raw) > MAX_VIDEO_BYTES:
+            raise HTTPException(
+                status_code=400,
+                detail=f"حجم الفيديو يتجاوز الحد ({MAX_VIDEO_BYTES // (1024 * 1024)} ميجابايت)",
+            )
+        if not mission:
+            mission = datetime.now(timezone.utc).strftime("vid-%Y%m%d-%H%M%S")
+        video_name = Path(vf.filename or "mission.mp4").name
+        saved_video_path = save_upload_file(raw, video_name, org.id)
         try:
             frames = extract_video_frames(
                 raw,
@@ -448,14 +476,26 @@ async def upload_batch_and_detect(
                 end_latitude,
                 end_longitude,
             )
-            work_units.append((fr.content, fr.filename, lat, lon))
+            work_units.append(
+                (
+                    fr.content,
+                    fr.filename,
+                    lat,
+                    lon,
+                    fr.frame_index,
+                    fr.timestamp_sec,
+                    saved_video_path,
+                )
+            )
 
     if not work_units and not items:
         raise HTTPException(status_code=400, detail="لا ملفات صالحة للمعالجة")
 
     # Assign per-image GPS: explicit frame GPS, else EXIF inside impl, else fallback form GPS
     total_units = len(work_units)
-    for idx, (content, filename, frame_lat, frame_lon) in enumerate(work_units):
+    for idx, (content, filename, frame_lat, frame_lon, frame_idx, ts_sec, vid_path) in enumerate(
+        work_units
+    ):
         if frame_lat is None or frame_lon is None:
             # Image batch: interpolate along path if end GPS given
             frame_lat, frame_lon = interpolate_gps(
@@ -479,6 +519,10 @@ async def upload_batch_and_detect(
                 device_lon=frame_lon,
                 bearing=bearing,
                 source_id=unit_source,
+                mission_id=mission,
+                frame_index=frame_idx if frame_idx is not None else idx,
+                timestamp_sec=ts_sec,
+                video_path=vid_path,
                 edge_detections=None,
                 anomaly_type=None,
                 org=org,
@@ -543,6 +587,10 @@ async def _upload_and_detect_impl(
     device_lon: float | None,
     bearing: float | None,
     source_id: str | None,
+    mission_id: str | None = None,
+    frame_index: int | None = None,
+    timestamp_sec: float | None = None,
+    video_path: str | None = None,
     edge_detections: str | None,
     anomaly_type: str | None,
     org: Organization,
@@ -588,6 +636,10 @@ async def _upload_and_detect_impl(
         map_lon,
         {
             "source_id": source_id,
+            "mission_id": mission_id,
+            "frame_index": frame_index,
+            "timestamp_sec": timestamp_sec,
+            "video_path": video_path,
             "bearing": bearing,
             "organization_id": org.id,
             "location_source": location_source if has_map_location else "none",
@@ -636,6 +688,10 @@ async def _upload_and_detect_impl(
             edge_confidence=edge_conf,
             bearing=bearing,
             source_id=source_id,
+            mission_id=mission_id,
+            frame_index=frame_index,
+            timestamp_sec=timestamp_sec,
+            video_path=video_path,
             location_status=(
                 LocationStatus.confirmed
                 if has_map_location
@@ -677,6 +733,10 @@ async def _upload_and_detect_impl(
                 class_name="photo",
                 bearing=bearing,
                 source_id=source_id,
+                mission_id=mission_id,
+                frame_index=frame_index,
+                timestamp_sec=timestamp_sec,
+                video_path=video_path,
                 location_status=LocationStatus.confirmed,
                 metadata={"pothole_count": 0, "location_source": location_source},
             ),
