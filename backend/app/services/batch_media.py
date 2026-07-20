@@ -60,6 +60,44 @@ def interpolate_gps(
     )
 
 
+def gps_at_timestamp(
+    track: list[dict],
+    timestamp_sec: float | None,
+) -> tuple[float | None, float | None]:
+    """Interpolate lat/lon from a time-stamped GPS track (mobile video recording)."""
+    if not track or timestamp_sec is None:
+        return None, None
+    if len(track) == 1:
+        p = track[0]
+        return p.get("lat"), p.get("lon")
+
+    sorted_track = sorted(track, key=lambda p: float(p.get("t", 0)))
+    t = float(timestamp_sec)
+
+    if t <= float(sorted_track[0].get("t", 0)):
+        p = sorted_track[0]
+        return p.get("lat"), p.get("lon")
+    if t >= float(sorted_track[-1].get("t", 0)):
+        p = sorted_track[-1]
+        return p.get("lat"), p.get("lon")
+
+    for i in range(len(sorted_track) - 1):
+        a = sorted_track[i]
+        b = sorted_track[i + 1]
+        ta = float(a.get("t", 0))
+        tb = float(b.get("t", 0))
+        if ta <= t <= tb:
+            if tb <= ta:
+                return a.get("lat"), a.get("lon")
+            ratio = (t - ta) / (tb - ta)
+            lat = float(a["lat"]) + (float(b["lat"]) - float(a["lat"])) * ratio
+            lon = float(a["lon"]) + (float(b["lon"]) - float(a["lon"])) * ratio
+            return lat, lon
+
+    p = sorted_track[-1]
+    return p.get("lat"), p.get("lon")
+
+
 def extract_video_frames(
     video_bytes: bytes,
     *,

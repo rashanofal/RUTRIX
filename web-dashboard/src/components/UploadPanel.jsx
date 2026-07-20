@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useLocale } from "../context/LocaleContext";
 import { apiFetch } from "../hooks/useApi";
 import NavIcon from "./NavIcons";
@@ -32,6 +32,25 @@ function hasPathGps(startLat, startLon, endLat, endLon) {
   );
 }
 
+function isVideoFile(f) {
+  return /\.(mp4|mov|avi|mkv|webm|m4v)$/i.test(f.name);
+}
+
+function getDeviceCoords() {
+  if (!navigator.geolocation) return Promise.resolve(null);
+  return new Promise((resolve) => {
+    navigator.geolocation.getCurrentPosition(
+      (pos) =>
+        resolve({
+          latitude: pos.coords.latitude,
+          longitude: pos.coords.longitude,
+        }),
+      () => resolve(null),
+      { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+    );
+  });
+}
+
 export default function UploadPanel({ onUploaded }) {
   const { t } = useLocale();
   const [loading, setLoading] = useState(false);
@@ -46,11 +65,13 @@ export default function UploadPanel({ onUploaded }) {
   const [endLat, setEndLat] = useState("");
   const [endLon, setEndLon] = useState("");
   const [progress, setProgress] = useState("");
+  const [pendingFiles, setPendingFiles] = useState([]);
 
   const sourceHint = SOURCES.find((s) => s.id === deviceType);
+  const hasVideo = useMemo(() => pendingFiles.some(isVideoFile), [pendingFiles]);
+  const pathReady = hasPathGps(startLat, startLon, endLat, endLon);
 
   const appendGpsFields = (formData) => {
-    if (!usePathGps) return;
     if (startLat !== "" && startLon !== "") {
       formData.append("latitude", String(Number(startLat)));
       formData.append("longitude", String(Number(startLon)));
@@ -61,17 +82,55 @@ export default function UploadPanel({ onUploaded }) {
     }
   };
 
-  const handleUpload = async (e) => {
-    const list = Array.from(e.target.files || []);
+  const fillStartFromHere = async () => {
+    setUsePathGps(true);
+    const c = await getDeviceCoords();
+    if (!c) {
+      setMessage(t.gpsBrowserDenied);
+      setMessageType("err");
+      return;
+    }
+    setStartLat(String(c.latitude));
+    setStartLon(String(c.longitude));
+    setMessage(t.gpsStartFilled);
+    setMessageType("ok");
+  };
+
+  const fillEndFromHere = async () => {
+    setUsePathGps(true);
+    const c = await getDeviceCoords();
+    if (!c) {
+      setMessage(t.gpsBrowserDenied);
+      setMessageType("err");
+      return;
+    }
+    setEndLat(String(c.latitude));
+    setEndLon(String(c.longitude));
+    setMessage(t.gpsEndFilled);
+    setMessageType("ok");
+  };
+
+  const onFilesPicked = (ev) => {
+    const list = Array.from(ev.target.files || []);
+    ev.target.value = "";
     if (!list.length) return;
+    setPendingFiles(list);
+    setMessage("");
+    setMessageType("");
+    if (list.some(isVideoFile)) {
+      setUsePathGps(true);
+    }
+  };
 
-    const hasVideo = list.some((f) => /\.(mp4|mov|avi|mkv|webm|m4v)$/i.test(f.name));
-    const isBatch = list.length > 1 || hasVideo;
+  const handleUpload = async () => {
+    if (!pendingFiles.length) return;
 
-    if (hasVideo && !hasPathGps(startLat, startLon, endLat, endLon)) {
+    const videoInBatch = pendingFiles.some(isVideoFile);
+    const isBatch = pendingFiles.length > 1 || videoInBatch;
+
+    if (videoInBatch && !pathReady) {
       setMessage(t.videoPathGpsRequired);
       setMessageType("err");
-      e.target.value = "";
       return;
     }
 
@@ -83,17 +142,16 @@ export default function UploadPanel({ onUploaded }) {
     try {
       if (isBatch) {
         const formData = new FormData();
-        list.forEach((f) => formData.append("files", f));
+        pendingFiles.forEach((f) => formData.append("files", f));
         formData.append("device_type", deviceType);
         if (missionId.trim()) formData.append("mission_id", missionId.trim());
         formData.append("frame_interval_sec", String(Number(frameInterval) || 1));
-        appendGpsFields(formData);
-        // Batch: never send browser GPS — each photo uses EXIF; video uses path above.
+        if (videoInBatch || usePathGps) appendGpsFields(formData);
 
         setProgress(
-          hasVideo
+          videoInBatch
             ? t.batchProgressVideo
-            : t.batchProgressImages.replace("{n}", String(list.length))
+            : t.batchProgressImages.replace("{n}", String(pendingFiles.length))
         );
 
         const res = await apiFetch("/api/detections/upload-batch", {
@@ -112,15 +170,15 @@ export default function UploadPanel({ onUploaded }) {
         }
         setMessage(data?.message || t.batchOk);
         setMessageType("ok");
+        setPendingFiles([]);
         onUploaded?.(data);
       } else {
-        const file = list[0];
+        const file = pendingFiles[0];
         const formData = new FormData();
         formData.append("file", file);
         formData.append("device_type", deviceType);
         if (missionId.trim()) formData.append("source_id", missionId.trim());
-        appendGpsFields(formData);
-        // Single file: EXIF GPS on the image wins; no live browser location.
+        if (usePathGps) appendGpsFields(formData);
 
         const res = await apiFetch("/api/detections/upload", {
           method: "POST",
@@ -138,6 +196,7 @@ export default function UploadPanel({ onUploaded }) {
         }
         setMessage(data?.message || t.uploadOk);
         setMessageType("ok");
+        setPendingFiles([]);
         onUploaded?.(data);
       }
     } catch (err) {
@@ -146,15 +205,7 @@ export default function UploadPanel({ onUploaded }) {
     } finally {
       setLoading(false);
       setProgress("");
-      e.target.value = "";
     }
-  };
-
-  const onFilesPicked = (ev) => {
-    const list = Array.from(ev.target.files || []);
-    const hasVideo = list.some((f) => /\.(mp4|mov|avi|mkv|webm|m4v)$/i.test(f.name));
-    if (hasVideo) setUsePathGps(true);
-    handleUpload(ev);
   };
 
   return (
@@ -179,9 +230,7 @@ export default function UploadPanel({ onUploaded }) {
           </button>
         ))}
       </div>
-      {sourceHint && (
-        <p className="upload-source-hint">{t[sourceHint.hintKey]}</p>
-      )}
+      {sourceHint && <p className="upload-source-hint">{t[sourceHint.hintKey]}</p>}
 
       <label className="upload-field">
         <span>{t.missionIdLabel}</span>
@@ -207,59 +256,82 @@ export default function UploadPanel({ onUploaded }) {
         />
       </label>
 
+      {hasVideo ? (
+        <section className="upload-video-path-card" aria-label={t.videoPathTitle}>
+          <h4 className="upload-video-path-title">{t.videoPathTitle}</h4>
+          <p className="upload-video-path-sub">{t.videoPathSub}</p>
+          <ol className="upload-video-steps">
+            {(t.videoPathSteps || []).map((step) => (
+              <li key={step}>{step}</li>
+            ))}
+          </ol>
+        </section>
+      ) : null}
+
       <label className="upload-check">
         <input
           type="checkbox"
-          checked={usePathGps}
+          checked={usePathGps || hasVideo}
           onChange={(ev) => setUsePathGps(ev.target.checked)}
-          disabled={loading}
+          disabled={loading || hasVideo}
         />
         <span>{t.pathGpsLabel}</span>
       </label>
 
-      {usePathGps && (
-        <div className="upload-gps-grid">
-          <input
-            type="number"
-            step="any"
-            placeholder={t.startLat}
-            value={startLat}
-            onChange={(ev) => setStartLat(ev.target.value)}
-            disabled={loading}
-          />
-          <input
-            type="number"
-            step="any"
-            placeholder={t.startLon}
-            value={startLon}
-            onChange={(ev) => setStartLon(ev.target.value)}
-            disabled={loading}
-          />
-          <input
-            type="number"
-            step="any"
-            placeholder={t.endLat}
-            value={endLat}
-            onChange={(ev) => setEndLat(ev.target.value)}
-            disabled={loading}
-          />
-          <input
-            type="number"
-            step="any"
-            placeholder={t.endLon}
-            value={endLon}
-            onChange={(ev) => setEndLon(ev.target.value)}
-            disabled={loading}
-          />
+      {(usePathGps || hasVideo) && (
+        <div className="upload-gps-block">
+          <div className="upload-gps-actions">
+            <button type="button" className="upload-gps-btn" onClick={fillStartFromHere} disabled={loading}>
+              {t.gpsUseStartHere}
+            </button>
+            <button type="button" className="upload-gps-btn" onClick={fillEndFromHere} disabled={loading}>
+              {t.gpsUseEndHere}
+            </button>
+          </div>
+          <div className="upload-gps-grid">
+            <input
+              type="number"
+              step="any"
+              placeholder={t.startLat}
+              value={startLat}
+              onChange={(ev) => setStartLat(ev.target.value)}
+              disabled={loading}
+            />
+            <input
+              type="number"
+              step="any"
+              placeholder={t.startLon}
+              value={startLon}
+              onChange={(ev) => setStartLon(ev.target.value)}
+              disabled={loading}
+            />
+            <input
+              type="number"
+              step="any"
+              placeholder={t.endLat}
+              value={endLat}
+              onChange={(ev) => setEndLat(ev.target.value)}
+              disabled={loading}
+            />
+            <input
+              type="number"
+              step="any"
+              placeholder={t.endLon}
+              value={endLon}
+              onChange={(ev) => setEndLon(ev.target.value)}
+              disabled={loading}
+            />
+          </div>
+          <p className="upload-gps-note">{t.videoPathNote}</p>
         </div>
       )}
 
       <div className="upload-zone">
         <label className={`upload-btn ${loading ? "disabled" : ""}`}>
           <span className="upload-btn-icon">
-            <NavIcon name={loading ? "recent" : "field"} />
+            <NavIcon name="field" />
           </span>
-          <span>{loading ? t.uploading : t.uploadBtnBatch}</span>
+          <span>{t.uploadPickFiles}</span>
           <input
             type="file"
             accept="image/*,video/mp4,video/quicktime,video/webm,video/x-msvideo,.mp4,.mov,.avi,.mkv,.webm"
@@ -269,12 +341,35 @@ export default function UploadPanel({ onUploaded }) {
             hidden
           />
         </label>
+
+        {pendingFiles.length > 0 ? (
+          <div className="upload-pending">
+            <p className="upload-pending-label">{t.uploadPending}</p>
+            <ul className="upload-pending-list">
+              {pendingFiles.map((f) => (
+                <li key={`${f.name}-${f.size}`}>
+                  {isVideoFile(f) ? "🎬 " : "📷 "}
+                  {f.name}
+                </li>
+              ))}
+            </ul>
+            <button
+              type="button"
+              className="upload-submit-btn"
+              onClick={handleUpload}
+              disabled={loading || (hasVideo && !pathReady)}
+            >
+              {loading ? t.uploading : t.uploadStartBtn}
+            </button>
+            {hasVideo && !pathReady ? (
+              <p className="upload-pending-warn">{t.videoPathGpsRequired}</p>
+            ) : null}
+          </div>
+        ) : null}
       </div>
 
       {(progress || message) && (
-        <p className={`upload-msg ${messageType}`}>
-          {progress || message}
-        </p>
+        <p className={`upload-msg ${messageType}`}>{progress || message}</p>
       )}
     </section>
   );

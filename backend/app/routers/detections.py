@@ -42,6 +42,7 @@ from app.services.batch_media import (
     MAX_BATCH_IMAGES,
     MAX_VIDEO_FRAMES,
     extract_video_frames,
+    gps_at_timestamp,
     interpolate_gps,
     is_image_filename,
     is_video_filename,
@@ -70,6 +71,40 @@ router = APIRouter(prefix="/api/detections", tags=["detections"])
 logger = logging.getLogger(__name__)
 
 MAX_VIDEO_BYTES = 100 * 1024 * 1024  # 100 MB
+
+
+def _parse_gps_track(raw: str | None) -> list[dict]:
+    if not raw or not raw.strip():
+        return []
+    import json
+
+    try:
+        data = json.loads(raw)
+    except json.JSONDecodeError:
+        return []
+    if not isinstance(data, list):
+        return []
+    out: list[dict] = []
+    for item in data:
+        if not isinstance(item, dict):
+            continue
+        lat = item.get("lat", item.get("latitude"))
+        lon = item.get("lon", item.get("longitude"))
+        t = item.get("t", item.get("timestamp_sec", item.get("time")))
+        if lat is None or lon is None:
+            continue
+        try:
+            out.append({"t": float(t or 0), "lat": float(lat), "lon": float(lon)})
+        except (TypeError, ValueError):
+            continue
+    return sorted(out, key=lambda p: p["t"])
+
+
+def _track_endpoints(track: list[dict]) -> tuple[float | None, float | None, float | None, float | None]:
+    if len(track) < 2:
+        return None, None, None, None
+    a, b = track[0], track[-1]
+    return a["lat"], a["lon"], b["lat"], b["lon"]
 
 
 def _media_url(file_path: str | None, organization_id: int | None = None) -> str | None:
@@ -424,6 +459,7 @@ async def upload_batch_and_detect(
     mission_id: str | None = Form(None),
     frame_interval_sec: float = Form(1.0),
     max_video_frames: int | None = Form(None),
+    gps_track: str | None = Form(None),
     org: Organization = Depends(get_current_organization),
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
@@ -440,6 +476,14 @@ async def upload_batch_and_detect(
         video_frame_cap = max(1, min(int(max_video_frames), MAX_VIDEO_FRAMES))
 
     mission = (mission_id or source_id or "").strip() or None
+    track = _parse_gps_track(gps_track)
+    if track and len(track) >= 2:
+        t_start_lat, t_start_lon, t_end_lat, t_end_lon = _track_endpoints(track)
+        if latitude is None and t_start_lat is not None:
+            latitude, longitude = t_start_lat, t_start_lon
+        if end_latitude is None and t_end_lat is not None:
+            end_latitude, end_longitude = t_end_lat, t_end_lon
+
     items: list[BatchItemResult] = []
     all_detections: list[DetectionResponse] = []
     # content, filename, lat, lon, frame_index, timestamp_sec, video_path
@@ -493,17 +537,20 @@ async def upload_batch_and_detect(
 
     saved_video_path: str | None = None
     for vf in video_files:
-        if (
-            latitude is None
-            or longitude is None
-            or end_latitude is None
-            or end_longitude is None
-        ):
+        has_path = (
+            latitude is not None
+            and longitude is not None
+            and end_latitude is not None
+            and end_longitude is not None
+        )
+        has_track = len(track) >= 2
+        if not has_path and not has_track:
             raise HTTPException(
                 status_code=400,
                 detail=(
-                    "رفع الفيديو يتطلب إحداثيات بداية ونهاية المسار على الطريق — "
-                    "فعّل «مسار GPS» وأدخل نقطة البداية والنهاية"
+                    "رفع الفيديو يحتاج مسار GPS — "
+                    "فعّل «مسار GPS» وأدخل بداية ونهاية الطريق، "
+                    "أو سجّل الفيديو من تطبيق الموبايل لالتقاط المسار تلقائياً"
                 ),
             )
         raw = await vf.read()
@@ -529,14 +576,17 @@ async def upload_batch_and_detect(
             raise HTTPException(status_code=400, detail=str(exc)) from exc
         total = len(frames)
         for fr in frames:
-            lat, lon = interpolate_gps(
-                fr.frame_index,
-                total,
-                latitude,
-                longitude,
-                end_latitude,
-                end_longitude,
-            )
+            if has_track:
+                lat, lon = gps_at_timestamp(track, fr.timestamp_sec)
+            else:
+                lat, lon = interpolate_gps(
+                    fr.frame_index,
+                    total,
+                    latitude,
+                    longitude,
+                    end_latitude,
+                    end_longitude,
+                )
             work_units.append(
                 (
                     fr.content,

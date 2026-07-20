@@ -1844,6 +1844,108 @@ body {
   color: var(--text-muted);
 }
 
+.upload-video-path-card {
+  margin: 0.75rem 0 1rem;
+  padding: 0.85rem 1rem;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 107, 157, 0.35);
+  background: rgba(255, 107, 157, 0.08);
+}
+
+.upload-video-path-title {
+  margin: 0 0 0.35rem;
+  font-size: 0.92rem;
+  color: var(--text);
+}
+
+.upload-video-path-sub {
+  margin: 0 0 0.55rem;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+.upload-video-steps {
+  margin: 0;
+  padding-inline-start: 1.2rem;
+  font-size: 0.78rem;
+  color: var(--text-dim);
+  line-height: 1.65;
+}
+
+.upload-gps-block {
+  margin-bottom: 0.85rem;
+}
+
+.upload-gps-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin-bottom: 0.55rem;
+}
+
+.upload-gps-btn {
+  padding: 0.42rem 0.75rem;
+  border-radius: 10px;
+  border: 1px solid rgba(46, 230, 255, 0.35);
+  background: rgba(46, 230, 255, 0.08);
+  color: var(--primary);
+  font-size: 0.76rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.upload-gps-note {
+  margin: 0.55rem 0 0;
+  font-size: 0.74rem;
+  color: var(--text-dim);
+  line-height: 1.5;
+}
+
+.upload-pending {
+  margin-top: 0.85rem;
+  padding: 0.75rem;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: rgba(8, 12, 24, 0.55);
+}
+
+.upload-pending-label {
+  margin: 0 0 0.45rem;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.upload-pending-list {
+  margin: 0 0 0.65rem;
+  padding-inline-start: 1.1rem;
+  font-size: 0.78rem;
+  color: var(--text);
+}
+
+.upload-submit-btn {
+  width: 100%;
+  padding: 0.65rem 1rem;
+  border-radius: 12px;
+  border: none;
+  background: linear-gradient(135deg, #2ee6ff, #7c6bff);
+  color: #02040a;
+  font-weight: 800;
+  font-size: 0.88rem;
+  cursor: pointer;
+}
+
+.upload-submit-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.upload-pending-warn {
+  margin: 0.55rem 0 0;
+  font-size: 0.76rem;
+  color: #ff9bb5;
+}
+
 .upload-source-row {
   display: flex;
   flex-wrap: wrap;

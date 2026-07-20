@@ -92,7 +92,7 @@ function AppInner() {
 
 
 
-  const { status: gpsStatus, requestAndStart, getCoords } = useGps(
+  const { status: gpsStatus, requestAndStart, getCoords, startPathRecording, stopPathRecording } = useGps(
 
     (coords, _label, ready) => {
 
@@ -279,6 +279,10 @@ function AppInner() {
             gpsReady={gpsReady}
 
             getCoords={() => coordsRef.current || getCoords()}
+
+            startPathRecording={startPathRecording}
+
+            stopPathRecording={stopPathRecording}
 
             onUploaded={handleUploaded}
 

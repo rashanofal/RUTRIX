@@ -8,7 +8,7 @@ import {
   ActivityIndicator,
   Platform,
 } from "react-native";
-import { CameraView, useCameraPermissions } from "expo-camera";
+import { CameraView, useCameraPermissions, useMicrophonePermissions } from "expo-camera";
 import { LinearGradient } from "expo-linear-gradient";
 import * as ImagePicker from "expo-image-picker";
 import { Ionicons } from "@expo/vector-icons";
@@ -29,28 +29,30 @@ function uploadResultMessage(result, t) {
 }
 
 function isVideoAsset(asset) {
-  const t = (asset?.mimeType || asset?.type || "").toLowerCase();
+  const typ = (asset?.mimeType || asset?.type || "").toLowerCase();
   const name = (asset?.fileName || asset?.uri || "").toLowerCase();
-  return t.startsWith("video") || /\.(mp4|mov|webm|m4v|avi)$/.test(name);
+  return typ.startsWith("video") || /\.(mp4|mov|webm|m4v|avi)$/.test(name);
 }
 
-function ScanFrame() {
+function ScanFrame({ videoMode }) {
   return (
     <View style={styles.frameWrap} pointerEvents="none">
-      <View style={styles.frameBox}>
+      <View style={[styles.frameBox, videoMode && styles.frameBoxVideo]}>
         {["tl", "tr", "bl", "br"].map((p) => (
           <View key={p} style={[styles.corner, styles[`corner_${p}`]]} />
         ))}
-        <LinearGradient
-          colors={["transparent", "rgba(34,211,238,0.35)", "transparent"]}
-          style={styles.scanLine}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 0 }}
-        />
+        {!videoMode ? (
+          <LinearGradient
+            colors={["transparent", "rgba(34,211,238,0.35)", "transparent"]}
+            style={styles.scanLine}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+          />
+        ) : null}
       </View>
       <View style={styles.aiBadge}>
-        <Ionicons name="sparkles" size={12} color={colors.accent} />
-        <Text style={styles.aiText}>RUTRIX AI</Text>
+        <Ionicons name={videoMode ? "videocam" : "sparkles"} size={12} color={colors.accent} />
+        <Text style={styles.aiText}>{videoMode ? "VIDEO + GPS" : "RUTRIX AI"}</Text>
       </View>
     </View>
   );
@@ -61,15 +63,21 @@ export default function CameraScreen({
   connected,
   gpsReady,
   getCoords,
+  startPathRecording,
+  stopPathRecording,
   onUploaded,
   orgName,
 }) {
   const { locale, t } = useLocale();
   const isRtl = locale === "ar";
   const [permission, requestPermission] = useCameraPermissions();
+  const [micPermission, requestMicPermission] = useMicrophonePermissions();
   const [loading, setLoading] = useState(false);
+  const [recording, setRecording] = useState(false);
+  const [mode, setMode] = useState("photo");
   const [uploadStatus, setUploadStatus] = useState("");
   const cameraRef = useRef(null);
+  const recordPromiseRef = useRef(null);
 
   const coordsPayload = () => {
     const c = getCoords?.();
@@ -84,7 +92,7 @@ export default function CameraScreen({
   };
 
   const handleCapture = async () => {
-    if (!cameraRef.current || loading) return;
+    if (!cameraRef.current || loading || recording) return;
     setLoading(true);
     try {
       const photo = await cameraRef.current.takePictureAsync({
@@ -103,7 +111,71 @@ export default function CameraScreen({
     }
   };
 
+  const handleVideoPress = async () => {
+    if (loading) return;
+    if (!gpsReady) {
+      Alert.alert(t.error, t.videoGpsRequired);
+      return;
+    }
+    if (!cameraRef.current) return;
+
+    if (!recording) {
+      if (micPermission && !micPermission.granted) {
+        const mic = await requestMicPermission();
+        if (!mic.granted) {
+          Alert.alert(t.error, t.micPerm || t.permSub);
+          return;
+        }
+      }
+      startPathRecording?.();
+      setRecording(true);
+      setUploadStatus(t.videoRecording);
+      recordPromiseRef.current = cameraRef.current.recordAsync({
+        maxDuration: 120,
+      });
+      return;
+    }
+
+    setLoading(true);
+    try {
+      cameraRef.current.stopRecording();
+      const video = await recordPromiseRef.current;
+      const pathData = stopPathRecording?.();
+      setRecording(false);
+      setUploadStatus(t.uploading);
+
+      if (!video?.uri) throw new Error(t.captureFail);
+      if (!pathData?.track?.length || pathData.track.length < 2) {
+        throw new Error(t.videoGpsRequired);
+      }
+
+      const result = await uploadPhotosSequential(
+        [{ uri: video.uri, fileName: "survey.mp4", mimeType: "video/mp4" }],
+        apiUrl,
+        pathData.start,
+        {
+          deviceType: "phone",
+          pathData,
+          frameIntervalSec: 2,
+          maxVideoFrames: 15,
+        }
+      );
+      onUploaded?.(result);
+      setUploadStatus("");
+      Alert.alert(t.success, uploadResultMessage(result, t));
+    } catch (e) {
+      setRecording(false);
+      stopPathRecording?.();
+      setUploadStatus("");
+      Alert.alert(t.error, e.message || t.uploadFail);
+    } finally {
+      setLoading(false);
+      recordPromiseRef.current = null;
+    }
+  };
+
   const handlePick = async () => {
+    if (loading || recording) return;
     setLoading(true);
     setUploadStatus(t.uploading);
     try {
@@ -132,7 +204,14 @@ export default function CameraScreen({
 
       const assets = pick.assets;
       const hasVideo = assets.some(isVideoAsset);
+
+      if (hasVideo && !gpsReady) {
+        Alert.alert(t.error, t.videoGpsRequired);
+        return;
+      }
+
       const fallbackCoords = hasVideo ? coordsPayload() : null;
+      const endCoords = hasVideo ? coordsPayload() : null;
 
       setUploadStatus(t.uploading);
       const result =
@@ -144,6 +223,7 @@ export default function CameraScreen({
             })
           : await uploadPhotosSequential(assets, apiUrl, fallbackCoords, {
               deviceType: "phone",
+              endCoords: hasVideo ? endCoords : undefined,
             });
 
       onUploaded?.(result);
@@ -174,9 +254,16 @@ export default function CameraScreen({
     );
   }
 
+  const videoMode = mode === "video";
+
   return (
     <View style={styles.container}>
-      <CameraView ref={cameraRef} style={styles.camera} facing="back">
+      <CameraView
+        ref={cameraRef}
+        style={styles.camera}
+        facing="back"
+        mode={videoMode ? "video" : "picture"}
+      >
         <LinearGradient colors={["rgba(3,5,8,0.9)", "transparent"]} style={styles.topFade} />
         <LinearGradient colors={["transparent", "rgba(3,5,8,0.95)"]} style={styles.bottomFade} />
 
@@ -195,35 +282,76 @@ export default function CameraScreen({
           </View>
         </View>
 
-        <ScanFrame />
+        <View style={[styles.modeRow, isRtl && styles.modeRowRtl]}>
+          <TouchableOpacity
+            style={[styles.modeBtn, !videoMode && styles.modeBtnActive]}
+            onPress={() => !recording && setMode("photo")}
+            disabled={recording}
+          >
+            <Text style={[styles.modeBtnText, !videoMode && styles.modeBtnTextActive]}>{t.modePhoto}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.modeBtn, videoMode && styles.modeBtnActive]}
+            onPress={() => !recording && setMode("video")}
+            disabled={recording}
+          >
+            <Text style={[styles.modeBtnText, videoMode && styles.modeBtnTextActive]}>{t.modeVideo}</Text>
+          </TouchableOpacity>
+        </View>
+
+        <ScanFrame videoMode={videoMode} />
 
         <View style={[styles.hintBox, isRtl && styles.hintBoxRtl]}>
-          <Ionicons name="navigate" size={16} color={colors.primary} />
+          <Ionicons
+            name={recording ? "radio-button-on" : videoMode ? "videocam" : "navigate"}
+            size={16}
+            color={recording ? colors.danger : colors.primary}
+          />
           <Text style={[styles.hint, isRtl && styles.rtlText]}>
-            {uploadStatus || t.captureHint}
+            {uploadStatus ||
+              (recording
+                ? t.videoRecording
+                : videoMode
+                  ? t.videoCaptureHint
+                  : t.captureHint)}
           </Text>
         </View>
 
         <View style={styles.controls}>
-          <TouchableOpacity style={styles.sideBtn} onPress={handlePick} disabled={loading}>
+          <TouchableOpacity style={styles.sideBtn} onPress={handlePick} disabled={loading || recording}>
             <View style={styles.sideIcon}>
               <Ionicons name="images" size={24} color={colors.text} />
             </View>
             <Text style={[styles.sideLabel, isRtl && styles.rtlText]}>{t.album}</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity
-            style={[styles.captureOuter, loading && styles.disabled]}
-            onPress={handleCapture}
-            disabled={loading}
-            activeOpacity={0.85}
-          >
-            {loading ? (
-              <ActivityIndicator color="#fff" size="large" />
-            ) : (
-              <LinearGradient colors={[colors.accent, colors.accentHot]} style={styles.captureInner} />
-            )}
-          </TouchableOpacity>
+          {videoMode ? (
+            <TouchableOpacity
+              style={[styles.captureOuter, recording && styles.recordingOuter, loading && styles.disabled]}
+              onPress={handleVideoPress}
+              disabled={loading}
+              activeOpacity={0.85}
+            >
+              {loading ? (
+                <ActivityIndicator color="#fff" size="large" />
+              ) : (
+                <View style={[styles.videoInner, recording && styles.videoInnerRec]} />
+              )}
+            </TouchableOpacity>
+          ) : (
+            <TouchableOpacity
+              style={[styles.captureOuter, loading && styles.disabled]}
+              onPress={handleCapture}
+              disabled={loading}
+              activeOpacity={0.85}
+            >
+              {loading ? (
+                <ActivityIndicator color="#fff" size="large" />
+              ) : (
+                <LinearGradient colors={[colors.accent, colors.accentHot]} style={styles.captureInner} />
+              )}
+            </TouchableOpacity>
+          )}
 
           <View style={styles.sideBtn}>
             <View style={[styles.sideIcon, gpsReady && styles.sideIconActive]}>
@@ -262,8 +390,30 @@ const styles = StyleSheet.create({
   org: { color: "rgba(255,255,255,0.72)", fontSize: 13, marginTop: 4 },
   chips: { gap: 6, alignItems: "flex-end" },
   chipsRtl: { alignItems: "flex-start" },
+  modeRow: {
+    flexDirection: "row",
+    alignSelf: "center",
+    marginTop: 10,
+    gap: 8,
+    zIndex: 2,
+    backgroundColor: "rgba(8,13,24,0.75)",
+    padding: 4,
+    borderRadius: radius.full,
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.15)",
+  },
+  modeRowRtl: { flexDirection: "row-reverse" },
+  modeBtn: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: radius.full,
+  },
+  modeBtnActive: { backgroundColor: "rgba(34,211,238,0.25)" },
+  modeBtnText: { color: "rgba(255,255,255,0.65)", fontWeight: "700", fontSize: 13 },
+  modeBtnTextActive: { color: colors.primary },
   frameWrap: { ...StyleSheet.absoluteFillObject, justifyContent: "center", alignItems: "center" },
   frameBox: { width: "80%", aspectRatio: 4 / 3, maxHeight: "50%", position: "relative" },
+  frameBoxVideo: { width: "88%", aspectRatio: 16 / 9, maxHeight: "46%" },
   corner: { position: "absolute", width: CORNER, height: CORNER, borderColor: colors.primary },
   corner_tl: { top: 0, left: 0, borderTopWidth: CORNER_W, borderLeftWidth: CORNER_W, borderTopLeftRadius: 10 },
   corner_tr: { top: 0, right: 0, borderTopWidth: CORNER_W, borderRightWidth: CORNER_W, borderTopRightRadius: 10 },
@@ -298,8 +448,9 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "rgba(34,211,238,0.35)",
     zIndex: 2,
+    maxWidth: "92%",
   },
-  hint: { color: colors.primary, fontSize: 13, fontWeight: "600", maxWidth: 270 },
+  hint: { color: colors.primary, fontSize: 13, fontWeight: "600", flexShrink: 1 },
   hintBoxRtl: { flexDirection: "row-reverse" },
   controls: {
     position: "absolute",
@@ -344,7 +495,19 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 4 },
     elevation: 10,
   },
+  recordingOuter: { borderColor: colors.danger },
   captureInner: { width: 66, height: 66, borderRadius: 33 },
+  videoInner: {
+    width: 34,
+    height: 34,
+    borderRadius: 8,
+    backgroundColor: colors.danger,
+  },
+  videoInnerRec: {
+    width: 22,
+    height: 22,
+    borderRadius: 4,
+  },
   disabled: { opacity: 0.65 },
   perm: { flex: 1, justifyContent: "center", alignItems: "center", padding: spacing.lg, gap: spacing.md },
   permIcon: {

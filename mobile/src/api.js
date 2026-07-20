@@ -127,8 +127,12 @@ export async function uploadPhotosSequential(assets, apiBase, coords, options = 
   }
 
   if (videos.length) {
-    const result = await uploadDetectionBatch(videos, apiBase, coords, {
+    const path = options.pathData;
+    const start = path?.start || coords;
+    const result = await uploadDetectionBatch(videos, apiBase, start, {
       ...options,
+      endCoords: path?.end || options.endCoords,
+      gpsTrack: path?.track || options.gpsTrack,
       deviceType: options.deviceType || "phone",
       frameIntervalSec: options.frameIntervalSec || 2,
       maxVideoFrames: options.maxVideoFrames || 12,
@@ -172,10 +176,16 @@ export async function uploadDetectionBatch(assets, apiBase, coords, options = {}
   }
   if (options.missionId) formData.append("mission_id", options.missionId);
 
-  // Fallback only when photos lack EXIF (server still prefers EXIF when present)
   if (coords?.latitude != null && coords?.longitude != null) {
     formData.append("latitude", String(coords.latitude));
     formData.append("longitude", String(coords.longitude));
+  }
+  if (options.endCoords?.latitude != null && options.endCoords?.longitude != null) {
+    formData.append("end_latitude", String(options.endCoords.latitude));
+    formData.append("end_longitude", String(options.endCoords.longitude));
+  }
+  if (options.gpsTrack?.length) {
+    formData.append("gps_track", JSON.stringify(options.gpsTrack));
   }
 
   const headers = await authHeaders(apiBase, { Accept: "application/json" });
