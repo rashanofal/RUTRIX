@@ -3814,34 +3814,48 @@ body {
 .app-page:has(.page-map) {
   padding: 0;
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.map-chrome {
+  flex-shrink: 0;
+  z-index: 12;
+  position: relative;
+  background: rgba(6, 10, 20, 0.96);
+  border-bottom: 1px solid var(--border);
+  backdrop-filter: blur(16px);
 }
 
 .map-toolbar {
   display: flex;
-  gap: 0.5rem;
-  pointer-events: none;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.55rem 0.75rem;
+  padding: 0.65rem 1rem;
+  pointer-events: auto;
 }
 
-@media (min-width: 769px) {
-  .map-toolbar {
-    position: absolute;
-    top: 1rem;
-    left: 50%;
-    transform: translateX(-50%);
-    z-index: 1001;
-  }
-
-  .map-fullframe {
-    position: absolute;
-    inset: 0;
-    border-radius: 0;
-  }
+.map-toolbar-meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  min-width: 0;
 }
 
 .map-fullframe {
   position: relative;
   flex: 1;
   min-height: 0;
+}
+
+@media (min-width: 769px) {
+  .map-fullframe {
+    border-radius: 0;
+  }
 }
 
 .map-fullframe .leaflet-container {

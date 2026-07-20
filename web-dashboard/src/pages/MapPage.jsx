@@ -35,25 +35,33 @@ export default function MapPage({
 
   return (
     <div className="page-map">
-      <div className="map-toolbar">
-        {!isAdmin ? (
-          <span className="map-status-pill map-status-pill-scope">{t.myDataOnlyHint}</span>
-        ) : null}
-        <span className="map-status-pill map-status-pill-pins">
-          {pinned} {pinned === 1 ? t.mapPins : t.mapPinsPlural}
-        </span>
-        <span className={`map-status-pill ${wsConnected ? "live" : "offline"}`}>
-          {wsConnected ? `● ${t.liveSync}` : `○ ${t.disconnected}`}
-        </span>
-        <PageExportToolbar variant="toolbar" className="map-report-toolbar" exportContext={{ detections: filteredDetections }} />
-      </div>
+      <header className="map-chrome">
+        <div className="map-toolbar">
+          <div className="map-toolbar-meta">
+            {!isAdmin ? (
+              <span className="map-status-pill map-status-pill-scope">{t.myDataOnlyHint}</span>
+            ) : null}
+            <span className="map-status-pill map-status-pill-pins">
+              {pinned} {pinned === 1 ? t.mapPins : t.mapPinsPlural}
+            </span>
+            <span className={`map-status-pill ${wsConnected ? "live" : "offline"}`}>
+              {wsConnected ? `● ${t.liveSync}` : `○ ${t.disconnected}`}
+            </span>
+          </div>
+          <PageExportToolbar
+            variant="toolbar"
+            className="map-report-toolbar"
+            exportContext={{ detections: filteredDetections }}
+          />
+        </div>
 
-      <MapFilterBar
-        filters={mapFilters}
-        onChange={setMapFilters}
-        resultCount={pinned}
-        totalCount={totalPinned}
-      />
+        <MapFilterBar
+          filters={mapFilters}
+          onChange={setMapFilters}
+          resultCount={pinned}
+          totalCount={totalPinned}
+        />
+      </header>
 
       <div className="map-fullframe">
         <PotholeMap
