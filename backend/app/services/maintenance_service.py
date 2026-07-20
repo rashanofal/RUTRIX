@@ -184,6 +184,9 @@ def update_work_order(
 
     new_status = fields.get("status")
 
+    if new_status == WorkOrderStatus.completed and not wo.proof_image_path:
+        raise ValueError("صورة إثبات الإصلاح مطلوبة لإتمام أمر الصيانة")
+
     if new_status == WorkOrderStatus.completed and not wo.completed_at:
         wo.completed_at = datetime.now(timezone.utc)
         if wo.detection_id:
@@ -248,6 +251,8 @@ def transition_work_order(
     elif to_status == WorkOrderStatus.in_progress:
         wo.started_at = now
     elif to_status == WorkOrderStatus.completed:
+        if not proof_image_path:
+            raise ValueError("صورة إثبات الإصلاح مطلوبة لإتمام أمر الصيانة")
         wo.completed_at = now
         if proof_image_path:
             wo.proof_image_path = proof_image_path

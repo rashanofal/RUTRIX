@@ -1,5 +1,5 @@
 import { useLocale } from "../context/LocaleContext";
-import { useIsOwner } from "../hooks/useIsAdmin";
+import { useIsAdmin } from "../hooks/useIsAdmin";
 import PotholeMap from "../components/PotholeMap";
 import DetectionDetail from "../components/DetectionDetail";
 import PageExportToolbar from "../components/PageExportToolbar";
@@ -18,13 +18,13 @@ export default function MapPage({
   wsConnected,
 }) {
   const { t } = useLocale();
-  const isOwner = useIsOwner();
+  const isAdmin = useIsAdmin();
   const pinned = detections.filter((d) => d.latitude != null).length;
 
   return (
     <div className="page-map">
       <div className="map-toolbar">
-        {!isOwner ? (
+        {!isAdmin ? (
           <span className="map-status-pill map-status-pill-scope">{t.myDataOnlyHint}</span>
         ) : null}
         <span className="map-status-pill map-status-pill-pins">
@@ -61,6 +61,7 @@ export default function MapPage({
             onVerify={onVerify}
             onReject={onReject}
             onSelect={onSelect}
+            canReview={isAdmin}
           />
         </aside>
       )}

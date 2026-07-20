@@ -30,7 +30,12 @@ from app.schemas import (
     StatsResponse,
     UploadResponse,
 )
-from app.services.access_control import is_platform_owner, scoped_detections_query
+from app.services.access_control import (
+    has_org_wide_detection_access,
+    is_org_supervisor,
+    is_platform_owner,
+    scoped_detections_query,
+)
 from app.services.auth_service import effective_organization_id
 from app.services.batch_media import (
     MAX_BATCH_IMAGES,
@@ -170,7 +175,7 @@ def detection_stats(
     role: str = Depends(get_current_role),
     db: Session = Depends(get_db),
 ):
-    reporter_user_id = None if is_platform_owner(user, role) else user.id
+    reporter_user_id = None if has_org_wide_detection_access(user, role) else user.id
     org_id = effective_organization_id(db, org.id, user, role)
     data = StatsResponse(**get_stats(db, org_id, reporter_user_id=reporter_user_id))
     return JSONResponse(
@@ -249,7 +254,7 @@ async def remove_detection(
     )
     if not detection:
         raise HTTPException(status_code=404, detail="Detection not found")
-    if not is_platform_owner(user, _member_role(db, org.id, user.id)):
+    if not has_org_wide_detection_access(user, _member_role(db, org.id, user.id)):
         if detection.reporter_user_id != user.id:
             raise HTTPException(status_code=403, detail="لا يمكن حذف نقطة أضافها مستخدم آخر")
 
@@ -294,6 +299,11 @@ async def update_detection_status(
     )
     if not det:
         raise HTTPException(status_code=404, detail="Detection not found")
+    if not is_org_supervisor(role):
+        raise HTTPException(
+            status_code=403,
+            detail="الاعتماد الرسمي أو الرفض متاح للمشرفين فقط",
+        )
     det.detection_status = payload.detection_status
     if payload.detection_status == DetectionStatus.rejected:
         det.rejection_reason = (payload.rejection_reason or "").strip() or None

@@ -12,7 +12,7 @@ from app.persistence import storage_status
 from app.config import settings
 from app.routers import auth, detections, intelligence, maintenance, notifications, team
 from app.models import User
-from app.services.access_control import is_platform_owner
+from app.services.access_control import has_org_wide_detection_access, is_platform_owner
 from app.services.auth_service import get_user_org_membership
 from app.database import SessionLocal
 from app.websocket import manager, org_id_from_ws_token, user_id_from_ws_token
@@ -369,7 +369,7 @@ async def websocket_detections(
             return
         membership = get_user_org_membership(db, user_id, org_id)
         role = membership.role if membership else None
-        owner = is_platform_owner(user, role)
+        org_wide = has_org_wide_detection_access(user, role)
     finally:
         db.close()
 
@@ -377,7 +377,7 @@ async def websocket_detections(
         websocket,
         org_id,
         user_id=user_id,
-        is_platform_owner=owner,
+        org_wide_access=org_wide,
     )
     try:
         while True:

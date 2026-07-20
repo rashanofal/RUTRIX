@@ -155,7 +155,7 @@ function Dashboard() {
       if (msg.type === "new_detection") {
         const data = msg.data;
         const mine =
-          isOwner ||
+          isAdmin ||
           Number(data?.reporter_user_id) === Number(auth?.user?.id);
         if (!mine) return;
         setDetections((prev) => {
@@ -167,7 +167,7 @@ function Dashboard() {
         void notifyDetection(data);
       }
     },
-    [refreshAll, loadStats, notifyDetection, auth?.user?.id, isOwner]
+    [refreshAll, loadStats, notifyDetection, auth?.user?.id, isAdmin]
   );
 
   const handleClearMap = async () => {
@@ -228,6 +228,10 @@ function Dashboard() {
   };
 
   const handleVerify = async (id) => {
+    if (!isAdmin) {
+      window.alert(t.adminOnlyHint);
+      return;
+    }
     try {
       await updateDetectionStatus(id, "verified");
       await loadDetections();
@@ -239,6 +243,10 @@ function Dashboard() {
   };
 
   const handleReject = async (id) => {
+    if (!isAdmin) {
+      window.alert(t.adminOnlyHint);
+      return;
+    }
     const reason = window.prompt(t.rejectReasonPrompt);
     if (reason === null) return;
     if (!reason.trim()) {

@@ -12,7 +12,7 @@ class WSClient:
     websocket: WebSocket
     organization_id: int
     user_id: int
-    is_platform_owner: bool
+    org_wide_access: bool
 
 
 class ConnectionManager:
@@ -25,14 +25,14 @@ class ConnectionManager:
         organization_id: int,
         *,
         user_id: int,
-        is_platform_owner: bool,
+        org_wide_access: bool,
     ):
         await websocket.accept()
         client = WSClient(
             websocket=websocket,
             organization_id=organization_id,
             user_id=user_id,
-            is_platform_owner=is_platform_owner,
+            org_wide_access=org_wide_access,
         )
         self.connections.setdefault(organization_id, []).append(client)
 
@@ -44,7 +44,7 @@ class ConnectionManager:
 
     @staticmethod
     def _client_should_receive(client: WSClient, message: dict[str, Any]) -> bool:
-        if client.is_platform_owner:
+        if client.org_wide_access:
             return True
         msg_type = message.get("type")
         if msg_type in {"map_cleared", "detections_deleted"}:

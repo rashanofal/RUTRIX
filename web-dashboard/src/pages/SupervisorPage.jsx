@@ -183,6 +183,7 @@ export default function SupervisorPage({
               onVerify={onVerify}
               onReject={onReject}
               onSelect={onSelect}
+              canReview
             />
           </aside>
         ) : null}

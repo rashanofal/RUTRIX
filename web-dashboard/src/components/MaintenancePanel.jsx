@@ -521,25 +521,17 @@ export default function MaintenancePanel({
                     </option>
                   ))}
                 </select>
-                {wo.status !== "verified" && wo.status !== "cancelled" && wo.status !== "completed" && (
-                  <>
-                    <button
-                      type="button"
-                      className="wo-advance-btn"
-                      onClick={() => advanceStatus(wo)}
-                    >
-                      {actionLabel(wo.status, t)}
-                    </button>
-                    {wo.status === "open" && (
-                      <button
-                        type="button"
-                        className="wo-cancel-btn"
-                        onClick={() => cancelOrder(wo)}
-                      >
-                        {t.woCancelOrder}
-                      </button>
-                    )}
-                  </>
+                {wo.status !== "verified" && wo.status !== "cancelled" && wo.status === "open" && (
+                  <button
+                    type="button"
+                    className="wo-cancel-btn"
+                    onClick={() => cancelOrder(wo)}
+                  >
+                    {t.woCancelOrder}
+                  </button>
+                )}
+                {["assigned", "accepted", "in_progress"].includes(wo.status) && (
+                  <p className="wo-field-hint">{t.woFieldStepsHint}</p>
                 )}
                 {DELETABLE_STATUSES.has(wo.status) && (
                   <button

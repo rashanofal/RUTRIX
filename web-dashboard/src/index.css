@@ -2991,6 +2991,17 @@ body {
   gap: 0.4rem;
   margin-top: 0.5rem;
 }
+.wo-field-hint {
+  margin: 0.35rem 0 0;
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  line-height: 1.45;
+}
+
+.detail-actions-field {
+  grid-template-columns: 1fr;
+}
+
 .confirm-btn, .verify-btn, .reject-btn {
   flex: 1;
   min-width: 90px;

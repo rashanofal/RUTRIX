@@ -59,6 +59,7 @@ export default function FieldPage({
               onReject={onReject}
               onSelect={onSelect}
               onShowOnMap={onShowOnMap}
+              canReview={isAdmin}
             />
           )}
         </div>

@@ -176,6 +176,17 @@ async def patch_work_order(
         )
     if "status" in fields and fields["status"]:
         fields["status"] = WorkOrderStatus(fields["status"])
+        blocked = {
+            WorkOrderStatus.accepted,
+            WorkOrderStatus.in_progress,
+            WorkOrderStatus.completed,
+            WorkOrderStatus.verified,
+        }
+        if fields["status"] in blocked:
+            raise HTTPException(
+                status_code=400,
+                detail="خطوات القبول والتنفيذ والإتمام تتم من تطبيق الميدان فقط",
+            )
     if "priority" in fields and fields["priority"]:
         fields["priority"] = WorkOrderPriority(fields["priority"])
     wo = update_work_order(db, work_order_id, org.id, actor_user_id=user.id, **fields)
@@ -406,18 +417,19 @@ async def complete_work_order(
     if not wo:
         raise HTTPException(status_code=404, detail="Work order not found")
     _require_assignee(wo, user)
-    if wo.status not in (
-        WorkOrderStatus.assigned,
-        WorkOrderStatus.accepted,
-        WorkOrderStatus.in_progress,
-    ):
-        raise HTTPException(status_code=400, detail="لا يمكن إنهاء الأمر في حالته الحالية")
+    if wo.status not in (WorkOrderStatus.in_progress,):
+        raise HTTPException(
+            status_code=400,
+            detail="يجب بدء العمل على الأمر قبل تسجيل الإتمام",
+        )
 
     proof_path = None
     if proof is not None:
         content = await proof.read()
         if content:
             proof_path = save_upload_file(content, proof.filename or "proof.jpg", org.id)
+    if not proof_path:
+        raise HTTPException(status_code=400, detail="صورة إثبات الإصلاح مطلوبة")
 
     wo = transition_work_order(
         db,

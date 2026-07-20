@@ -1,4 +1,4 @@
-"""Row-level access: platform owner sees org-wide data; everyone else sees only their uploads."""
+"""Row-level access: org supervisors see org-wide data; field users see only their uploads."""
 
 from __future__ import annotations
 
@@ -9,9 +9,27 @@ from app.models import DetectionStatus, MemberRole, PotholeDetection, User
 from app.services.auth_service import effective_organization_id, is_platform_owner_user
 
 
+def _normalize_role(role: str | MemberRole | None) -> str | None:
+    if role is None:
+        return None
+    if isinstance(role, MemberRole):
+        return role.value
+    return str(role)
+
+
 def is_platform_owner(user: User, role: str | MemberRole | None = None) -> bool:
-    """Owner is identified by configured email so phone/web both get org-wide map access."""
+    """Platform operator (configured email) — full org + destructive ops."""
     return bool(user and is_platform_owner_user(user))
+
+
+def is_org_supervisor(role: str | MemberRole | None) -> bool:
+    """Org owner/admin — operational supervisor within their organization."""
+    return _normalize_role(role) in (MemberRole.owner.value, MemberRole.admin.value)
+
+
+def has_org_wide_detection_access(user: User, role: str | MemberRole | None) -> bool:
+    """See all non-rejected detections in the organization."""
+    return is_platform_owner(user, role) or is_org_supervisor(role)
 
 
 def scoped_detections_query(
@@ -26,7 +44,7 @@ def scoped_detections_query(
         .filter(PotholeDetection.organization_id == org_id)
         .filter(PotholeDetection.detection_status != DetectionStatus.rejected)
     )
-    if not is_platform_owner(user, role):
+    if not has_org_wide_detection_access(user, role):
         q = q.filter(PotholeDetection.reporter_user_id == user.id)
     return q
 
@@ -36,7 +54,7 @@ def detection_visible_to_user(
     user: User,
     role: str | MemberRole | None,
 ) -> bool:
-    if is_platform_owner(user, role):
+    if has_org_wide_detection_access(user, role):
         return True
     rep_id = (
         detection.get("reporter_user_id")

@@ -57,6 +57,7 @@ export default function DetectionDetail({
   onReject,
   onSelect,
   onShowOnMap,
+  canReview = false,
 }) {
   const { t } = useLocale();
   const videoRef = useRef(null);
@@ -256,7 +257,7 @@ export default function DetectionDetail({
           {deletingId === selected.id ? t.deleting : `🗑️ ${t.delete}`}
         </button>
       ) : null}
-      {selected.class_name !== "photo" && (
+      {selected.class_name !== "photo" && canReview && (
         <div className="detail-actions">
           <button type="button" className="confirm-btn" onClick={() => onConfirm(selected.id)}>
             ✓ {t.confirmReport}
@@ -266,6 +267,13 @@ export default function DetectionDetail({
           </button>
           <button type="button" className="reject-btn" onClick={() => onReject(selected.id)}>
             ✕ {t.reject}
+          </button>
+        </div>
+      )}
+      {selected.class_name !== "photo" && !canReview && (
+        <div className="detail-actions detail-actions-field">
+          <button type="button" className="confirm-btn" onClick={() => onConfirm(selected.id)}>
+            ✓ {t.confirmReport}
           </button>
         </div>
       )}
