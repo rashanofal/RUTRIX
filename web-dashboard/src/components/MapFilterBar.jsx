@@ -25,19 +25,28 @@ function SelectRow({ label, value, options, labelKey, onChange, t }) {
   );
 }
 
-export default function MapFilterBar({ filters, onChange, resultCount, totalCount }) {
+export default function MapFilterBar({
+  filters,
+  onChange,
+  resultCount,
+  totalCount,
+  exportSlot = null,
+}) {
   const { t } = useLocale();
   const set = (key) => (val) => onChange({ ...filters, [key]: val });
 
   return (
     <div className="map-filter-bar" aria-label={t.mapFilterTitle}>
       <div className="map-filter-head">
-        <strong>{t.mapFilterTitle}</strong>
-        {totalCount != null ? (
-          <span className="map-filter-count">
-            {resultCount} / {totalCount}
-          </span>
-        ) : null}
+        <div className="map-filter-head-start">
+          <strong>{t.mapFilterTitle}</strong>
+          {totalCount != null ? (
+            <span className="map-filter-count">
+              {resultCount} / {totalCount}
+            </span>
+          ) : null}
+        </div>
+        {exportSlot ? <div className="map-filter-export">{exportSlot}</div> : null}
       </div>
       <div className="map-filter-grid">
         <SelectRow

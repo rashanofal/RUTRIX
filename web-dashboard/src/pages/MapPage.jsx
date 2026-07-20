@@ -36,23 +36,16 @@ export default function MapPage({
   return (
     <div className="page-map">
       <header className="map-chrome">
-        <div className="map-toolbar">
-          <div className="map-toolbar-meta">
-            {!isAdmin ? (
-              <span className="map-status-pill map-status-pill-scope">{t.myDataOnlyHint}</span>
-            ) : null}
-            <span className="map-status-pill map-status-pill-pins">
-              {pinned} {pinned === 1 ? t.mapPins : t.mapPinsPlural}
-            </span>
-            <span className={`map-status-pill ${wsConnected ? "live" : "offline"}`}>
-              {wsConnected ? `● ${t.liveSync}` : `○ ${t.disconnected}`}
-            </span>
-          </div>
-          <PageExportToolbar
-            variant="toolbar"
-            className="map-report-toolbar"
-            exportContext={{ detections: filteredDetections }}
-          />
+        <div className="map-chrome-status">
+          {!isAdmin ? (
+            <span className="map-status-pill map-status-pill-scope">{t.myDataOnlyHint}</span>
+          ) : null}
+          <span className="map-status-pill map-status-pill-pins">
+            {pinned} {pinned === 1 ? t.mapPins : t.mapPinsPlural}
+          </span>
+          <span className={`map-status-pill ${wsConnected ? "live" : "offline"}`}>
+            {wsConnected ? `● ${t.liveSync}` : `○ ${t.disconnected}`}
+          </span>
         </div>
 
         <MapFilterBar
@@ -60,6 +53,13 @@ export default function MapPage({
           onChange={setMapFilters}
           resultCount={pinned}
           totalCount={totalPinned}
+          exportSlot={
+            <PageExportToolbar
+              variant="toolbar"
+              className="map-report-toolbar"
+              exportContext={{ detections: filteredDetections }}
+            />
+          }
         />
       </header>
 
