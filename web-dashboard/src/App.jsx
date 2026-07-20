@@ -17,6 +17,7 @@ import {
   confirmDetection,
   deleteDetection,
   fetchAllDetections,
+  fetchWorkOrders,
   fetchStats,
   fetchApiHealth,
   updateDetectionStatus,
@@ -31,6 +32,7 @@ function Dashboard() {
   const isOwner = useIsOwner();
   const [page, setPage] = useState("overview");
   const [detections, setDetections] = useState([]);
+  const [workOrders, setWorkOrders] = useState([]);
   const [stats, setStats] = useState(null);
   const [selectedId, setSelectedId] = useState(null);
   const [selectedSnapshot, setSelectedSnapshot] = useState(null);
@@ -93,12 +95,26 @@ function Dashboard() {
     }
   }, []);
 
+  const loadWorkOrders = useCallback(async () => {
+    try {
+      const orders = await fetchWorkOrders();
+      setWorkOrders(Array.isArray(orders) ? orders : []);
+    } catch {
+      setWorkOrders([]);
+    }
+  }, []);
+
   const refreshAll = useCallback(async () => {
     setMaintRefresh((r) => r + 1);
     try {
-      const [statsData, persisted] = await Promise.all([fetchStats(), fetchAllDetections()]);
+      const [statsData, persisted, orders] = await Promise.all([
+        fetchStats(),
+        fetchAllDetections(),
+        fetchWorkOrders(),
+      ]);
       setStats(statsData);
       setDetections(persisted);
+      setWorkOrders(Array.isArray(orders) ? orders : []);
       if (selectedIdRef.current && !persisted.some((d) => d.id === selectedIdRef.current)) {
         setSelectedId(null);
         selectedSnapshotRef.current = null;
@@ -112,8 +128,9 @@ function Dashboard() {
     } catch {
       await loadStats();
       await loadDetections();
+      await loadWorkOrders();
     }
-  }, [loadStats, loadDetections]);
+  }, [loadStats, loadDetections, loadWorkOrders]);
 
   const handleWsMessage = useCallback(
     (msg) => {
@@ -329,6 +346,7 @@ function Dashboard() {
         return (
           <MapPage
             detections={detections}
+            workOrders={workOrders}
             selected={selected}
             selectedId={selectedId}
             onSelect={setSelectedId}
@@ -347,6 +365,7 @@ function Dashboard() {
           <FieldPage
             stats={stats}
             detections={detections}
+            workOrders={workOrders}
             selected={selected}
             selectedId={selectedId}
             onSelect={setSelectedId}
@@ -379,6 +398,7 @@ function Dashboard() {
         return (
           <SupervisorPage
             detections={detections}
+            workOrders={workOrders}
             selected={selected}
             selectedId={selectedId}
             onSelect={setSelectedId}

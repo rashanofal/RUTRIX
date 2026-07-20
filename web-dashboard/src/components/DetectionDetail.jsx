@@ -3,6 +3,7 @@ import { useLocale } from "../context/LocaleContext";
 import { severityLabel } from "../i18n/translations";
 import { countClusterReports } from "../hooks/useCriticalAlerts";
 import DetectionStatusPipeline from "./DetectionStatusPipeline";
+import { workOrderForDetection } from "../utils/workOrderFlow";
 
 /** All frames from a survey mission, one card per image, with pothole counts. */
 function missionSurveyFrames(detections, missionId) {
@@ -58,6 +59,7 @@ export default function DetectionDetail({
   onSelect,
   onShowOnMap,
   canReview = false,
+  workOrders = [],
 }) {
   const { t } = useLocale();
   const videoRef = useRef(null);
@@ -73,6 +75,11 @@ export default function DetectionDetail({
   const missionFrames = useMemo(
     () => (selected ? missionSurveyFrames(detections, selected.mission_id) : []),
     [detections, selected]
+  );
+
+  const linkedWorkOrder = useMemo(
+    () => (selected ? workOrderForDetection(workOrders, selected.id) : null),
+    [workOrders, selected]
   );
 
   const selectFrame = (id) => {
@@ -246,7 +253,7 @@ export default function DetectionDetail({
           )}
         </p>
       )}
-      <DetectionStatusPipeline detection={selected} />
+      <DetectionStatusPipeline detection={selected} workOrder={linkedWorkOrder} />
       {onDelete ? (
         <button
           type="button"

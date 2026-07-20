@@ -9,7 +9,8 @@ from pathlib import Path
 
 from sqlalchemy.orm import Session
 
-from app.models import DetectionStatus, Organization, PotholeDetection
+from app.models import DetectionStatus, Organization, PotholeDetection, WorkOrderStatus
+from app.services.maintenance_service import get_maintenance_dashboard, list_work_orders
 
 logger = logging.getLogger(__name__)
 
@@ -39,6 +40,24 @@ _INK = (15, 23, 42)
 _AMBER = (180, 83, 9)
 
 _SEV_AR = {
+    "low": "منخفضة",
+    "medium": "متوسطة",
+    "high": "عالية",
+    "critical": "حرجة",
+}
+
+_WO_STATUS_AR = {
+    "open": "مفتوح",
+    "assigned": "مُسند",
+    "accepted": "مقبول",
+    "in_progress": "قيد التنفيذ",
+    "completed": "بانتظار الاعتماد",
+    "verified": "مغلق",
+    "cancelled": "ملغي",
+    "declined": "مرفوض",
+}
+
+_WO_PRIORITY_AR = {
     "low": "منخفضة",
     "medium": "متوسطة",
     "high": "عالية",
@@ -160,6 +179,47 @@ def _group_potholes_for_report(rows: list[PotholeDetection]) -> list[dict]:
     return priorities
 
 
+def _static_map_url(pins: list[dict], *, width: int = 800, height: int = 340) -> str | None:
+    coords = [
+        (p["latitude"], p["longitude"])
+        for p in pins
+        if p.get("latitude") is not None and p.get("longitude") is not None
+    ]
+    if not coords:
+        return None
+    lat = sum(c[0] for c in coords) / len(coords)
+    lon = sum(c[1] for c in coords) / len(coords)
+    zoom = 14 if len(coords) == 1 else 13
+    markers = "|".join(f"{la},{lo},red" for la, lo in coords[:20])
+    return (
+        "https://staticmap.openstreetmap.de/staticmap.php"
+        f"?center={lat:.5f},{lon:.5f}&zoom={zoom}&size={width}x{height}&markers={markers}"
+    )
+
+
+def _work_orders_for_report(db: Session, org_id: int, limit: int = 40) -> list[dict]:
+    rows = list_work_orders(db, org_id, limit=limit)
+    out: list[dict] = []
+    for wo in rows:
+        if wo.status in (WorkOrderStatus.cancelled, WorkOrderStatus.declined):
+            continue
+        status = wo.status.value if hasattr(wo.status, "value") else str(wo.status)
+        priority = wo.priority.value if hasattr(wo.priority, "value") else str(wo.priority or "medium")
+        out.append(
+            {
+                "id": wo.id,
+                "title": wo.title or f"WO #{wo.id}",
+                "status": status,
+                "status_label": _WO_STATUS_AR.get(status, status),
+                "priority": priority,
+                "priority_label": _WO_PRIORITY_AR.get(priority, priority),
+                "detection_id": wo.detection_id,
+                "assigned_to": wo.assigned_to_user_id,
+            }
+        )
+    return out
+
+
 def build_report_data(db: Session, org: Organization, limit: int = 100) -> dict:
     rows = (
         db.query(PotholeDetection)
@@ -193,6 +253,19 @@ def build_report_data(db: Session, org: Organization, limit: int = 100) -> dict:
         if path and path not in image_keys:
             image_keys.add(path)
 
+    maintenance = get_maintenance_dashboard(db, org.id)
+    work_orders = _work_orders_for_report(db, org.id)
+    map_pins = [
+        {
+            "latitude": p.get("latitude"),
+            "longitude": p.get("longitude"),
+            "severity": p.get("severity"),
+            "label": p.get("display_label"),
+        }
+        for p in priorities[:40]
+        if p.get("latitude") is not None
+    ]
+
     return {
         "org_name": org.name,
         "org_slug": org.slug,
@@ -206,7 +279,25 @@ def build_report_data(db: Session, org: Organization, limit: int = 100) -> dict:
         "critical_count": sum(1 for d in rows if d.severity == "critical"),
         "growing_count": sum(1 for d in rows if d.evolution_stage == "growing"),
         "priorities": priorities[:80],
+        "maintenance": maintenance,
+        "work_orders": work_orders,
+        "map_pins": map_pins,
+        "map_url": _static_map_url(map_pins),
     }
+
+
+def _report_wo_rows(data: dict) -> str:
+    rows = ""
+    for wo in data.get("work_orders") or []:
+        rows += f"""
+      <tr>
+        <td>#{wo['id']}</td>
+        <td>{wo['title']}</td>
+        <td><span class="severity severity-{wo['priority']}">{wo['priority_label']}</span></td>
+        <td>{wo['status_label']}</td>
+        <td>{wo.get('detection_id') or '—'}</td>
+      </tr>"""
+    return rows or '<tr><td colspan="5">لا توجد أوامر صيانة نشطة</td></tr>'
 
 
 def _report_table_rows(data: dict) -> str:
@@ -327,6 +418,16 @@ def _report_styles() -> str:
       color: #64748b;
       margin-top: 4px;
     }
+    .metrics--compact { margin-bottom: 14px; }
+    .report-map {
+      width: 100%;
+      max-height: 340px;
+      object-fit: cover;
+      border-radius: 10px;
+      border: 1px solid #e2e8f0;
+      display: block;
+      margin-top: 6px;
+    }
     .card {
       background: linear-gradient(180deg, #ffffff, #fbfdff);
       border: 1px solid #e2e8f0;
@@ -421,6 +522,33 @@ def _build_report_html(data: dict) -> str:
         f"<li>{_severity_label(k)}: {v}</li>" for k, v in data.get("by_severity", {}).items()
     ) or "<li>لا توجد بيانات خطورة</li>"
 
+    maint = data.get("maintenance") or {}
+    map_block = ""
+    if data.get("map_url"):
+        map_block = f"""
+      <div class="card">
+        <h2>خريطة الكشوفات</h2>
+        <img class="report-map" src="{data['map_url']}" alt="خريطة الكشوفات" />
+        <p class="note">خريطة توضيحية لمواقع الحفر المكتشفة (حتى 20 نقطة).</p>
+      </div>"""
+
+    wo_block = f"""
+      <div class="card">
+        <h2>ملخص أوامر الصيانة</h2>
+        <div class="metrics metrics--compact">
+          <div class="metric"><span class="metric-val">{maint.get('open_count', 0)}</span><span class="metric-lbl">مفتوحة</span></div>
+          <div class="metric"><span class="metric-val">{maint.get('pending_verification', 0)}</span><span class="metric-lbl">بانتظار الاعتماد</span></div>
+          <div class="metric"><span class="metric-val">{maint.get('completed_this_week', 0)}</span><span class="metric-lbl">أُنجزت هذا الأسبوع</span></div>
+          <div class="metric"><span class="metric-val">{maint.get('critical_open', 0)}</span><span class="metric-lbl">حرجة مفتوحة</span></div>
+        </div>
+        <table>
+          <thead><tr>
+            <th>#</th><th>العنوان</th><th>الأولوية</th><th>الحالة</th><th>كشف مرتبط</th>
+          </tr></thead>
+          <tbody>{_report_wo_rows(data)}</tbody>
+        </table>
+      </div>"""
+
     return f"""<!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
@@ -433,7 +561,7 @@ def _build_report_html(data: dict) -> str:
     <header class="report-header">
       {logo_html}
       <div class="header-meta">
-        <h1 class="report-title">تقرير صيانة الطرق</h1>
+        <h1 class="report-title">تقرير تنفيذي بلدي</h1>
         <p class="report-sub">{data['org_name']} · {data['generated_at']}</p>
       </div>
     </header>
@@ -464,6 +592,10 @@ def _build_report_html(data: dict) -> str:
         <ul class="sev-list">{sev_rows}</ul>
         <p class="note">* التكلفة = ترقيع محلي (cold patch) + عمالة قصيرة — تقدير لكل حفرة.</p>
       </div>
+
+      {map_block}
+
+      {wo_block}
 
       <div class="card">
         <h2>أولويات الصيانة</h2>

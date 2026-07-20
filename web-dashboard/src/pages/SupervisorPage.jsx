@@ -17,6 +17,7 @@ import {
 
 export default function SupervisorPage({
   detections,
+  workOrders = [],
   selected,
   selectedId,
   onSelect,
@@ -177,6 +178,7 @@ export default function SupervisorPage({
             <DetectionDetail
               selected={selected}
               detections={filteredDetections}
+              workOrders={workOrders}
               deletingId={deletingId}
               onDelete={onDelete}
               onConfirm={onConfirm}

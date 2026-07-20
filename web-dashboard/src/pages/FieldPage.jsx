@@ -8,6 +8,7 @@ import PageExportToolbar from "../components/PageExportToolbar";
 export default function FieldPage({
   stats,
   detections,
+  workOrders = [],
   selected,
   selectedId,
   onSelect,
@@ -51,6 +52,7 @@ export default function FieldPage({
             <DetectionDetail
               selected={selected}
               detections={detections}
+              workOrders={workOrders}
               deletingId={deletingId}
               onDelete={onDelete}
               isAdmin={isAdmin}

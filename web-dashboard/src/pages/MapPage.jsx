@@ -6,6 +6,7 @@ import PageExportToolbar from "../components/PageExportToolbar";
 
 export default function MapPage({
   detections,
+  workOrders = [],
   selected,
   selectedId,
   onSelect,
@@ -55,6 +56,7 @@ export default function MapPage({
           <DetectionDetail
             selected={selected}
             detections={detections}
+            workOrders={workOrders}
             deletingId={deletingId}
             onDelete={onDelete}
             onConfirm={onConfirm}

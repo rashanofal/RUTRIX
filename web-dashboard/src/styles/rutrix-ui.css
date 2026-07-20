@@ -1613,6 +1613,19 @@ body {
   flex-wrap: wrap;
 }
 
+.detection-workflow-steps--unified {
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  padding-bottom: 0.25rem;
+  scroll-snap-type: x proximity;
+}
+
+.detection-workflow-steps--unified .detection-workflow-step {
+  flex: 0 0 auto;
+  scroll-snap-align: start;
+  font-size: 0.72rem;
+}
+
 .detection-workflow-step {
   display: inline-flex;
   align-items: center;
