@@ -67,6 +67,7 @@ export default function MobileAppPanel({ compact = false }) {
 
   const playUrl = APP_DISTRIBUTION.playStoreUrl;
   const appStoreUrl = APP_DISTRIBUTION.appStoreUrl;
+  const betaApkUrl = APP_DISTRIBUTION.androidBetaApkUrl;
 
   return (
     <div className={`mobile-app-panel ${compact ? "compact" : ""}`}>
@@ -114,6 +115,26 @@ export default function MobileAppPanel({ compact = false }) {
           ))}
         </ol>
       </section>
+
+      {!playUrl && betaApkUrl ? (
+        <section className="mobile-beta-card mobile-apk-card" aria-label={t.mobileBetaApkTitle}>
+          <header className="mobile-beta-card-head">
+            <h3>{t.mobileBetaApkTitle}</h3>
+            <p>{t.mobileBetaApkSub}</p>
+          </header>
+          <div className="mobile-beta-actions">
+            <a
+              className="mobile-action-btn primary"
+              href={betaApkUrl}
+              target="_blank"
+              rel="noreferrer"
+              download
+            >
+              {t.mobileDownloadApk}
+            </a>
+          </div>
+        </section>
+      ) : null}
 
       <section className="mobile-stores" aria-label={t.mobileStoresTitle}>
         <h3 className="mobile-stores-title">{t.mobileStoresTitle}</h3>

@@ -23,12 +23,14 @@ export const PLATFORM_OWNER_EMAIL = "rashanofal82@gmail.com";
 
 /**
  * Mobile / store distribution config.
- * For beta: leave playStoreUrl / appStoreUrl null → "Coming soon" cards.
- * When apps publish, set the real store URLs here.
+ * Set playStoreUrl after publishing to Google Play.
+ * androidBetaApkUrl: direct APK for internal testers before store launch.
  */
 export const APP_DISTRIBUTION = {
   /** Prefer current Space/origin; override only if you use a custom domain */
   publicMobilePath: "/mobile",
   playStoreUrl: null,
   appStoreUrl: null,
+  androidBetaApkUrl:
+    "https://expo.dev/artifacts/eas/9tklrEn9KRsZ01kibDUQ8HNeSby2ZwE2ugFhtOUOY4M.apk",
 };

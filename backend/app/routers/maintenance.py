@@ -22,6 +22,7 @@ from app.schemas import (
     WorkOrderResponse,
     WorkOrderUpdate,
 )
+from app.services.audit_service import log_audit
 from app.services.geo_service import save_upload_file
 from app.services.maintenance_service import (
     create_work_order,
@@ -39,6 +40,29 @@ from app.services.notification_service import get_org_admin_ids, notify_user
 router = APIRouter(prefix="/api/maintenance", tags=["maintenance"])
 
 _ADMIN_ROLES = {"owner", "admin"}
+
+
+def _audit_wo(
+    db: Session,
+    *,
+    org_id: int,
+    user_id: int | None,
+    action: str,
+    wo: WorkOrder,
+    detail: dict | None = None,
+) -> None:
+    payload = {"title": wo.title, "status": wo.status.value if wo.status else None}
+    if detail:
+        payload.update(detail)
+    log_audit(
+        db,
+        organization_id=org_id,
+        user_id=user_id,
+        action=action,
+        entity_type="work_order",
+        entity_id=wo.id,
+        detail=payload,
+    )
 
 
 def _require_admin(role: str) -> None:
@@ -151,6 +175,14 @@ async def post_work_order(
             work_order_id=wo.id,
             detection_id=wo.detection_id,
         )
+    _audit_wo(
+        db,
+        org_id=org.id,
+        user_id=user.id,
+        action="work_order.created",
+        wo=wo,
+        detail={"detection_id": wo.detection_id},
+    )
     return WorkOrderResponse(**work_order_to_dict(db, wo))
 
 
@@ -217,6 +249,14 @@ async def patch_work_order(
             )
         except Exception:
             pass
+    _audit_wo(
+        db,
+        org_id=org.id,
+        user_id=user.id,
+        action="work_order.updated",
+        wo=wo,
+        detail={"fields": list(fields.keys())},
+    )
     return WorkOrderResponse(**work_order_to_dict(db, wo))
 
 
@@ -259,6 +299,7 @@ async def verify_work_order(
             )
         except Exception:
             pass
+    _audit_wo(db, org_id=org.id, user_id=user.id, action="work_order.verified", wo=wo)
     return WorkOrderResponse(**work_order_to_dict(db, wo))
 
 
@@ -279,6 +320,14 @@ def remove_work_order(
         raise HTTPException(status_code=400, detail=str(e)) from e
     if not deleted:
         raise HTTPException(status_code=404, detail="Work order not found")
+    log_audit(
+        db,
+        organization_id=org.id,
+        user_id=user.id,
+        action="work_order.deleted",
+        entity_type="work_order",
+        entity_id=work_order_id,
+    )
 
 
 @router.post("/work-orders/{work_order_id}/reject", response_model=WorkOrderResponse)
@@ -311,6 +360,14 @@ async def reject_work_order(
             work_order_id=wo.id,
             detection_id=wo.detection_id,
         )
+    _audit_wo(
+        db,
+        org_id=org.id,
+        user_id=user.id,
+        action="work_order.rejected",
+        wo=wo,
+        detail={"reason": reason},
+    )
     return WorkOrderResponse(**work_order_to_dict(db, wo))
 
 
@@ -344,6 +401,7 @@ async def accept_work_order(
         body=f"{user.full_name} قبِل: {wo.title}",
         work_order_id=wo.id,
     )
+    _audit_wo(db, org_id=org.id, user_id=user.id, action="work_order.accepted", wo=wo)
     return WorkOrderResponse(**work_order_to_dict(db, wo))
 
 
@@ -373,6 +431,14 @@ async def decline_work_order(
         body=f"{user.full_name} رفض: {title}" + (f" — {reason}" if reason else ""),
         work_order_id=wo.id,
     )
+    _audit_wo(
+        db,
+        org_id=org.id,
+        user_id=user.id,
+        action="work_order.declined",
+        wo=wo,
+        detail={"reason": reason},
+    )
     return WorkOrderResponse(**work_order_to_dict(db, wo))
 
 
@@ -401,6 +467,7 @@ async def start_work_order(
         body=f"{user.full_name} بدأ: {wo.title}",
         work_order_id=wo.id,
     )
+    _audit_wo(db, org_id=org.id, user_id=user.id, action="work_order.started", wo=wo)
     return WorkOrderResponse(**work_order_to_dict(db, wo))
 
 
@@ -447,5 +514,13 @@ async def complete_work_order(
         title="أمر صيانة بانتظار الاعتماد",
         body=f"{user.full_name} أنجز: {wo.title}",
         work_order_id=wo.id,
+    )
+    _audit_wo(
+        db,
+        org_id=org.id,
+        user_id=user.id,
+        action="work_order.completed",
+        wo=wo,
+        detail={"has_proof": bool(proof_path)},
     )
     return WorkOrderResponse(**work_order_to_dict(db, wo))

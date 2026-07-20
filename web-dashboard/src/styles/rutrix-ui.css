@@ -2564,3 +2564,108 @@ body {
   margin-bottom: 0.2rem;
   color: var(--primary);
 }
+
+/* Map filters */
+.map-filter-bar {
+  padding: 0.65rem 1.25rem 0.85rem;
+  background: rgba(6, 10, 20, 0.55);
+  border-bottom: 1px solid var(--border);
+}
+
+.map-filter-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.55rem;
+  font-size: 0.82rem;
+}
+
+.map-filter-count {
+  color: var(--text-muted);
+  font-size: 0.75rem;
+}
+
+.map-filter-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 0.55rem;
+}
+
+.map-filter-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.map-filter-label {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+
+.map-filter-select {
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: rgba(12, 18, 32, 0.9);
+  color: var(--text);
+  padding: 0.4rem 0.55rem;
+  font-size: 0.78rem;
+}
+
+/* Audit log */
+.audit-log-panel .audit-log-table-wrap {
+  overflow-x: auto;
+  margin: 0.75rem 0;
+}
+
+.audit-log-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.78rem;
+}
+
+.audit-log-table th,
+.audit-log-table td {
+  padding: 0.45rem 0.55rem;
+  border-bottom: 1px solid var(--border);
+  text-align: start;
+}
+
+.audit-log-table th {
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.audit-refresh-btn {
+  margin-top: 0.5rem;
+  padding: 0.45rem 0.85rem;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: rgba(12, 18, 32, 0.85);
+  color: var(--text);
+  font-size: 0.78rem;
+  cursor: pointer;
+}
+
+.overview-kpis .stat-grid {
+  margin-bottom: 1rem;
+}
+
+.topbar-platform-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.32rem 0.65rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+}
+
+.topbar-platform-pill.on {
+  border-color: rgba(46, 230, 255, 0.35);
+  color: var(--primary);
+}
+
+.mobile-apk-card {
+  margin-top: 0.75rem;
+}

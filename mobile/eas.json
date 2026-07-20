@@ -1,52 +1,55 @@
-{
-  "cli": {
-    "version": ">= 12.0.0",
-    "appVersionSource": "local"
-  },
-  "build": {
-    "development": {
-      "developmentClient": true,
-      "distribution": "internal"
-    },
-    "preview": {
-      "distribution": "internal",
-      "android": {
-        "buildType": "apk"
-      },
-      "ios": {
-        "simulator": false,
-        "resourceClass": "m-medium"
-      },
-      "env": {
-        "EXPO_PUBLIC_API_URL": "https://rashanofal8-rutrix.hf.space"
-      }
-    },
-    "preview-ios": {
-      "extends": "preview"
-    },
-    "production": {
-      "autoIncrement": true,
-      "android": {
-        "buildType": "app-bundle"
-      },
-      "ios": {
-        "resourceClass": "m-medium"
-      },
-      "env": {
-        "EXPO_PUBLIC_API_URL": "https://rashanofal8-rutrix.hf.space"
-      }
-    }
-  },
-  "submit": {
-    "production": {
-      "android": {
-        "serviceAccountKeyPath": "./google-service-account.json",
-        "track": "internal"
-      },
-      "ios": {
-        "appleId": "your@email.com",
-        "ascAppId": "0000000000"
-      }
-    }
-  }
+﻿{
+    "cli":  {
+                "version":  "\u003e= 12.0.0",
+                "appVersionSource":  "local"
+            },
+    "build":  {
+                  "development":  {
+                                      "developmentClient":  true,
+                                      "distribution":  "internal"
+                                  },
+                  "preview":  {
+                                  "distribution":  "internal",
+                                  "android":  {
+                                                  "buildType":  "apk"
+                                              },
+                                  "ios":  {
+                                              "simulator":  false,
+                                              "resourceClass":  "m-medium"
+                                          },
+                                  "env":  {
+                                              "EXPO_PUBLIC_API_URL":  "https://rashanofal8-rutrix.hf.space"
+                                          }
+                              },
+                  "preview-ios":  {
+                                      "extends":  "preview",
+                                      "env":  {
+                                                  "EXPO_PUBLIC_API_URL":  "https://rashanofal8-rutrix.hf.space"
+                                              }
+                                  },
+                  "production":  {
+                                     "autoIncrement":  true,
+                                     "android":  {
+                                                     "buildType":  "app-bundle"
+                                                 },
+                                     "ios":  {
+                                                 "resourceClass":  "m-medium"
+                                             },
+                                     "env":  {
+                                                 "EXPO_PUBLIC_API_URL":  "https://rashanofal8-rutrix.hf.space"
+                                             }
+                                 }
+              },
+    "submit":  {
+                   "production":  {
+                                      "android":  {
+                                                      "serviceAccountKeyPath":  "./google-service-account.json",
+                                                      "track":  "internal"
+                                                  },
+                                      "ios":  {
+                                                  "appleId":  "your@email.com",
+                                                  "ascAppId":  "0000000000"
+                                              }
+                                  }
+               }
 }

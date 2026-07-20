@@ -1,8 +1,11 @@
+import { useMemo, useState } from "react";
 import { useLocale } from "../context/LocaleContext";
 import { useIsAdmin } from "../hooks/useIsAdmin";
 import PotholeMap from "../components/PotholeMap";
 import DetectionDetail from "../components/DetectionDetail";
 import PageExportToolbar from "../components/PageExportToolbar";
+import MapFilterBar from "../components/MapFilterBar";
+import { DEFAULT_MAP_FILTERS, filterMapDetections } from "../utils/mapFilters";
 
 export default function MapPage({
   detections,
@@ -20,7 +23,15 @@ export default function MapPage({
 }) {
   const { t } = useLocale();
   const isAdmin = useIsAdmin();
-  const pinned = detections.filter((d) => d.latitude != null).length;
+  const [mapFilters, setMapFilters] = useState(DEFAULT_MAP_FILTERS);
+
+  const filteredDetections = useMemo(
+    () => filterMapDetections(detections, workOrders, mapFilters),
+    [detections, workOrders, mapFilters]
+  );
+
+  const pinned = filteredDetections.filter((d) => d.latitude != null).length;
+  const totalPinned = detections.filter((d) => d.latitude != null).length;
 
   return (
     <div className="page-map">
@@ -34,12 +45,19 @@ export default function MapPage({
         <span className={`map-status-pill ${wsConnected ? "live" : "offline"}`}>
           {wsConnected ? `● ${t.liveSync}` : `○ ${t.disconnected}`}
         </span>
-        <PageExportToolbar variant="toolbar" className="map-report-toolbar" exportContext={{ detections }} />
+        <PageExportToolbar variant="toolbar" className="map-report-toolbar" exportContext={{ detections: filteredDetections }} />
       </div>
+
+      <MapFilterBar
+        filters={mapFilters}
+        onChange={setMapFilters}
+        resultCount={pinned}
+        totalCount={totalPinned}
+      />
 
       <div className="map-fullframe">
         <PotholeMap
-          detections={detections}
+          detections={filteredDetections}
           selectedId={selectedId}
           onSelect={onSelect}
           onBoundsChange={onBoundsChange}

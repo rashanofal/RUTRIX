@@ -10,7 +10,7 @@ from fastapi.staticfiles import StaticFiles
 from app.bootstrap import bootstrap_background, bootstrap_fast
 from app.persistence import storage_status
 from app.config import settings
-from app.routers import auth, detections, intelligence, maintenance, notifications, team
+from app.routers import audit, auth, detections, intelligence, maintenance, notifications, team
 from app.models import User
 from app.services.access_control import has_org_wide_detection_access, is_platform_owner
 from app.services.auth_service import get_user_org_membership
@@ -57,6 +57,7 @@ app.include_router(maintenance.router)
 app.include_router(notifications.router)
 app.include_router(notifications.push_router)
 app.include_router(team.router)
+app.include_router(audit.router)
 
 
 @app.get("/api/health")
@@ -71,13 +72,20 @@ def health():
     return {
         "status": "ok",
         "service": "rutrix-api",
-        "version": "2.0.3",
+        "version": "2.1.0",
         "upload_ready": store["upload_writable"],
         "storage": store,
         "features": {
             "unique_inspection_stats": True,
             "reports_v2": True,
             "batch_upload": True,
+            "audit_log": True,
+            "map_filters": True,
+        },
+        "platform": {
+            "name": "RUTRIX",
+            "edition": "municipal",
+            "mobile_package": "com.rutrix.app",
         },
         "model_path": str(model_path),
         "model_loaded": model_path.exists(),

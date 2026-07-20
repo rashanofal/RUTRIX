@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import { useLocale } from "../context/LocaleContext";
+import { isProductionHost } from "../utils/host";
 import LangToggle from "./LangToggle";
 import PasswordInput from "./PasswordInput";
 
@@ -33,6 +34,7 @@ export default function LoginPage() {
   });
 
   const heroSrc = locale === "en" ? "/brand/hero-en.png" : "/brand/hero-ar.png";
+  const production = isProductionHost();
 
   const submit = async (e) => {
     e.preventDefault();
@@ -115,17 +117,19 @@ export default function LoginPage() {
               const next = mode === "login" ? "register" : "login";
               setMode(next);
               setError("");
-              setForm((prev) => ({
-                ...prev,
-                email: next === "login" && !prev.email ? "demo@pothole.app" : prev.email,
-                password: next === "login" && !prev.password ? "demo1234" : prev.password,
-              }));
+              if (!production) {
+                setForm((prev) => ({
+                  ...prev,
+                  email: next === "login" && !prev.email ? "demo@pothole.app" : prev.email,
+                  password: next === "login" && !prev.password ? "demo1234" : prev.password,
+                }));
+              }
             }}
           >
             {mode === "login" ? t.toggleRegister : t.toggleLogin}
           </button>
 
-          <p className="login-demo">{t.demo}</p>
+          {!production ? <p className="login-demo">{t.demo}</p> : null}
         </div>
       </div>
       <footer className="login-footer">

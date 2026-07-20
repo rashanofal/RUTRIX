@@ -2,6 +2,7 @@ import ReportExportPanel from "../components/ReportExportPanel";
 import ExecutiveDashboard from "../components/ExecutiveDashboard";
 import MaintenancePanel from "../components/MaintenancePanel";
 import PageExportToolbar from "../components/PageExportToolbar";
+import AuditLogPanel from "../components/AuditLogPanel";
 
 export default function OperationsPage({
   stats,
@@ -10,6 +11,7 @@ export default function OperationsPage({
   onSelect,
   maintRefresh,
   isAdmin = false,
+  isSupervisor = false,
   onMaintChanged,
 }) {
   return (
@@ -26,6 +28,12 @@ export default function OperationsPage({
         <section className="ops-block">
           <ExecutiveDashboard stats={stats} refreshKey={maintRefresh} />
         </section>
+
+        {isSupervisor ? (
+          <section className="ops-block">
+            <AuditLogPanel refreshKey={maintRefresh} />
+          </section>
+        ) : null}
 
         <section className="ops-block">
           <MaintenancePanel

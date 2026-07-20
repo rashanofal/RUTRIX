@@ -3,6 +3,8 @@ import { useLocale } from "../context/LocaleContext";
 import { BrandLogo } from "../components/LangToggle";
 import NavIcon from "../components/NavIcons";
 import PageExportToolbar from "../components/PageExportToolbar";
+import StatsGrid from "../components/StatsGrid";
+import ExecutiveDashboard from "../components/ExecutiveDashboard";
 
 const QUICK_LINKS = [
   { page: "map", icon: "map", labelKey: "navMap", descKey: "quickMapDesc" },
@@ -12,7 +14,7 @@ const QUICK_LINKS = [
   { page: "mobile", icon: "mobile", labelKey: "navMobile", descKey: "pageSub_mobile" },
 ];
 
-export default function OverviewPage({ detections, onNavigate }) {
+export default function OverviewPage({ detections, stats, isSupervisor, maintRefresh, onNavigate }) {
   const { t, locale } = useLocale();
   const [heroOk, setHeroOk] = useState(true);
   const pinned = detections.filter((d) => d.latitude != null).length;
@@ -46,6 +48,14 @@ export default function OverviewPage({ detections, onNavigate }) {
           </span>
         </div>
       </div>
+
+      {isSupervisor && stats ? (
+        <section className="overview-card overview-kpis">
+          <h3 className="overview-card-title">{t.overviewKpis}</h3>
+          <StatsGrid stats={stats} variant="overview" />
+          <ExecutiveDashboard stats={stats} refreshKey={maintRefresh} />
+        </section>
+      ) : null}
 
       <section className="overview-card overview-home-nav">
         <h3 className="overview-card-title">{t.quickActions}</h3>

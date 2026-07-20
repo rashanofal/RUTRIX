@@ -105,6 +105,12 @@ export async function fetchApiHealth() {
   return res.json();
 }
 
+export async function fetchAuditLog(limit = 100) {
+  const res = await apiFetch(`/api/audit?limit=${limit}&_=${Date.now()}`);
+  if (!res.ok) throw new Error("Failed to fetch audit log");
+  return res.json();
+}
+
 export async function fetchRecent(limit = 50) {
   const res = await apiFetch(`/api/detections/recent?limit=${limit}&_=${Date.now()}`);
   if (!res.ok) throw new Error("Failed to fetch detections");

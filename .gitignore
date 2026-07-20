@@ -66,6 +66,8 @@ taleemat.txt
 ملخص.txt
 backend/_test_upload.jpg
 mobile/application-Android.apk
+mobile/google-service-account.json
+google-service-account.json
 
 # IDE
 .idea/

@@ -23,13 +23,14 @@ import {
   updateDetectionStatus,
   useWebSocket,
 } from "./hooks/useApi";
-import { useIsAdmin, useIsOwner } from "./hooks/useIsAdmin";
+import { useIsAdmin, useIsOwner, useIsSupervisor } from "./hooks/useIsAdmin";
 
 function Dashboard() {
   const { auth, logout } = useAuth();
   const { t } = useLocale();
   const isAdmin = useIsAdmin();
   const isOwner = useIsOwner();
+  const isSupervisor = useIsSupervisor();
   const [page, setPage] = useState("overview");
   const [detections, setDetections] = useState([]);
   const [workOrders, setWorkOrders] = useState([]);
@@ -45,6 +46,7 @@ function Dashboard() {
   const [toast, setToast] = useState(null);
   const [maintRefresh, setMaintRefresh] = useState(0);
   const [staleServer, setStaleServer] = useState(false);
+  const [apiHealth, setApiHealth] = useState(null);
 
   const showToast = (message, type = "info") => {
     setToast({ message, type });
@@ -313,6 +315,7 @@ function Dashboard() {
     refreshAll();
     fetchApiHealth()
       .then((h) => {
+        setApiHealth(h);
         if (!h?.features?.unique_inspection_stats) setStaleServer(true);
       })
       .catch(() => {});
@@ -339,6 +342,9 @@ function Dashboard() {
         return (
           <OverviewPage
             detections={detections}
+            stats={stats}
+            isSupervisor={isSupervisor}
+            maintRefresh={maintRefresh}
             onNavigate={handleNavigate}
           />
         );
@@ -388,6 +394,7 @@ function Dashboard() {
             onSelect={setSelectedId}
             maintRefresh={maintRefresh}
             isAdmin={isAdmin}
+            isSupervisor={isSupervisor}
             onMaintChanged={() => {
               setMaintRefresh((r) => r + 1);
               loadStats();
@@ -447,6 +454,7 @@ function Dashboard() {
         wsConnected={wsConnected}
         isAdmin={isAdmin}
         isOwner={isOwner}
+        apiHealth={apiHealth}
       >
         {renderPage()}
       </AppShell>

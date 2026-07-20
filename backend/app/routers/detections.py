@@ -18,6 +18,7 @@ from app.models import (
     PotholeDetection,
     User,
 )
+from app.services.audit_service import log_audit
 from app.schemas import (
     BBox,
     BatchItemResult,
@@ -230,6 +231,14 @@ async def clear_map(
     if not is_platform_owner(user, _member_role(db, org.id, user.id)):
         raise HTTPException(status_code=403, detail="مسح جميع النقاط متاح لمالك المنصة فقط")
     result = clear_all_map_data(db, org.id, delete_files=True)
+    log_audit(
+        db,
+        organization_id=org.id,
+        user_id=user.id,
+        action="map.cleared",
+        entity_type="map",
+        detail=result,
+    )
     await manager.broadcast(org.id, {"type": "map_cleared"})
     return ClearMapResponse(
         message="تم مسح الخريطة وجميع الصور المحفوظة",
@@ -269,6 +278,15 @@ async def remove_detection(
         },
     )
     count = result["deleted_count"]
+    log_audit(
+        db,
+        organization_id=org.id,
+        user_id=user.id,
+        action="detection.deleted",
+        entity_type="detection",
+        entity_id=detection_id,
+        detail={"deleted_count": count, "deleted_ids": result["deleted_ids"]},
+    )
     msg = (
         f"تم حذف الصورة وجميع الكشوفات المرتبطة ({count})"
         if count > 1
@@ -313,6 +331,15 @@ async def update_detection_status(
         det.cloud_verified = True
     db.commit()
     db.refresh(det)
+    log_audit(
+        db,
+        organization_id=org.id,
+        user_id=user.id,
+        action=f"detection.{payload.detection_status.value}",
+        entity_type="detection",
+        entity_id=detection_id,
+        detail={"rejection_reason": det.rejection_reason},
+    )
     resp = _to_response(det, org.id, _reporter_names(db, [det]))
     await manager.broadcast(org.id, {"type": "detection_updated", "data": resp.model_dump()})
     return resp

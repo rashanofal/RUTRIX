@@ -22,6 +22,7 @@ export default function AppShell({
   wsConnected,
   isAdmin,
   isOwner,
+  apiHealth,
   children,
 }) {
   const { t } = useLocale();
@@ -100,6 +101,14 @@ export default function AppShell({
             {auth?.organization?.name && (
               <span className="topbar-org-pill">{auth.organization.name}</span>
             )}
+            {apiHealth?.version ? (
+              <span
+                className={`topbar-platform-pill ${apiHealth.status === "ok" ? "on" : "off"}`}
+                title={t.platformLive}
+              >
+                RUTRIX {apiHealth.version}
+              </span>
+            ) : null}
             <span
               className={`topbar-live-pill ${wsConnected ? "on" : "off"}`}
               title={wsConnected ? t.liveSync : t.disconnected}
