@@ -536,23 +536,48 @@ async def upload_batch_and_detect(
         )
 
     saved_video_path: str | None = None
+    video_gps_approximate = False
     for vf in video_files:
+        vid_lat, vid_lon = latitude, longitude
+        vid_end_lat, vid_end_lon = end_latitude, end_longitude
+        vid_track = list(track)
+
         has_path = (
-            latitude is not None
-            and longitude is not None
-            and end_latitude is not None
-            and end_longitude is not None
+            vid_lat is not None
+            and vid_lon is not None
+            and vid_end_lat is not None
+            and vid_end_lon is not None
         )
-        has_track = len(track) >= 2
+        has_track = len(vid_track) >= 2
+
         if not has_path and not has_track:
-            raise HTTPException(
-                status_code=400,
-                detail=(
-                    "رفع الفيديو يحتاج مسار GPS — "
-                    "فعّل «مسار GPS» وأدخل بداية ونهاية الطريق، "
-                    "أو سجّل الفيديو من تطبيق الموبايل لالتقاط المسار تلقائياً"
-                ),
-            )
+            if vid_lat is not None and vid_lon is not None:
+                vid_end_lat = vid_end_lat if vid_end_lat is not None else vid_lat
+                vid_end_lon = vid_end_lon if vid_end_lon is not None else vid_lon
+                has_path = True
+                video_gps_approximate = True
+            elif len(vid_track) == 1:
+                vid_track.append({**vid_track[0], "t": max(vid_track[0]["t"], 1.0)})
+                has_track = True
+            else:
+                raise HTTPException(
+                    status_code=400,
+                    detail=(
+                        "رفع الفيديو يحتاج الموقع — اسمح بالموقع أو حدّد بداية ونهاية المسار. "
+                        "بدون مسار دقيق سيُستخدم موقعك الحالي (تقريبي)."
+                    ),
+                )
+
+        if (
+            has_path
+            and vid_lat is not None
+            and vid_lon is not None
+            and vid_end_lat is not None
+            and vid_end_lon is not None
+            and abs(vid_lat - vid_end_lat) < 1e-7
+            and abs(vid_lon - vid_end_lon) < 1e-7
+        ):
+            video_gps_approximate = True
         raw = await vf.read()
         if not raw:
             raise HTTPException(status_code=400, detail="ملف الفيديو فارغ")
@@ -577,15 +602,15 @@ async def upload_batch_and_detect(
         total = len(frames)
         for fr in frames:
             if has_track:
-                lat, lon = gps_at_timestamp(track, fr.timestamp_sec)
+                lat, lon = gps_at_timestamp(vid_track, fr.timestamp_sec)
             else:
                 lat, lon = interpolate_gps(
                     fr.frame_index,
                     total,
-                    latitude,
-                    longitude,
-                    end_latitude,
-                    end_longitude,
+                    vid_lat,
+                    vid_lon,
+                    vid_end_lat,
+                    vid_end_lon,
                 )
             work_units.append(
                 (
@@ -654,6 +679,9 @@ async def upload_batch_and_detect(
                 video_path=vid_path,
                 edge_detections=None,
                 anomaly_type=None,
+                location_approximate=bool(
+                    video_gps_approximate and vid_path and frame_lat is not None
+                ),
                 org=org,
                 user=user,
                 db=db,
@@ -692,6 +720,10 @@ async def upload_batch_and_detect(
     )
     if failed:
         msg += f" — فشل {failed}"
+    if video_gps_approximate:
+        msg += (
+            " — ⚠️ الفيديو بدون مسار GPS دقيق: وُضعت الإطارات وفق الموقع الحالي (تقريبي)"
+        )
 
     return BatchUploadResponse(
         mission_id=mission,
@@ -722,6 +754,7 @@ async def _upload_and_detect_impl(
     video_path: str | None = None,
     edge_detections: str | None,
     anomaly_type: str | None,
+    location_approximate: bool = False,
     org: Organization,
     user: User,
     db: Session,
@@ -806,6 +839,13 @@ async def _upload_and_detect_impl(
         edge_conf = det.get("edge_confidence", conf)
         cloud_verified, status = resolve_detection_status(conf, edge_conf)
 
+        meta = {}
+        if anomaly_type:
+            meta["anomaly_type"] = anomaly_type
+        if location_approximate and has_map_location:
+            meta["location_source"] = location_source
+            meta["gps_approximate"] = True
+
         payload = DetectionCreate(
             latitude=map_lat,
             longitude=map_lon,
@@ -827,11 +867,15 @@ async def _upload_and_detect_impl(
             timestamp_sec=timestamp_sec,
             video_path=video_path,
             location_status=(
-                LocationStatus.confirmed
-                if has_map_location
-                else LocationStatus.uncertain
+                LocationStatus.uncertain
+                if location_approximate
+                else (
+                    LocationStatus.confirmed
+                    if has_map_location
+                    else LocationStatus.uncertain
+                )
             ),
-            metadata={"anomaly_type": anomaly_type} if anomaly_type else None,
+            metadata=meta if meta else None,
         )
         detection = create_detection(
             db,

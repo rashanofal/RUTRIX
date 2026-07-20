@@ -55,7 +55,9 @@ export const translations = {
     uploadExifHint:
       "صور الميدان/الدرون الملتقطة بكاميرا فيها GPS: تُثبَّت تلقائياً من بيانات الصورة (EXIF) — حتى لو رُفعت لاحقاً من المكتب. الفيديو: يُقسَّم لإطارات وكل إطار يأخذ موقعاً على المسار (بداية → نهاية).",
     videoPathGpsRequired:
-      "الفيديو يحتاج إحداثيات بداية ونهاية المسار — فعّل «مسار GPS» وأدخل النقطتين على الطريق.",
+      "الفيديو يحتاج الموقع — اسمح بالموقع أو أدخل بداية المسار (ويفضّل النهاية أيضاً).",
+    videoApproxHint:
+      "⚠️ بدون نهاية المسار سيُستخدم موقعك الحالي (تقريبي) — يمكنك إضافة «موقعي = نهاية المسار» لدقة أفضل.",
     videoPathTitle: "مسار الفيديو على الطريق",
     videoPathSub: "الفيديو يُقسَّم لإطارات — كل إطار يأخذ موقعاً على المسار بين نقطتين.",
     videoPathSteps: [
@@ -592,7 +594,9 @@ export const translations = {
     uploadExifHint:
       "Field/drone photos with camera GPS are pinned from EXIF automatically — even when uploaded later from the office. Video: split into frames; each frame gets a point along the path (start → end).",
     videoPathGpsRequired:
-      "Video requires start and end path coordinates — enable GPS path and enter both points along the road.",
+      "Video needs location — allow GPS or enter path start (end recommended too).",
+    videoApproxHint:
+      "⚠️ Without path end, your current location will be used (approximate) — add My location = path end for better accuracy.",
     videoPathTitle: "Video path on the road",
     videoPathSub: "Video is split into frames — each frame gets a point along the path between start and end.",
     videoPathSteps: [

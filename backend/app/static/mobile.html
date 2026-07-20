@@ -273,6 +273,61 @@
       line-height: 1.55;
       margin-bottom: 0.85rem;
     }
+    .video-path-card {
+      margin-top: 0.85rem;
+      padding: 0.75rem;
+      border-radius: 14px;
+      background: rgba(15, 23, 42, 0.65);
+      border: 1px solid rgba(61, 213, 255, 0.22);
+    }
+    .video-path-sub, .video-path-note {
+      margin: 0.35rem 0 0.55rem;
+      font-size: 0.76rem;
+      color: var(--muted);
+      line-height: 1.55;
+    }
+    .video-path-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.45rem;
+      margin-bottom: 0.55rem;
+    }
+    .video-path-btn {
+      flex: 1 1 calc(50% - 0.25rem);
+      min-width: 0;
+      padding: 0.55rem 0.45rem;
+      border-radius: 12px;
+      border: 1px solid rgba(61, 213, 255, 0.35);
+      background: rgba(61, 213, 255, 0.08);
+      color: var(--primary);
+      font-size: 0.72rem;
+      font-weight: 700;
+      cursor: pointer;
+      line-height: 1.35;
+    }
+    .video-path-btn:active { opacity: 0.85; }
+    .video-path-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.45rem;
+    }
+    .video-path-grid input {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 0.55rem 0.5rem;
+      border-radius: 10px;
+      border: 1px solid rgba(148, 163, 184, 0.28);
+      background: rgba(2, 6, 23, 0.75);
+      color: #e2e8f0;
+      font-size: 0.78rem;
+    }
+    .video-path-grid input::placeholder { color: rgba(148, 163, 184, 0.65); }
+    .btn-video-record {
+      margin-top: 0.45rem;
+      border-color: rgba(251, 146, 60, 0.35);
+      background: rgba(251, 146, 60, 0.12);
+      color: #fdba74;
+    }
     .link-map {
       display: flex; align-items: center; justify-content: center; gap: 0.4rem;
       color: var(--primary);
@@ -680,9 +735,26 @@
         <button type="button" class="btn btn-album btn-album-secondary" id="albumVideoBtn">
           <span id="albumVideoLabelText">Choose video from album</span>
         </button>
+        <label class="btn btn-album btn-video-record" for="recordVideoInput" id="recordVideoLabel">Record video</label>
+        <input type="file" id="recordVideoInput" class="hidden" accept="video/*,.mp4,.mov,.webm,.m4v" capture="environment" />
         <input type="file" id="albumInput" class="hidden" accept="image/*,.heic,.heif,.jpg,.jpeg,.png,.webp" multiple />
         <input type="file" id="albumVideoInput" class="hidden" accept="video/*,.mp4,.mov,.webm,.m4v" />
-        <p class="mobile-build-tag" id="mobileBuildTag">Mobile v2.0.5</p>
+        <section class="video-path-card" id="videoPathSection" aria-label="Video GPS path">
+          <p class="section-title" id="videoPathTitle">Video GPS path</p>
+          <p class="video-path-sub" id="videoPathSub">For videos without embedded GPS — set start/end of the road segment</p>
+          <div class="video-path-actions">
+            <button type="button" class="video-path-btn" id="gpsStartBtn">📍 My location = path start</button>
+            <button type="button" class="video-path-btn" id="gpsEndBtn">🏁 My location = path end</button>
+          </div>
+          <div class="video-path-grid">
+            <input type="number" step="any" id="pathStartLat" inputmode="decimal" placeholder="Start latitude" />
+            <input type="number" step="any" id="pathStartLon" inputmode="decimal" placeholder="Start longitude" />
+            <input type="number" step="any" id="pathEndLat" inputmode="decimal" placeholder="End latitude" />
+            <input type="number" step="any" id="pathEndLon" inputmode="decimal" placeholder="End longitude" />
+          </div>
+          <p class="video-path-note" id="videoPathNote">If only start is set, frames use current location (approximate). Copy coords from Google Maps if needed.</p>
+        </section>
+        <p class="mobile-build-tag" id="mobileBuildTag">Mobile v2.1.0</p>
         <p class="inapp-warn hidden" id="inAppWarn"></p>
         <div id="uploadOverlay" class="upload-overlay hidden" aria-live="polite">
           <div class="upload-overlay-box">
@@ -798,8 +870,23 @@
         capture: "تصوير بالكاميرا",
         album: "اختيار صور من الألبوم",
         albumVideo: "اختيار فيديو من الألبوم",
-        openAlbumHint: "افتحي الألبوم واختاري الصور...",
+        recordVideo: "تسجيل فيديو بالكاميرا",
         openVideoHint: "افتحي الألبوم واختاري فيديو...",
+        recordVideoHint: "سجّلي فيديو — يُفضّل السماح بالموقع أثناء التسجيل",
+        videoPathTitle: "مسار GPS للفيديو",
+        videoPathSub: "للفيديو بدون GPS مدمج — حدّدي بداية ونهاية مقطع الطريق",
+        gpsUseStartHere: "📍 موقعي = بداية المسار",
+        gpsUseEndHere: "🏁 موقعي = نهاية المسار",
+        startLatPh: "خط عرض البداية",
+        startLonPh: "خط طول البداية",
+        endLatPh: "خط عرض النهاية",
+        endLonPh: "خط طول النهاية",
+        videoPathNote: "إن وُجدت البداية فقط تُوزَّع الإطارات وفق الموقع الحالي (تقريبي). انسخي الإحداثيات من Google Maps عند الحاجة.",
+        videoApproxWarn: "⚠️ الفيديو بدون مسار GPS دقيق — سيُستخدم موقعك الحالي (تقريبي)",
+        videoNeedsGps: "رفع الفيديو يحتاج الموقع — اسمح بالموقع أو حدّد بداية المسار",
+        gpsStartFilled: "تم تعبئة بداية المسار من موقعك",
+        gpsEndFilled: "تم تعبئة نهاية المسار من موقعك",
+        openAlbumHint: "افتحي الألبوم واختاري الصور...",
         logout: "تسجيل الخروج",
         secureGps: "افتح HTTPS لتفعيل الموقع",
         captureSection: "تصوير ميداني",
@@ -861,8 +948,23 @@
         reportedBy: "Reported by",
         logout: "Logout", capture: "Camera capture", album: "Choose photos from album",
         albumVideo: "Choose video from album",
+        recordVideo: "Record video with camera",
         openAlbumHint: "Open album and select photos...",
         openVideoHint: "Open album and select a video...",
+        recordVideoHint: "Record video — allow location while recording if possible",
+        videoPathTitle: "Video GPS path",
+        videoPathSub: "For videos without embedded GPS — set start/end of the road segment",
+        gpsUseStartHere: "📍 My location = path start",
+        gpsUseEndHere: "🏁 My location = path end",
+        startLatPh: "Start latitude",
+        startLonPh: "Start longitude",
+        endLatPh: "End latitude",
+        endLonPh: "End longitude",
+        videoPathNote: "If only start is set, frames use current location (approximate). Copy coords from Google Maps if needed.",
+        videoApproxWarn: "⚠️ Video has no precise GPS track — using your current location (approximate)",
+        videoNeedsGps: "Video upload needs location — allow GPS or set path start",
+        gpsStartFilled: "Path start filled from your location",
+        gpsEndFilled: "Path end filled from your location",
         secureGps: "Open HTTPS for GPS location",
         captureSection: "Field capture",
         mapCard: "Detection points on the map",
@@ -1009,8 +1111,22 @@
       if (albumText) albumText.textContent = tr.album;
       const albumVideoText = document.getElementById("albumVideoLabelText");
       if (albumVideoText) albumVideoText.textContent = tr.albumVideo;
+      setText("recordVideoLabel", tr.recordVideo);
+      setText("videoPathTitle", tr.videoPathTitle);
+      setText("videoPathSub", tr.videoPathSub);
+      setText("videoPathNote", tr.videoPathNote);
+      setText("gpsStartBtn", tr.gpsUseStartHere);
+      setText("gpsEndBtn", tr.gpsUseEndHere);
+      var pathStartLat = document.getElementById("pathStartLat");
+      var pathStartLon = document.getElementById("pathStartLon");
+      var pathEndLat = document.getElementById("pathEndLat");
+      var pathEndLon = document.getElementById("pathEndLon");
+      if (pathStartLat) pathStartLat.placeholder = tr.startLatPh;
+      if (pathStartLon) pathStartLon.placeholder = tr.startLonPh;
+      if (pathEndLat) pathEndLat.placeholder = tr.endLatPh;
+      if (pathEndLon) pathEndLon.placeholder = tr.endLonPh;
       const buildTag = document.getElementById("mobileBuildTag");
-      if (buildTag) buildTag.textContent = "Mobile v2.0.5";
+      if (buildTag) buildTag.textContent = "Mobile v2.1.0";
       var inApp = document.getElementById("inAppWarn");
       if (inApp) {
         if (isInAppBrowser()) {
@@ -1265,6 +1381,78 @@
       form.append("longitude", String(Number(coords.lon.toFixed(6))));
     }
 
+    function readPathInputs() {
+      function num(id) {
+        var el = document.getElementById(id);
+        if (!el || el.value === "") return null;
+        var v = Number(el.value);
+        return Number.isFinite(v) ? v : null;
+      }
+      var slat = num("pathStartLat");
+      var slon = num("pathStartLon");
+      var elat = num("pathEndLat");
+      var elon = num("pathEndLon");
+      return {
+        start: slat != null && slon != null ? { lat: slat, lon: slon } : null,
+        end: elat != null && elon != null ? { lat: elat, lon: elon } : null,
+      };
+    }
+
+    function appendPathCoords(form, path) {
+      if (!path) return;
+      if (path.start) appendCoords(form, path.start);
+      if (path.end && path.end.lat != null && path.end.lon != null) {
+        form.append("end_latitude", String(Number(path.end.lat.toFixed(6))));
+        form.append("end_longitude", String(Number(path.end.lon.toFixed(6))));
+      }
+    }
+
+    async function fillPathFromLocation(which) {
+      var tr = t();
+      var loc = getCachedLocation(120000);
+      if (!loc && window.isSecureContext) {
+        loc = await requestLocationNow(8000);
+      }
+      if (!loc || loc.lat == null) {
+        showUploadFeedback(locationHelpText(loc), "warn");
+        return;
+      }
+      if (which === "start") {
+        document.getElementById("pathStartLat").value = String(Number(loc.lat.toFixed(6)));
+        document.getElementById("pathStartLon").value = String(Number(loc.lon.toFixed(6)));
+        showUploadFeedback(tr.gpsStartFilled, "ok");
+      } else {
+        document.getElementById("pathEndLat").value = String(Number(loc.lat.toFixed(6)));
+        document.getElementById("pathEndLon").value = String(Number(loc.lon.toFixed(6)));
+        showUploadFeedback(tr.gpsEndFilled, "ok");
+      }
+    }
+
+    async function resolveVideoPathCoords() {
+      var path = readPathInputs();
+      if (!path.start) {
+        var cached = getCachedLocation(300000);
+        if (!cached && window.isSecureContext) {
+          cached = await Promise.race([
+            requestLocationNow(5000),
+            new Promise(function (r) { setTimeout(function () { r(null); }, 5000); }),
+          ]);
+        }
+        if (cached && cached.lat != null) {
+          path.start = { lat: cached.lat, lon: cached.lon };
+        }
+      }
+      var approximate = false;
+      if (path.start && !path.end) approximate = true;
+      if (
+        path.start && path.end &&
+        Math.abs(path.start.lat - path.end.lat) < 1e-7 &&
+        Math.abs(path.start.lon - path.end.lon) < 1e-7
+      ) approximate = true;
+      path.approximate = approximate;
+      return path.start ? path : null;
+    }
+
     document.getElementById("enableGpsBtn").onclick = async function () {
       msg.textContent = t().locating;
       msg.className = "";
@@ -1452,7 +1640,7 @@
       return t.startsWith("video/") || /\.(mp4|mov|webm|m4v|avi)$/.test(n);
     }
 
-    async function doUploadBatch(files, fallbackCoords, opts) {
+    async function doUploadBatch(files, pathCoords, opts) {
       opts = opts || {};
       var list = Array.prototype.slice.call(files || []).filter(Boolean);
       if (!list.length) return;
@@ -1460,6 +1648,9 @@
       if (!auth || !auth.access_token) { showLogin(); return; }
 
       var tr = t();
+      if (pathCoords && pathCoords.approximate) {
+        showUploadFeedback(tr.videoApproxWarn, "warn");
+      }
       setUploadBusy(true, tr.batchProgress || tr.uploadProgress);
       showUploadFeedback(tr.batchProgress || tr.uploadProgress, "warn");
 
@@ -1468,7 +1659,7 @@
       form.append("device_type", "phone");
       form.append("frame_interval_sec", String(opts.frameIntervalSec || 2));
       form.append("max_video_frames", String(opts.maxVideoFrames || 12));
-      appendCoords(form, fallbackCoords);
+      appendPathCoords(form, pathCoords);
 
       try {
         var res = await fetch("/api/detections/upload-batch", {
@@ -1480,7 +1671,10 @@
         if (!res.ok) throw new Error(parseUploadError(await res.text(), res.status));
         var data = await res.json();
         var onMap = data.detections && data.detections.some(function (d) { return d.latitude != null; });
-        showUploadFeedback(data.message || tr.uploadedGeneric, "ok");
+        var feedback = data.message || tr.uploadedGeneric;
+        var kind = "ok";
+        if (feedback.indexOf("تقريبي") >= 0 || feedback.indexOf("approximate") >= 0) kind = "warn";
+        showUploadFeedback(feedback, kind);
         if (onMap) {
           setTimeout(function () {
             var mapTabBtn = document.querySelector('.tab[data-tab="map"]');
@@ -1544,14 +1738,12 @@
         }
 
         if (videos.length) {
-          var fallback = getCachedLocation(300000);
-          if (!fallback && window.isSecureContext) {
-            fallback = await Promise.race([
-              requestLocationNow(3500),
-              new Promise(function (r) { setTimeout(function () { r(null); }, 3500); }),
-            ]);
+          var path = await resolveVideoPathCoords();
+          if (!path) {
+            showUploadFeedback(t().videoNeedsGps, "err");
+            return;
           }
-          await doUploadBatch(videos, fallback, { frameIntervalSec: 2, maxVideoFrames: 12 });
+          await doUploadBatch(videos, path, { frameIntervalSec: 2, maxVideoFrames: 12 });
           return;
         }
 
@@ -2152,8 +2344,25 @@
         albumVideoInput.click();
       });
     }
+    var recordVideoInput = document.getElementById("recordVideoInput");
+    var recordVideoLabel = document.getElementById("recordVideoLabel");
+    if (recordVideoLabel) {
+      recordVideoLabel.addEventListener("click", function () {
+        if (window.isSecureContext) requestLocationNow(15000);
+      });
+    }
+    if (recordVideoInput) {
+      recordVideoInput.addEventListener("click", function () {
+        if (uploadBusy) return;
+        showUploadFeedback(t().recordVideoHint, "warn");
+      });
+    }
     bindAlbumInput(albumInput);
     bindAlbumInput(albumVideoInput);
+    bindAlbumInput(recordVideoInput);
+
+    document.getElementById("gpsStartBtn").onclick = function () { fillPathFromLocation("start"); };
+    document.getElementById("gpsEndBtn").onclick = function () { fillPathFromLocation("end"); };
 
     window.addEventListener("pageshow", function () {
       if (uploadBusy) setUploadBusy(false);

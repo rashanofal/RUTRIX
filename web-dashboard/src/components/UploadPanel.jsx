@@ -71,14 +71,18 @@ export default function UploadPanel({ onUploaded }) {
   const hasVideo = useMemo(() => pendingFiles.some(isVideoFile), [pendingFiles]);
   const pathReady = hasPathGps(startLat, startLon, endLat, endLon);
 
-  const appendGpsFields = (formData) => {
-    if (startLat !== "" && startLon !== "") {
-      formData.append("latitude", String(Number(startLat)));
-      formData.append("longitude", String(Number(startLon)));
+  const appendGpsFields = (formData, gps = {}) => {
+    const slat = gps.startLat ?? startLat;
+    const slon = gps.startLon ?? startLon;
+    const elat = gps.endLat ?? endLat;
+    const elon = gps.endLon ?? endLon;
+    if (slat !== "" && slon !== "") {
+      formData.append("latitude", String(Number(slat)));
+      formData.append("longitude", String(Number(slon)));
     }
-    if (endLat !== "" && endLon !== "") {
-      formData.append("end_latitude", String(Number(endLat)));
-      formData.append("end_longitude", String(Number(endLon)));
+    if (elat !== "" && elon !== "") {
+      formData.append("end_latitude", String(Number(elat)));
+      formData.append("end_longitude", String(Number(elon)));
     }
   };
 
@@ -128,11 +132,44 @@ export default function UploadPanel({ onUploaded }) {
     const videoInBatch = pendingFiles.some(isVideoFile);
     const isBatch = pendingFiles.length > 1 || videoInBatch;
 
+    let gpsStartLat = startLat;
+    let gpsStartLon = startLon;
+    let gpsEndLat = endLat;
+    let gpsEndLon = endLon;
+
     if (videoInBatch && !pathReady) {
+      const c = await getDeviceCoords();
+      if (c) {
+        gpsStartLat = String(c.latitude);
+        gpsStartLon = String(c.longitude);
+        setStartLat(gpsStartLat);
+        setStartLon(gpsStartLon);
+        setUsePathGps(true);
+      } else {
+        setMessage(t.videoPathGpsRequired);
+        setMessageType("err");
+        return;
+      }
+    }
+
+    const hasStart =
+      gpsStartLat !== "" &&
+      gpsStartLon !== "" &&
+      Number.isFinite(Number(gpsStartLat)) &&
+      Number.isFinite(Number(gpsStartLon));
+
+    if (videoInBatch && !hasStart) {
       setMessage(t.videoPathGpsRequired);
       setMessageType("err");
       return;
     }
+
+    const resolvedGps = {
+      startLat: gpsStartLat,
+      startLon: gpsStartLon,
+      endLat: gpsEndLat,
+      endLon: gpsEndLon,
+    };
 
     setLoading(true);
     setMessage(t.uploading);
@@ -146,7 +183,7 @@ export default function UploadPanel({ onUploaded }) {
         formData.append("device_type", deviceType);
         if (missionId.trim()) formData.append("mission_id", missionId.trim());
         formData.append("frame_interval_sec", String(Number(frameInterval) || 1));
-        if (videoInBatch || usePathGps) appendGpsFields(formData);
+        if (videoInBatch || usePathGps) appendGpsFields(formData, resolvedGps);
 
         setProgress(
           videoInBatch
@@ -178,7 +215,7 @@ export default function UploadPanel({ onUploaded }) {
         formData.append("file", file);
         formData.append("device_type", deviceType);
         if (missionId.trim()) formData.append("source_id", missionId.trim());
-        if (usePathGps) appendGpsFields(formData);
+        if (usePathGps) appendGpsFields(formData, resolvedGps);
 
         const res = await apiFetch("/api/detections/upload", {
           method: "POST",
@@ -357,12 +394,12 @@ export default function UploadPanel({ onUploaded }) {
               type="button"
               className="upload-submit-btn"
               onClick={handleUpload}
-              disabled={loading || (hasVideo && !pathReady)}
+              disabled={loading}
             >
               {loading ? t.uploading : t.uploadStartBtn}
             </button>
             {hasVideo && !pathReady ? (
-              <p className="upload-pending-warn">{t.videoPathGpsRequired}</p>
+              <p className="upload-pending-warn">{t.videoApproxHint}</p>
             ) : null}
           </div>
         ) : null}
