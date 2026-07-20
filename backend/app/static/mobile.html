@@ -192,7 +192,8 @@
       color: #e2e8f0;
       line-height: 1.55;
     }
-    .btn-album:disabled, .btn-camera:disabled { opacity: 0.55; pointer-events: none; }
+    .btn-album:disabled, .btn-camera:disabled,
+    .btn.capture-disabled { opacity: 0.55; pointer-events: none; }
     .btn-album-secondary {
       margin-top: 0.45rem;
       background: rgba(30, 41, 59, 0.92);
@@ -729,12 +730,12 @@
         <p class="section-title" id="captureSection">Field capture</p>
         <label class="btn btn-camera" for="cameraInput" id="cameraLabel">Camera capture</label>
         <input type="file" id="cameraInput" class="hidden" accept="image/*" capture="environment" />
-        <button type="button" class="btn btn-album" id="albumBtn">
+        <label class="btn btn-album" for="albumInput" id="albumBtn">
           <span id="albumLabelText">Choose photos from album</span>
-        </button>
-        <button type="button" class="btn btn-album btn-album-secondary" id="albumVideoBtn">
+        </label>
+        <label class="btn btn-album btn-album-secondary" for="albumVideoInput" id="albumVideoBtn">
           <span id="albumVideoLabelText">Choose video from album</span>
-        </button>
+        </label>
         <label class="btn btn-album btn-video-record" for="recordVideoInput" id="recordVideoLabel">Record video</label>
         <input type="file" id="recordVideoInput" class="hidden" accept="video/*,.mp4,.mov,.webm,.m4v" capture="environment" />
         <input type="file" id="albumInput" class="hidden" accept="image/*,.heic,.heif,.jpg,.jpeg,.png,.webp" multiple />
@@ -754,7 +755,7 @@
           </div>
           <p class="video-path-note" id="videoPathNote">If only start is set, frames use current location (approximate). Copy coords from Google Maps if needed.</p>
         </section>
-        <p class="mobile-build-tag" id="mobileBuildTag">Mobile v2.1.0</p>
+        <p class="mobile-build-tag" id="mobileBuildTag">Mobile v2.1.1</p>
         <p class="inapp-warn hidden" id="inAppWarn"></p>
         <div id="uploadOverlay" class="upload-overlay hidden" aria-live="polite">
           <div class="upload-overlay-box">
@@ -847,7 +848,7 @@
         changeProof: "تغيير الصورة", submitComplete: "تأكيد الإنجاز", proofPhoto: "صورة الإثبات",
         notesPlaceholder: "ملاحظات الإنجاز (اختياري)", proofRequired: "أضِف صورة إثبات قبل الإنهاء",
         proofHint: "صورة واحدة على الأقل للموقع بعد الإصلاح — إلزامية",
-        proofTap: "اضغطي لالتقاط صورة الإثبات",
+        proofTap: "اضغط لالتقاط صورة الإثبات",
         timeline: "المسار الزمني", location: "الموقع", actionFail: "تعذّر تنفيذ الإجراء",
         declineReason: "سبب الرفض (اختياري):", cancel: "إلغاء", loadingTasks: "جاري التحميل...",
         woStatus_open: "مفتوح", woStatus_assigned: "مُسند", woStatus_accepted: "مقبول",
@@ -871,22 +872,22 @@
         album: "اختيار صور من الألبوم",
         albumVideo: "اختيار فيديو من الألبوم",
         recordVideo: "تسجيل فيديو بالكاميرا",
-        openVideoHint: "افتحي الألبوم واختاري فيديو...",
-        recordVideoHint: "سجّلي فيديو — يُفضّل السماح بالموقع أثناء التسجيل",
+        openVideoHint: "اختر فيديو من الألبوم",
+        recordVideoHint: "سجّل فيديو — يُفضّل السماح بالموقع أثناء التسجيل",
         videoPathTitle: "مسار GPS للفيديو",
-        videoPathSub: "للفيديو بدون GPS مدمج — حدّدي بداية ونهاية مقطع الطريق",
+        videoPathSub: "للفيديو بدون GPS مدمج — حدّد بداية ونهاية مقطع الطريق",
         gpsUseStartHere: "📍 موقعي = بداية المسار",
         gpsUseEndHere: "🏁 موقعي = نهاية المسار",
         startLatPh: "خط عرض البداية",
         startLonPh: "خط طول البداية",
         endLatPh: "خط عرض النهاية",
         endLonPh: "خط طول النهاية",
-        videoPathNote: "إن وُجدت البداية فقط تُوزَّع الإطارات وفق الموقع الحالي (تقريبي). انسخي الإحداثيات من Google Maps عند الحاجة.",
+        videoPathNote: "إن وُجدت البداية فقط تُوزَّع الإطارات وفق الموقع الحالي (تقريبي). انسخ الإحداثيات من Google Maps عند الحاجة.",
         videoApproxWarn: "⚠️ الفيديو بدون مسار GPS دقيق — سيُستخدم موقعك الحالي (تقريبي)",
         videoNeedsGps: "رفع الفيديو يحتاج الموقع — اسمح بالموقع أو حدّد بداية المسار",
         gpsStartFilled: "تم تعبئة بداية المسار من موقعك",
         gpsEndFilled: "تم تعبئة نهاية المسار من موقعك",
-        openAlbumHint: "افتحي الألبوم واختاري الصور...",
+        openAlbumHint: "اختر صوراً من الألبوم",
         logout: "تسجيل الخروج",
         secureGps: "افتح HTTPS لتفعيل الموقع",
         captureSection: "تصوير ميداني",
@@ -898,10 +899,10 @@
         uploadFail: "فشل الرفع",
         batchProgress: "جاري رفع الدفعة والكشف (الصور تستخدم موقع EXIF إن وُجد)...",
         albumExifTip: "صور الألبوم ذات الموقع تنزل مكانها الأصلي على الخريطة",
-        albumNoFiles: "لم يُختَر ملف — جرّبي مرة أخرى",
-        sessionExpired: "انتهت الجلسة — سجّلي الدخول مرة أخرى",
+        albumNoFiles: "لم يُختَر ملف",
+        sessionExpired: "انتهت الجلسة — سجّل الدخول مرة أخرى",
         preparingUpload: "جاري التحضير للرفع...",
-        inAppBrowserWarn: "للرفع من الألبوم: افتحي الرابط في Safari (ليس من داخل واتساب)",
+        inAppBrowserWarn: "للرفع من الألبوم: افتح الرابط في Safari أو Chrome (ليس من داخل واتساب)",
         loginFail: "فشل الدخول",
         insecureTip: "للموقع على الخريطة: اضغط زر HTTPS أعلاه أو اسمح بالموقع",
         gpsReady: "الموقع جاهز",
@@ -1126,7 +1127,7 @@
       if (pathEndLat) pathEndLat.placeholder = tr.endLatPh;
       if (pathEndLon) pathEndLon.placeholder = tr.endLonPh;
       const buildTag = document.getElementById("mobileBuildTag");
-      if (buildTag) buildTag.textContent = "Mobile v2.1.0";
+      if (buildTag) buildTag.textContent = "Mobile v2.1.1";
       var inApp = document.getElementById("inAppWarn");
       if (inApp) {
         if (isInAppBrowser()) {
@@ -1502,17 +1503,22 @@
 
     var uploadToastTimer = null;
     var uploadBusy = false;
+    var CAPTURE_CONTROL_IDS = ["cameraLabel", "albumBtn", "albumVideoBtn", "recordVideoLabel"];
+
+    function setCaptureControlsDisabled(on) {
+      CAPTURE_CONTROL_IDS.forEach(function (id) {
+        var el = document.getElementById(id);
+        if (el) el.classList.toggle("capture-disabled", !!on);
+      });
+    }
 
     function setUploadBusy(on, text) {
       uploadBusy = !!on;
       var overlay = document.getElementById("uploadOverlay");
       var overlayText = document.getElementById("uploadOverlayText");
-      var albumBtn = document.getElementById("albumBtn");
-      var cameraLabel = document.getElementById("cameraLabel");
       if (overlay) overlay.classList.toggle("hidden", !on);
       if (overlayText && text) overlayText.textContent = text;
-      if (albumBtn) albumBtn.disabled = on;
-      if (cameraLabel) cameraLabel.classList.toggle("disabled", on);
+      setCaptureControlsDisabled(on);
     }
 
     function potholeCount(detections) {
@@ -2288,8 +2294,23 @@
 
     document.getElementById("logoutBtn").onclick = showLogin;
 
-    document.getElementById("cameraLabel").addEventListener("click", function () {
-      if (window.isSecureContext) requestLocationNow(15000);
+    CAPTURE_CONTROL_IDS.forEach(function (id) {
+      var el = document.getElementById(id);
+      if (!el) return;
+      el.addEventListener("click", function (ev) {
+        if (uploadBusy) {
+          ev.preventDefault();
+          ev.stopPropagation();
+          return;
+        }
+        if (isInAppBrowser()) {
+          showUploadFeedback(t().inAppBrowserWarn, "warn");
+          ev.preventDefault();
+          ev.stopPropagation();
+          return;
+        }
+        prefetchGpsForCapture();
+      });
     });
 
     document.getElementById("cameraInput").onchange = (e) => {
@@ -2305,67 +2326,43 @@
 
     function bindAlbumInput(inputEl) {
       if (!inputEl) return;
-      var lastPickAt = 0;
-      var handler = function (e) {
-        var now = Date.now();
-        if (now - lastPickAt < 400) return;
-        lastPickAt = now;
+      inputEl.addEventListener("change", function (e) {
+        if (uploadBusy) return;
         var files = e.target.files;
-        setTimeout(function () { e.target.value = ""; }, 800);
-        if (!files || !files.length) {
-          showUploadFeedback(t().albumNoFiles, "warn");
-          return;
-        }
-        uploadAlbumFiles(files).catch(function (err) {
+        var picked = files && files.length
+          ? Array.prototype.slice.call(files)
+          : [];
+        e.target.value = "";
+        if (!picked.length) return;
+        uploadAlbumFiles(picked).catch(function (err) {
           setUploadBusy(false);
           showUploadFeedback(err && err.message ? err.message : t().uploadFail, "err");
         });
-      };
-      inputEl.addEventListener("change", handler);
-      inputEl.addEventListener("input", handler);
+      });
+    }
+
+    function prefetchGpsForCapture() {
+      if (uploadBusy) return;
+      if (window.isSecureContext) requestLocationNow(15000);
     }
 
     var albumInput = document.getElementById("albumInput");
     var albumVideoInput = document.getElementById("albumVideoInput");
-    var albumBtn = document.getElementById("albumBtn");
-    var albumVideoBtn = document.getElementById("albumVideoBtn");
 
-    if (albumBtn && albumInput) {
-      albumBtn.addEventListener("click", function () {
-        if (uploadBusy) return;
-        showUploadFeedback(t().openAlbumHint, "warn");
-        albumInput.click();
-      });
-    }
-    if (albumVideoBtn && albumVideoInput) {
-      albumVideoBtn.addEventListener("click", function () {
-        if (uploadBusy) return;
-        showUploadFeedback(t().openVideoHint, "warn");
-        albumVideoInput.click();
-      });
-    }
-    var recordVideoInput = document.getElementById("recordVideoInput");
-    var recordVideoLabel = document.getElementById("recordVideoLabel");
-    if (recordVideoLabel) {
-      recordVideoLabel.addEventListener("click", function () {
-        if (window.isSecureContext) requestLocationNow(15000);
-      });
-    }
-    if (recordVideoInput) {
-      recordVideoInput.addEventListener("click", function () {
-        if (uploadBusy) return;
-        showUploadFeedback(t().recordVideoHint, "warn");
-      });
-    }
     bindAlbumInput(albumInput);
     bindAlbumInput(albumVideoInput);
-    bindAlbumInput(recordVideoInput);
+    bindAlbumInput(document.getElementById("recordVideoInput"));
 
-    document.getElementById("gpsStartBtn").onclick = function () { fillPathFromLocation("start"); };
-    document.getElementById("gpsEndBtn").onclick = function () { fillPathFromLocation("end"); };
+    var gpsStartBtn = document.getElementById("gpsStartBtn");
+    var gpsEndBtn = document.getElementById("gpsEndBtn");
+    if (gpsStartBtn) gpsStartBtn.onclick = function () { fillPathFromLocation("start"); };
+    if (gpsEndBtn) gpsEndBtn.onclick = function () { fillPathFromLocation("end"); };
 
     window.addEventListener("pageshow", function () {
-      if (uploadBusy) setUploadBusy(false);
+      setUploadBusy(false);
+    });
+    document.addEventListener("visibilitychange", function () {
+      if (!document.hidden) setUploadBusy(false);
     });
 
     function secureMobileUrl() {
