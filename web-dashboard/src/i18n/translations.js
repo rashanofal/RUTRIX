@@ -52,6 +52,10 @@ export const translations = {
     uploadHint: "بدون حفر → ثقة أقل من 62%. مع حفر → ثقة فوق 62%.",
     uploadHintBatch:
       "ارفع صورة واحدة أو دفعة صور أو فيديو مسح. اختر المصدر (MMS / درون / هاتف) ثم ابدأ المعالجة بنفس نموذج YOLO.",
+    uploadExifHint:
+      "صور الميدان/الدرون الملتقطة بكاميرا فيها GPS: تُثبَّت تلقائياً من بيانات الصورة (EXIF) — حتى لو رُفعت لاحقاً من المكتب. الفيديو: يُقسَّم لإطارات وكل إطار يأخذ موقعاً على المسار (بداية → نهاية).",
+    videoPathGpsRequired:
+      "الفيديو يحتاج إحداثيات بداية ونهاية المسار — فعّل «مسار GPS» وأدخل النقطتين على الطريق.",
     uploadBtn: "اختيار صورة أو تصوير",
     uploadBtnBatch: "اختيار صور أو فيديو (دفعة)",
     uploadSource: "مصدر البيانات",
@@ -568,6 +572,10 @@ export const translations = {
     uploadHint: "No pothole → confidence below 62%. Pothole → confidence above 62%.",
     uploadHintBatch:
       "Upload one image, a batch of images, or a survey video. Pick the source (MMS / drone / phone), then run the same YOLO model.",
+    uploadExifHint:
+      "Field/drone photos with camera GPS are pinned from EXIF automatically — even when uploaded later from the office. Video: split into frames; each frame gets a point along the path (start → end).",
+    videoPathGpsRequired:
+      "Video requires start and end path coordinates — enable GPS path and enter both points along the road.",
     uploadBtn: "Choose photo or capture",
     uploadBtnBatch: "Choose images or video (batch)",
     uploadSource: "Data source",

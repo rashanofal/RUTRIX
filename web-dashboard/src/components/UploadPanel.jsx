@@ -13,26 +13,24 @@ async function readResponseBody(res) {
   }
 }
 
-function getDeviceCoords() {
-  if (!navigator.geolocation) return Promise.resolve(null);
-  return new Promise((resolve) => {
-    navigator.geolocation.getCurrentPosition(
-      (pos) =>
-        resolve({
-          latitude: pos.coords.latitude,
-          longitude: pos.coords.longitude,
-        }),
-      () => resolve(null),
-      { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
-    );
-  });
-}
-
 const SOURCES = [
   { id: "mms", labelKey: "deviceMms", hintKey: "sourceHintMms" },
   { id: "drone", labelKey: "deviceDrone", hintKey: "sourceHintDrone" },
   { id: "phone", labelKey: "devicePhone", hintKey: "sourceHintPhone" },
 ];
+
+function hasPathGps(startLat, startLon, endLat, endLon) {
+  return (
+    startLat !== "" &&
+    startLon !== "" &&
+    endLat !== "" &&
+    endLon !== "" &&
+    Number.isFinite(Number(startLat)) &&
+    Number.isFinite(Number(startLon)) &&
+    Number.isFinite(Number(endLat)) &&
+    Number.isFinite(Number(endLon))
+  );
+}
 
 export default function UploadPanel({ onUploaded }) {
   const { t } = useLocale();
@@ -67,15 +65,22 @@ export default function UploadPanel({ onUploaded }) {
     const list = Array.from(e.target.files || []);
     if (!list.length) return;
 
+    const hasVideo = list.some((f) => /\.(mp4|mov|avi|mkv|webm|m4v)$/i.test(f.name));
+    const isBatch = list.length > 1 || hasVideo;
+
+    if (hasVideo && !hasPathGps(startLat, startLon, endLat, endLon)) {
+      setMessage(t.videoPathGpsRequired);
+      setMessageType("err");
+      e.target.value = "";
+      return;
+    }
+
     setLoading(true);
     setMessage(t.uploading);
     setMessageType("");
     setProgress("");
 
     try {
-      const hasVideo = list.some((f) => /\.(mp4|mov|avi|mkv|webm|m4v)$/i.test(f.name));
-      const isBatch = list.length > 1 || hasVideo;
-
       if (isBatch) {
         const formData = new FormData();
         list.forEach((f) => formData.append("files", f));
@@ -83,15 +88,7 @@ export default function UploadPanel({ onUploaded }) {
         if (missionId.trim()) formData.append("mission_id", missionId.trim());
         formData.append("frame_interval_sec", String(Number(frameInterval) || 1));
         appendGpsFields(formData);
-
-        if (!usePathGps) {
-          // Live browser GPS is only a fallback; EXIF on photos wins on the server.
-          const coords = await getDeviceCoords();
-          if (coords?.latitude != null && coords?.longitude != null) {
-            formData.append("latitude", String(coords.latitude));
-            formData.append("longitude", String(coords.longitude));
-          }
-        }
+        // Batch: never send browser GPS — each photo uses EXIF; video uses path above.
 
         setProgress(
           hasVideo
@@ -123,11 +120,7 @@ export default function UploadPanel({ onUploaded }) {
         formData.append("device_type", deviceType);
         if (missionId.trim()) formData.append("source_id", missionId.trim());
         appendGpsFields(formData);
-
-        // Single file: skip live GPS so phone-album EXIF pins the real place
-        if (usePathGps) {
-          /* path GPS already on form */
-        }
+        // Single file: EXIF GPS on the image wins; no live browser location.
 
         const res = await apiFetch("/api/detections/upload", {
           method: "POST",
@@ -157,6 +150,13 @@ export default function UploadPanel({ onUploaded }) {
     }
   };
 
+  const onFilesPicked = (ev) => {
+    const list = Array.from(ev.target.files || []);
+    const hasVideo = list.some((f) => /\.(mp4|mov|avi|mkv|webm|m4v)$/i.test(f.name));
+    if (hasVideo) setUsePathGps(true);
+    handleUpload(ev);
+  };
+
   return (
     <section className="upload-panel">
       <div className="section-label">
@@ -164,6 +164,7 @@ export default function UploadPanel({ onUploaded }) {
         <span>{t.uploadTitle}</span>
       </div>
       <p className="upload-hint">{t.uploadHintBatch}</p>
+      <p className="upload-hint upload-hint-exif">{t.uploadExifHint}</p>
 
       <div className="upload-source-row" role="group" aria-label={t.uploadSource}>
         {SOURCES.map((s) => (
@@ -263,7 +264,7 @@ export default function UploadPanel({ onUploaded }) {
             type="file"
             accept="image/*,video/mp4,video/quicktime,video/webm,video/x-msvideo,.mp4,.mov,.avi,.mkv,.webm"
             multiple
-            onChange={handleUpload}
+            onChange={onFilesPicked}
             disabled={loading}
             hidden
           />

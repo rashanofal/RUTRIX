@@ -478,10 +478,34 @@ async def upload_batch_and_detect(
                 )
             )
             continue
-        work_units.append((content, Path(f.filename or "upload.jpg").name, None, None, None, None, None))
+        exif_lat, exif_lon = extract_gps_from_bytes(content)
+        work_units.append(
+            (
+                content,
+                Path(f.filename or "upload.jpg").name,
+                exif_lat,
+                exif_lon,
+                None,
+                None,
+                None,
+            )
+        )
 
     saved_video_path: str | None = None
     for vf in video_files:
+        if (
+            latitude is None
+            or longitude is None
+            or end_latitude is None
+            or end_longitude is None
+        ):
+            raise HTTPException(
+                status_code=400,
+                detail=(
+                    "رفع الفيديو يتطلب إحداثيات بداية ونهاية المسار على الطريق — "
+                    "فعّل «مسار GPS» وأدخل نقطة البداية والنهاية"
+                ),
+            )
         raw = await vf.read()
         if not raw:
             raise HTTPException(status_code=400, detail="ملف الفيديو فارغ")
@@ -528,21 +552,39 @@ async def upload_batch_and_detect(
     if not work_units and not items:
         raise HTTPException(status_code=400, detail="لا ملفات صالحة للمعالجة")
 
-    # Assign per-image GPS: explicit frame GPS, else EXIF inside impl, else fallback form GPS
-    total_units = len(work_units)
-    for idx, (content, filename, frame_lat, frame_lon, frame_idx, ts_sec, vid_path) in enumerate(
-        work_units
-    ):
-        if frame_lat is None or frame_lon is None:
-            # Image batch: interpolate along path if end GPS given
-            frame_lat, frame_lon = interpolate_gps(
-                idx,
-                total_units,
+    # Images without EXIF: spread along manual path only (never browser/office GPS).
+    images_needing_path = [
+        i
+        for i, wu in enumerate(work_units)
+        if wu[2] is None and wu[3] is None and wu[4] is None
+    ]
+    if images_needing_path:
+        has_path = (
+            latitude is not None
+            and longitude is not None
+            and end_latitude is not None
+            and end_longitude is not None
+        )
+        total_path = len(images_needing_path)
+        for seq, wi in enumerate(images_needing_path):
+            if not has_path:
+                continue
+            plat, plon = interpolate_gps(
+                seq,
+                total_path,
                 latitude,
                 longitude,
                 end_latitude,
                 end_longitude,
             )
+            content, name, _, _, fidx, ts, vpath = work_units[wi]
+            work_units[wi] = (content, name, plat, plon, fidx, ts, vpath)
+
+    # Assign per-image GPS: EXIF / video path interpolation already set above.
+    total_units = len(work_units)
+    for idx, (content, filename, frame_lat, frame_lon, frame_idx, ts_sec, vid_path) in enumerate(
+        work_units
+    ):
         unit_source = mission
         if mission and total_units > 1:
             unit_source = f"{mission}#{idx + 1}"
@@ -663,7 +705,12 @@ async def _upload_and_detect_impl(
         if -90 <= device_lat <= 90 and -180 <= device_lon <= 180:
             map_lat, map_lon = device_lat, device_lon
             has_map_location = True
-            location_source = "device_gps"
+            if frame_index is not None or (mission_id and video_path):
+                location_source = "path_interpolation"
+            elif mission_id:
+                location_source = "path_interpolation"
+            else:
+                location_source = "device_gps"
 
     saved_path = save_upload_file(content, filename, org.id)
     save_training_sample(
