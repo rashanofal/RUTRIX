@@ -192,7 +192,7 @@ def _static_page(name: str) -> FileResponse:
     resp = FileResponse(STATIC_DIR / name)
     resp.headers["Cache-Control"] = "no-store, no-cache, must-revalidate"
     if name == "mobile.html":
-        resp.headers["X-RUTRIX-Mobile-Version"] = "2.1.1"
+        resp.headers["X-RUTRIX-Mobile-Version"] = "2.2.0"
     return resp
 
 

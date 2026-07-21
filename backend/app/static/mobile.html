@@ -281,6 +281,12 @@
       background: rgba(15, 23, 42, 0.65);
       border: 1px solid rgba(61, 213, 255, 0.22);
     }
+    .video-path-details .video-path-card {
+      margin-top: 0;
+      border: none;
+      background: transparent;
+      padding: 0.85rem 0 0;
+    }
     .video-path-sub, .video-path-note {
       margin: 0.35rem 0 0.55rem;
       font-size: 0.76rem;
@@ -324,10 +330,152 @@
     }
     .video-path-grid input::placeholder { color: rgba(148, 163, 184, 0.65); }
     .btn-video-record {
-      margin-top: 0.45rem;
+      margin-top: 0;
       border-color: rgba(251, 146, 60, 0.35);
       background: rgba(251, 146, 60, 0.12);
       color: #fdba74;
+    }
+    .capture-card {
+      position: relative;
+      overflow: hidden;
+    }
+    .capture-hub { display: flex; flex-direction: column; gap: 1rem; }
+    .capture-group {
+      padding: 0.85rem;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid rgba(148, 180, 255, 0.12);
+    }
+    .capture-group-title {
+      display: flex; align-items: center; gap: 0.45rem;
+      font-size: 0.78rem; font-weight: 800; letter-spacing: 0.04em;
+      text-transform: uppercase; color: var(--muted);
+      margin-bottom: 0.65rem;
+    }
+    .capture-group-title svg {
+      width: 18px; height: 18px; stroke: var(--primary); fill: none;
+      stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;
+    }
+    .capture-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.55rem;
+    }
+    .capture-tile {
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      gap: 0.35rem; min-height: 5.5rem; padding: 0.75rem 0.5rem;
+      border-radius: 14px; text-align: center; cursor: pointer;
+      border: 1px solid var(--border);
+      background: rgba(255, 255, 255, 0.03);
+      color: var(--text); font-weight: 800; font-size: 0.82rem;
+      line-height: 1.35; transition: transform 0.15s, border-color 0.2s;
+      font-family: inherit;
+    }
+    .capture-tile:active { transform: scale(0.98); }
+    .capture-tile-icon {
+      width: 2rem; height: 2rem; border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.15rem;
+    }
+    .capture-tile-primary {
+      grid-column: 1 / -1;
+      min-height: 3.5rem;
+      flex-direction: row;
+      background: linear-gradient(135deg, rgba(251, 146, 60, 0.22), rgba(245, 158, 11, 0.14));
+      border-color: rgba(251, 146, 60, 0.35);
+      color: #fde68a;
+    }
+    .capture-tile-primary .capture-tile-icon {
+      background: rgba(251, 146, 60, 0.25);
+    }
+    .capture-tile-photo .capture-tile-icon { background: rgba(46, 230, 255, 0.14); }
+    .capture-tile-video .capture-tile-icon { background: rgba(124, 107, 255, 0.16); }
+    .capture-tile-record .capture-tile-icon { background: rgba(255, 107, 157, 0.16); }
+    .capture-preview {
+      padding: 0.85rem;
+      border-radius: 16px;
+      background: rgba(6, 12, 24, 0.92);
+      border: 1px solid rgba(46, 230, 255, 0.35);
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
+    }
+    .capture-preview-head {
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 0.5rem; margin-bottom: 0.65rem;
+    }
+    .capture-preview-head strong {
+      font-size: 0.82rem; color: var(--primary);
+    }
+    .preview-media-wrap {
+      width: 100%; max-height: 42vh; border-radius: 12px; overflow: hidden;
+      background: #000; border: 1px solid rgba(148, 163, 184, 0.2);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .preview-media-wrap img, .preview-media-wrap video {
+      width: 100%; max-height: 42vh; object-fit: contain; display: block;
+    }
+    .preview-name {
+      margin: 0.55rem 0 0; font-size: 0.76rem; color: var(--muted);
+      text-align: center; word-break: break-all;
+    }
+    .preview-actions {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;
+      margin-top: 0.75rem;
+    }
+    .btn-preview-upload {
+      background: linear-gradient(135deg, #3dd5ff, #0ea5e9);
+      color: #041018; font-weight: 800;
+    }
+    .btn-preview-cancel {
+      background: rgba(255, 255, 255, 0.04);
+      color: var(--muted);
+      border: 1px solid var(--border);
+    }
+    .video-path-details {
+      margin-top: 0;
+      border-radius: 14px;
+      border: 1px solid rgba(61, 213, 255, 0.18);
+      background: rgba(15, 23, 42, 0.55);
+      overflow: hidden;
+    }
+    .video-path-details summary {
+      padding: 0.75rem 0.85rem;
+      cursor: pointer;
+      font-size: 0.82rem; font-weight: 800; color: var(--primary);
+      list-style: none;
+    }
+    .video-path-details summary::-webkit-details-marker { display: none; }
+    .video-path-details[open] summary {
+      border-bottom: 1px solid rgba(61, 213, 255, 0.15);
+    }
+    .video-path-details .video-path-inner { padding: 0 0.85rem 0.85rem; }
+    .capture-card .upload-overlay {
+      position: absolute;
+      inset: 0;
+      z-index: 30;
+      border-radius: var(--radius-lg);
+    }
+    .upload-cancel-btn {
+      margin-top: 0.75rem;
+      padding: 0.45rem 0.85rem;
+      border-radius: 10px;
+      border: 1px solid rgba(248, 113, 113, 0.4);
+      background: rgba(127, 29, 29, 0.35);
+      color: #fecaca;
+      font-size: 0.78rem;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: inherit;
+    }
+    .browser-banner {
+      margin-bottom: 0.75rem;
+      padding: 0.65rem 0.75rem;
+      border-radius: 12px;
+      background: rgba(120, 53, 15, 0.55);
+      border: 1px solid rgba(251, 191, 36, 0.45);
+      color: #fde68a;
+      font-size: 0.78rem;
+      line-height: 1.5;
+      text-align: center;
     }
     .link-map {
       display: flex; align-items: center; justify-content: center; gap: 0.4rem;
@@ -717,7 +865,8 @@
     </div>
 
     <div id="cameraTab">
-      <div class="card">
+      <div class="card capture-card">
+        <div class="browser-banner hidden" id="browserBanner"></div>
         <div class="tip" id="gpsTip">
           Camera photos have no GPS — allow location before capture (see «Location ready» badge).
         </div>
@@ -727,40 +876,91 @@
         <button type="button" class="btn btn-primary hidden" id="enableGpsBtn" style="margin-bottom:0.75rem">
           📍 Enable location
         </button>
-        <p class="section-title" id="captureSection">Field capture</p>
-        <label class="btn btn-camera" for="cameraInput" id="cameraLabel">Camera capture</label>
-        <input type="file" id="cameraInput" class="hidden" accept="image/*" capture="environment" />
-        <label class="btn btn-album" for="albumInput" id="albumBtn">
-          <span id="albumLabelText">Choose photos from album</span>
-        </label>
-        <label class="btn btn-album btn-album-secondary" for="albumVideoInput" id="albumVideoBtn">
-          <span id="albumVideoLabelText">Choose video from album</span>
-        </label>
-        <label class="btn btn-album btn-video-record" for="recordVideoInput" id="recordVideoLabel">Record video</label>
-        <input type="file" id="recordVideoInput" class="hidden" accept="video/*,.mp4,.mov,.webm,.m4v" capture="environment" />
-        <input type="file" id="albumInput" class="hidden" accept="image/*,.heic,.heif,.jpg,.jpeg,.png,.webp" multiple />
-        <input type="file" id="albumVideoInput" class="hidden" accept="video/*,.mp4,.mov,.webm,.m4v" />
-        <section class="video-path-card" id="videoPathSection" aria-label="Video GPS path">
-          <p class="section-title" id="videoPathTitle">Video GPS path</p>
-          <p class="video-path-sub" id="videoPathSub">For videos without embedded GPS — set start/end of the road segment</p>
-          <div class="video-path-actions">
-            <button type="button" class="video-path-btn" id="gpsStartBtn">📍 My location = path start</button>
-            <button type="button" class="video-path-btn" id="gpsEndBtn">🏁 My location = path end</button>
+
+        <div class="capture-hub">
+          <div>
+            <p class="section-title" id="captureSection">Field capture</p>
+            <div class="capture-group">
+              <div class="capture-group-title" id="photosGroupTitle">
+                <svg viewBox="0 0 24 24"><path d="M4 7V5a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v2"/><rect x="4" y="7" width="16" height="13" rx="2"/><circle cx="12" cy="13.5" r="3.2"/></svg>
+                <span id="photosGroupLabel">Photos</span>
+              </div>
+              <div class="capture-grid">
+                <label class="capture-tile capture-tile-primary" for="cameraInput" id="cameraLabel">
+                  <span class="capture-tile-icon">📷</span>
+                  <span id="cameraLabelText">Camera capture</span>
+                </label>
+                <label class="capture-tile capture-tile-photo" for="albumInput" id="albumBtn">
+                  <span class="capture-tile-icon">🖼️</span>
+                  <span id="albumLabelText">Album</span>
+                </label>
+              </div>
+              <input type="file" id="cameraInput" accept="image/*" capture="environment" />
+              <input type="file" id="albumInput" accept="image/*,.heic,.heif,.jpg,.jpeg,.png,.webp" multiple />
+            </div>
+
+            <div class="capture-group" style="margin-top:0.75rem">
+              <div class="capture-group-title" id="videoGroupTitle">
+                <svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                <span id="videoGroupLabel">Video</span>
+              </div>
+              <div class="capture-grid">
+                <label class="capture-tile capture-tile-record" for="recordVideoInput" id="recordVideoLabel">
+                  <span class="capture-tile-icon">🎥</span>
+                  <span id="recordVideoLabelText">Record</span>
+                </label>
+                <label class="capture-tile capture-tile-video" for="albumVideoInput" id="albumVideoBtn">
+                  <span class="capture-tile-icon">📁</span>
+                  <span id="albumVideoLabelText">Album</span>
+                </label>
+              </div>
+              <input type="file" id="recordVideoInput" accept="video/*,.mp4,.mov,.webm,.m4v" capture="environment" />
+              <input type="file" id="albumVideoInput" accept="video/*,.mp4,.mov,.webm,.m4v" />
+            </div>
           </div>
-          <div class="video-path-grid">
-            <input type="number" step="any" id="pathStartLat" inputmode="decimal" placeholder="Start latitude" />
-            <input type="number" step="any" id="pathStartLon" inputmode="decimal" placeholder="Start longitude" />
-            <input type="number" step="any" id="pathEndLat" inputmode="decimal" placeholder="End latitude" />
-            <input type="number" step="any" id="pathEndLon" inputmode="decimal" placeholder="End longitude" />
+
+          <div id="capturePreview" class="capture-preview hidden" aria-live="polite">
+            <div class="capture-preview-head">
+              <strong id="previewTitle">Preview</strong>
+              <span class="mobile-build-tag" style="margin:0" id="previewTypeBadge">—</span>
+            </div>
+            <div class="preview-media-wrap">
+              <img id="previewImg" alt="" class="hidden" />
+              <video id="previewVideo" class="hidden" controls playsinline muted></video>
+            </div>
+            <p class="preview-name" id="previewName"></p>
+            <div class="preview-actions">
+              <button type="button" class="btn btn-preview-cancel" id="previewCancelBtn">Cancel</button>
+              <button type="button" class="btn btn-preview-upload" id="previewUploadBtn">Upload</button>
+            </div>
           </div>
-          <p class="video-path-note" id="videoPathNote">If only start is set, frames use current location (approximate). Copy coords from Google Maps if needed.</p>
-        </section>
-        <p class="mobile-build-tag" id="mobileBuildTag">Mobile v2.1.1</p>
+
+          <details class="video-path-details" id="videoPathDetails">
+            <summary id="videoPathSummary">Video GPS path (optional)</summary>
+            <div class="video-path-inner video-path-card" id="videoPathSection">
+              <p class="video-path-sub" id="videoPathSub">For videos without embedded GPS — set start/end of the road segment</p>
+              <div class="video-path-actions">
+                <button type="button" class="video-path-btn" id="gpsStartBtn">📍 My location = path start</button>
+                <button type="button" class="video-path-btn" id="gpsEndBtn">🏁 My location = path end</button>
+              </div>
+              <div class="video-path-grid">
+                <input type="number" step="any" id="pathStartLat" inputmode="decimal" placeholder="Start latitude" />
+                <input type="number" step="any" id="pathStartLon" inputmode="decimal" placeholder="Start longitude" />
+                <input type="number" step="any" id="pathEndLat" inputmode="decimal" placeholder="End latitude" />
+                <input type="number" step="any" id="pathEndLon" inputmode="decimal" placeholder="End longitude" />
+              </div>
+              <p class="video-path-note" id="videoPathNote">If only start is set, frames use current location (approximate).</p>
+            </div>
+          </details>
+        </div>
+
+        <p class="mobile-build-tag" id="mobileBuildTag">Mobile v2.2.0</p>
         <p class="inapp-warn hidden" id="inAppWarn"></p>
         <div id="uploadOverlay" class="upload-overlay hidden" aria-live="polite">
           <div class="upload-overlay-box">
             <div class="upload-spinner"></div>
             <p id="uploadOverlayText">Processing...</p>
+            <button type="button" class="upload-cancel-btn" id="uploadCancelBtn">Cancel</button>
           </div>
         </div>
         <p id="msg"></p>
@@ -869,9 +1069,19 @@
         locFailed: "تعذّر الموقع — جرّب الألبوم أو فعّل الموقع لـ Safari",
         locInsecure: "الموقع يحتاج HTTPS — أو استخدم HTTP :8000",
         capture: "تصوير بالكاميرا",
-        album: "اختيار صور من الألبوم",
-        albumVideo: "اختيار فيديو من الألبوم",
-        recordVideo: "تسجيل فيديو بالكاميرا",
+        album: "الألبوم",
+        albumVideo: "فيديو من الألبوم",
+        recordVideo: "تسجيل فيديو",
+        photosGroup: "صور",
+        videoGroup: "فيديو",
+        previewTitle: "معاينة قبل الرفع",
+        previewUpload: "رفع الآن",
+        previewCancel: "إلغاء",
+        previewPhoto: "صورة",
+        previewVideo: "فيديو",
+        previewPhotosCount: "{n} صور",
+        videoPathSummary: "مسار GPS للفيديو (اختياري)",
+        uploadCancel: "إلغاء الرفع",
         openVideoHint: "اختر فيديو من الألبوم",
         recordVideoHint: "سجّل فيديو — يُفضّل السماح بالموقع أثناء التسجيل",
         videoPathTitle: "مسار GPS للفيديو",
@@ -947,11 +1157,21 @@
         mapScopeMine: "Showing your points only — the owner sees the full organization",
         mapScopeOwner: "Showing all organization points (platform owner)",
         reportedBy: "Reported by",
-        logout: "Logout", capture: "Camera capture", album: "Choose photos from album",
-        albumVideo: "Choose video from album",
-        recordVideo: "Record video with camera",
-        openAlbumHint: "Open album and select photos...",
-        openVideoHint: "Open album and select a video...",
+        logout: "Logout", capture: "Camera capture", album: "Album",
+        albumVideo: "Video from album",
+        recordVideo: "Record video",
+        photosGroup: "Photos",
+        videoGroup: "Video",
+        previewTitle: "Preview before upload",
+        previewUpload: "Upload now",
+        previewCancel: "Cancel",
+        previewPhoto: "Photo",
+        previewVideo: "Video",
+        previewPhotosCount: "{n} photos",
+        videoPathSummary: "Video GPS path (optional)",
+        uploadCancel: "Cancel upload",
+        openAlbumHint: "Select photos from album",
+        openVideoHint: "Select a video from album",
         recordVideoHint: "Record video — allow location while recording if possible",
         videoPathTitle: "Video GPS path",
         videoPathSub: "For videos without embedded GPS — set start/end of the road segment",
@@ -1106,18 +1326,24 @@
       const mapCard = document.getElementById("mapCardTitle");
       if (mapCard) mapCard.textContent = tr.mapCard;
       updateMapScopeHint(getAuth());
-      const camBtn = document.getElementById("cameraLabel");
-      if (camBtn) camBtn.textContent = tr.capture;
+      const camText = document.getElementById("cameraLabelText");
+      if (camText) camText.textContent = tr.capture;
       const albumText = document.getElementById("albumLabelText");
       if (albumText) albumText.textContent = tr.album;
       const albumVideoText = document.getElementById("albumVideoLabelText");
       if (albumVideoText) albumVideoText.textContent = tr.albumVideo;
-      setText("recordVideoLabel", tr.recordVideo);
-      setText("videoPathTitle", tr.videoPathTitle);
+      setText("recordVideoLabelText", tr.recordVideo);
+      setText("photosGroupLabel", tr.photosGroup);
+      setText("videoGroupLabel", tr.videoGroup);
+      setText("previewTitle", tr.previewTitle);
+      setText("previewUploadBtn", tr.previewUpload);
+      setText("previewCancelBtn", tr.previewCancel);
+      setText("videoPathSummary", tr.videoPathSummary);
       setText("videoPathSub", tr.videoPathSub);
       setText("videoPathNote", tr.videoPathNote);
       setText("gpsStartBtn", tr.gpsUseStartHere);
       setText("gpsEndBtn", tr.gpsUseEndHere);
+      setText("uploadCancelBtn", tr.uploadCancel);
       var pathStartLat = document.getElementById("pathStartLat");
       var pathStartLon = document.getElementById("pathStartLon");
       var pathEndLat = document.getElementById("pathEndLat");
@@ -1127,7 +1353,16 @@
       if (pathEndLat) pathEndLat.placeholder = tr.endLatPh;
       if (pathEndLon) pathEndLon.placeholder = tr.endLonPh;
       const buildTag = document.getElementById("mobileBuildTag");
-      if (buildTag) buildTag.textContent = "Mobile v2.1.1";
+      if (buildTag) buildTag.textContent = "Mobile v2.2.0";
+      var browserBanner = document.getElementById("browserBanner");
+      if (browserBanner) {
+        if (isInAppBrowser()) {
+          browserBanner.textContent = tr.inAppBrowserWarn;
+          browserBanner.classList.remove("hidden");
+        } else {
+          browserBanner.classList.add("hidden");
+        }
+      }
       var inApp = document.getElementById("inAppWarn");
       if (inApp) {
         if (isInAppBrowser()) {
@@ -1644,6 +1879,79 @@
       var t = (file.type || "").toLowerCase();
       var n = (file.name || "").toLowerCase();
       return t.startsWith("video/") || /\.(mp4|mov|webm|m4v|avi)$/.test(n);
+    }
+
+    var pendingCaptureFiles = null;
+    var previewObjectUrl = null;
+
+    function clearCapturePreview() {
+      if (previewObjectUrl) {
+        try { URL.revokeObjectURL(previewObjectUrl); } catch (e) {}
+      }
+      previewObjectUrl = null;
+      pendingCaptureFiles = null;
+      var preview = document.getElementById("capturePreview");
+      var img = document.getElementById("previewImg");
+      var vid = document.getElementById("previewVideo");
+      if (img) { img.src = ""; img.classList.add("hidden"); }
+      if (vid) { vid.pause(); vid.removeAttribute("src"); vid.load(); vid.classList.add("hidden"); }
+      if (preview) preview.classList.add("hidden");
+    }
+
+    function queueCapturePreview(fileList) {
+      var files = Array.prototype.slice.call(fileList || []).filter(Boolean);
+      if (!files.length) return;
+      clearCapturePreview();
+      pendingCaptureFiles = files;
+      var tr = t();
+      var preview = document.getElementById("capturePreview");
+      var img = document.getElementById("previewImg");
+      var vid = document.getElementById("previewVideo");
+      var nameEl = document.getElementById("previewName");
+      var badge = document.getElementById("previewTypeBadge");
+      var file = files[0];
+      var isVideo = isVideoFile(file);
+
+      if (nameEl) {
+        nameEl.textContent = files.length > 1 && !isVideo
+          ? tr.previewPhotosCount.replace("{n}", String(files.length))
+          : (file.name || (isVideo ? tr.previewVideo : tr.previewPhoto));
+      }
+      if (badge) badge.textContent = isVideo ? tr.previewVideo : tr.previewPhoto;
+
+      previewObjectUrl = URL.createObjectURL(file);
+      if (isVideo) {
+        if (img) img.classList.add("hidden");
+        if (vid) {
+          vid.classList.remove("hidden");
+          vid.src = previewObjectUrl;
+        }
+        var pathDetails = document.getElementById("videoPathDetails");
+        if (pathDetails) pathDetails.open = true;
+      } else {
+        if (vid) vid.classList.add("hidden");
+        if (img) {
+          img.classList.remove("hidden");
+          img.src = previewObjectUrl;
+        }
+      }
+      if (preview) {
+        preview.classList.remove("hidden");
+        preview.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      }
+      showUploadFeedback(tr.previewTitle, "ok");
+    }
+
+    async function confirmCapturePreview() {
+      if (!pendingCaptureFiles || !pendingCaptureFiles.length) return;
+      var files = pendingCaptureFiles.slice();
+      var isVideo = isVideoFile(files[0]);
+      clearCapturePreview();
+      if (files.length === 1 && !isVideo) {
+        await upload(files[0], true);
+        return;
+      }
+      await uploadAlbumFiles(files);
     }
 
     async function doUploadBatch(files, pathCoords, opts) {
@@ -2294,6 +2602,11 @@
 
     document.getElementById("logoutBtn").onclick = showLogin;
 
+    function isInAppBrowser() {
+      var ua = navigator.userAgent || "";
+      return /WhatsApp|FBAN|FBAV|Instagram|Line\//i.test(ua);
+    }
+
     CAPTURE_CONTROL_IDS.forEach(function (id) {
       var el = document.getElementById(id);
       if (!el) return;
@@ -2303,26 +2616,27 @@
           ev.stopPropagation();
           return;
         }
-        if (isInAppBrowser()) {
-          showUploadFeedback(t().inAppBrowserWarn, "warn");
-          ev.preventDefault();
-          ev.stopPropagation();
-          return;
-        }
         prefetchGpsForCapture();
       });
     });
 
+    document.getElementById("previewUploadBtn").onclick = function () {
+      confirmCapturePreview().catch(function (err) {
+        setUploadBusy(false);
+        showUploadFeedback(err && err.message ? err.message : t().uploadFail, "err");
+      });
+    };
+    document.getElementById("previewCancelBtn").onclick = clearCapturePreview;
+    document.getElementById("uploadCancelBtn").onclick = function () {
+      setUploadBusy(false);
+      showUploadFeedback(t().previewCancel, "warn");
+    };
+
     document.getElementById("cameraInput").onchange = (e) => {
       var file = e.target.files[0];
       e.target.value = "";
-      if (file) upload(file, true);
+      if (file) queueCapturePreview([file]);
     };
-
-    function isInAppBrowser() {
-      var ua = navigator.userAgent || "";
-      return /WhatsApp|FBAN|FBAV|Instagram|Line\//i.test(ua);
-    }
 
     function bindAlbumInput(inputEl) {
       if (!inputEl) return;
@@ -2334,10 +2648,7 @@
           : [];
         e.target.value = "";
         if (!picked.length) return;
-        uploadAlbumFiles(picked).catch(function (err) {
-          setUploadBusy(false);
-          showUploadFeedback(err && err.message ? err.message : t().uploadFail, "err");
-        });
+        queueCapturePreview(picked);
       });
     }
 
@@ -2385,6 +2696,14 @@
       }
     }
     setupSecureLink();
+
+    document.querySelectorAll(".brand-mark").forEach(function (img) {
+      img.addEventListener("error", function onLogoErr() {
+        if (img.dataset.fallbackApplied) return;
+        img.dataset.fallbackApplied = "1";
+        img.src = "/static/logo.png?v=5";
+      });
+    });
 
     const saved = shouldForceLoginScreen() ? null : getAuth();
     if (shouldForceLoginScreen()) {
